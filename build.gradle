@@ -1,0 +1,157 @@
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+
+buildscript {
+    repositories {
+        maven { url = 'https://files.minecraftforge.net/maven' }
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+    }
+}
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+
+version = '0.1.0'
+group = 'org.teacon'
+archivesBaseName = 'SignMeUp-Forge-1.16'
+
+sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+
+compileJava {
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+minecraft {
+    mappings channel: 'snapshot', version: '20201028-1.16.3'
+    
+    runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.console.level', 'info'
+            mods {
+                sign_up {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run_server')
+            property 'forge.logging.console.level', 'info'
+            mods {
+                sign_up {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+            property 'forge.logging.console.level', 'info'
+            args '--mod', 'sign_up', '--all', '--output', file('src/generated/resources/')
+            mods {
+                sign_up {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.16.4-35.1.0'
+}
+
+jar {
+    manifest {
+        attributes([
+            "Specification-Title": "SignMeUp",
+            "Specification-Vendor": "ustc-zzzz",
+            "Specification-Version": "1",
+            "Implementation-Title": project.name,
+            "Implementation-Version": "${version}",
+            "Implementation-Vendor": "TeaConMC",
+            "Implementation-Timestamp": DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS))
+        ])
+    }
+}
+
+jar.finalizedBy('reobfJar')
+publish.dependsOn('reobfJar')
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = "org.teacon"
+            artifactId = "SignMeUp-Forge-1.16"
+
+            artifact jar
+            pom {
+                name = 'SignMeUp for Minecraft 1.16'
+                description = 'In-game sign-up, sign-in system and more'
+                url = 'https://github.com/teaconmc/SignMeUp'
+                licenses {
+                    license {
+                        name = 'BSD-3-Clause'
+                        url = 'https://github.com/teaconmc/SignMeUp/blob/1.16-forge/LICENSE'
+                    }
+                }
+                developers {
+                    developer {
+                        id = '3TUSK'
+                        name = '3TUSK'
+                    }
+                    developer {
+                        id = 'ustc-zzzz'
+                        name = 'ustc-zzzz'
+                    }
+                }
+                issueManagement {
+                    system = 'GitHub Issues'
+                    url = 'https://github.com/teaconmc/SignMeUp/issues'
+                }
+                scm {
+                    url = 'https://github.com/teaconmc/SignMeUp'
+                    connection = 'scm:git:git://github.com/teaconmc/SignMeUp.git'
+                    developerConnection = 'scm:git:git@github.com:teaconmc/SignMeUp.git'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "archive"
+            url = "https://maven.hub.tritusk.info/releases"
+            credentials {
+                username = System.env.MAVEN_USERNAME
+                password = System.env.MAVEN_PASSWORD
+            }
+        }
+    }
+}
+
+tasks.withType(PublishToMavenRepository) {
+    onlyIf {
+        System.env.MAVEN_USERNAME && System.env.MAVEN_PASSWORD
+    }
+}
+
+/**
+ * A simple task to pass down the artifact name and path to other GitHub actions.
+ */
+task("githubActionOutput") {
+    onlyIf {
+        System.env.GITHUB_ACTIONS
+    }
+    doLast {
+        // getArchiveFile was introduced in Gradle 5.1 so we can't use it in 4.10.3
+        // https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/bundling/AbstractArchiveTask.html#getArchiveFile--
+        println "::set-output name=artifact_path::${jar.archivePath.absolutePath}"
+        println "::set-output name=artifact_name::${jar.archiveName}"
+    }
+}
