@@ -113,7 +113,7 @@ public final class GuideMap {
                         .collect(Collectors.toList());
             }
             if (json.has("triggers")) {
-                map.waypointIds = StreamSupport.stream(json.getAsJsonArray("triggers").spliterator(), false)
+                map.triggerIds = StreamSupport.stream(json.getAsJsonArray("triggers").spliterator(), false)
                         .map(JsonElement::getAsString)
                         .map(ResourceLocation::new)
                         .collect(Collectors.toList());
