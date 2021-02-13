@@ -1,0 +1,10 @@
+{
+  "sign_up.keybinding": "Sign me Up",
+  "sign_up.keybinding.open_map": "Open guide map",
+
+  "sign_me_in.map.unnamed": "New Guide Map",
+  "sign_me_in.waypoint.unnamed": "New Waypoint",
+  "sign_me_in.trigger.unnamed": "New Trigger",
+
+  "sign_up.status.no_map_available": "No maps currently available :("
+}

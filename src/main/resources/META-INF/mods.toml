@@ -1,0 +1,15 @@
+modLoader="javafml"
+loaderVersion="[35,)"
+
+license="BSD 3-Clause"
+
+[[mods]]
+modId="sign_up"
+version="${file.jarVersion}"
+displayName="Sign me Up"
+
+credits=""
+
+authors="3TUSK, ustc-zzzz"
+
+description="Sign up, sign in, in-game guide map and more"
