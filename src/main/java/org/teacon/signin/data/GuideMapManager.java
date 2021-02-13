@@ -144,8 +144,11 @@ public class GuideMapManager extends JsonReloadListener {
 
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> objects, IResourceManager manager, IProfiler profiler) {
+        this.maps.clear();
+        this.points.clear();
+        this.triggers.clear();
         profiler.startSection("SignInGuides");
-        objects.forEach(this::process); // w t f
+        objects.forEach(this::process);
         profiler.endSection();
     }
 
