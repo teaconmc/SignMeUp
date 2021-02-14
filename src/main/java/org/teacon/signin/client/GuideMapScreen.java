@@ -47,7 +47,7 @@ public class GuideMapScreen extends Screen {
         for (ResourceLocation triggerId : this.map.getTriggerIds()) {
             final Trigger trigger;
             if ((trigger = SignMeUpClient.MANAGER.findTrigger(triggerId)) != null) {
-                this.addButton(new Button(i + x, j + y, 80, 20, trigger.title,
+                this.addButton(new Button(i + x, j + y, 80, 20, trigger.getTitle(),
                         btn -> this.handleTrigger(triggerId),
                         (btn, transform, mouseX, mouseY) -> this.renderTooltip(transform, trigger.getDesc(), mouseX, mouseY))).active = false;
             }

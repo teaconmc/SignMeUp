@@ -22,6 +22,7 @@ public class PartialUpdate {
     private static final Gson GSON = new GsonBuilder().setLenient()
             .registerTypeAdapter(GuideMap.class, new GuideMap.Serializer())
             .registerTypeAdapter(Waypoint.class, new Waypoint.Serializer())
+            .registerTypeAdapter(Trigger.class, new Trigger.Serializer())
             .registerTypeHierarchyAdapter(ITextComponent.class, new ITextComponent.Serializer())
             .create();
 

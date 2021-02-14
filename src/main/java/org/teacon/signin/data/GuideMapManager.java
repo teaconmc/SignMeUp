@@ -44,6 +44,7 @@ public class GuideMapManager extends JsonReloadListener {
             .registerTypeHierarchyAdapter(ITextComponent.class, new ITextComponent.Serializer())
             .registerTypeAdapter(GuideMap.class, new GuideMap.Serializer())
             .registerTypeAdapter(Waypoint.Location.class, new Waypoint.Location.Serializer())
+            .registerTypeAdapter(Trigger.class, new Trigger.Serializer())
             .registerTypeAdapter(ResourceLocation.class, new Serializers.ResourceLocationSerializer())
             .registerTypeAdapter(Vector3i.class, new Serializers.Vec3iSerializer())
             .create();
