@@ -12,6 +12,7 @@ import org.teacon.signin.data.Trigger;
 import org.teacon.signin.data.Waypoint;
 import org.teacon.signin.network.TriggerActivation;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,10 @@ public class GuideMapScreen extends Screen {
 
     private final GuideMap map;
     private final List<Waypoint> waypoints;
+
+    private List<IReorderingProcessor> descText = Collections.emptyList();
+    private int startingLine = 0;
+
     public GuideMapScreen(GuideMap map) {
         super(map.getTitle());
         this.map = map;
@@ -31,20 +36,40 @@ public class GuideMapScreen extends Screen {
         int i = (this.width - 320) / 2;
         int j = (this.height - 180) / 2;
         int x = 170;
-        int y = 100; // TODO Button array starting height need to adjust for description height
+        int y = 30;
+        // I DISLIKE THIS METHOD BECAUSE IT FAILS TO HANDLE LINE BREAKING
+        // A proper line breaking algorithm should comply with UAX #14, link below:
+        // http://www.unicode.org/reports/tr14/
+        // However it at least get things work for now. So it is the status quo.
+        this.descText = this.font.trimStringToWidth(this.map.getDesc(), 140);
+        this.addListener(new ScrollingHandler(this, i + x, j + y, i + x + 140, j + y + 60));
+        y = 100;
         for (ResourceLocation triggerId : this.map.getTriggerIds()) {
             final Trigger trigger;
             if ((trigger = SignMeUpClient.MANAGER.findTrigger(triggerId)) != null) {
                 this.addButton(new Button(i + x, j + y, 80, 20, trigger.title,
                         btn -> this.handleTrigger(triggerId),
-                        (btn, transform, mouseX, mouseY) -> this.renderTooltip(transform, trigger.getDesc(), mouseX, mouseY)));
+                        (btn, transform, mouseX, mouseY) -> this.renderTooltip(transform, trigger.getDesc(), mouseX, mouseY))).active = false;
             }
         }
+
     }
 
     private void handleTrigger(ResourceLocation triggerId) {
         SignMeUp.channel.sendToServer(new TriggerActivation(triggerId));
         this.closeScreen();
+    }
+
+    void scrollUp() {
+        if (--this.startingLine < 0) {
+            this.startingLine = 0;
+        }
+    }
+
+    void scrollDown() {
+        if (++this.startingLine >= this.descText.size()) {
+            this.startingLine = this.descText.size() - 1;
+        }
     }
 
     @Override
@@ -58,10 +83,8 @@ public class GuideMapScreen extends Screen {
         this.minecraft.textureManager.bindTexture(this.map.texture);
         int i = (this.width - 320) / 2;
         int j = (this.height - 180) / 2;
-        transforms.push();
-        transforms.scale(0.5F, 0.5F, 0.5F);
-        this.blit(transforms, (i + 10) * 2, (j + 40) * 2, 0, 0, 256, 256);
-        transforms.pop();
+        // Who said we have to use 128 * 128 texture?
+        innerBlit(transforms, i + 10, i + 10 + 128, j + 40, j + 40 + 128, this.getBlitOffset(), 256, 256, 0F, 0F, 256, 256);
         // Vertical bar
         this.vLine(transforms, i + 150, j + 5, j+ 175, -1); // -1 aka 0xFFFFFFFF, opaque pure white
 
@@ -72,24 +95,20 @@ public class GuideMapScreen extends Screen {
         // Title, size doubled on two dimensions (total quadruple) than normal text
         transforms.push();
         transforms.scale(2F, 2F, 2F);
-        this.font.func_243248_b(transforms, this.map.getTitle(), (i + 10F) / 2, (j + 10F) / 2, 0xA0A0A0);
+        this.font.func_243248_b(transforms, this.title, (i + 10F) / 2, (j + 10F) / 2, 0xA0A0A0);
         transforms.pop();
         // Subtitle
         this.font.func_243248_b(transforms, this.map.getSubtitle(), i + 170F, j + 10F, 0xA0A0A0);
-        // I DISLIKE THIS METHOD BECAUSE IT FAILS TO HANDLE LINE BREAKING
-        // A proper line breaking algorithm should comply with UAX #14, link below:
-        // http://www.unicode.org/reports/tr14/
-        // However it at least get things work for now. So it is the status quo.
+
         int height = 30;
-        for (IReorderingProcessor text : font.trimStringToWidth(this.map.getDesc(), 140)) {
+        for (IReorderingProcessor text : this.descText.subList(this.startingLine, Math.min(this.startingLine + 6, this.descText.size()))) {
             this.font.func_238422_b_(transforms, text, i + 170F, j + height, 0xA0A0A0);
             height += 10;
         }
 
         // Horizontal bar, dividing long description and triggers
-        this.hLine(transforms, i + 160, i + 320, j + height + 5, -1);
+        this.hLine(transforms, i + 160, i + 320, j + 95, -1);
 
         super.render(transforms, mouseX, mouseY, partialTicks);
     }
-
 }
