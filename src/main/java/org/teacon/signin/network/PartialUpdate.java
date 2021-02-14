@@ -66,12 +66,16 @@ public class PartialUpdate {
         switch (this.mode) {
             case REMOVE_WAYPOINT:
                 buf.writeResourceLocation(this.waypointId);
+                break;
             case ADD_WAYPOINT:
+                buf.writeResourceLocation(this.waypointId);
                 buf.writeString(GSON.toJson(this.waypoint));
                 break;
             case REMOVE_TRIGGER:
                 buf.writeResourceLocation(this.triggerId);
+                break;
             case ADD_TRIGGER:
+                buf.writeResourceLocation(this.triggerId);
                 buf.writeString(GSON.toJson(this.trigger));
                 break;
         }

@@ -129,10 +129,10 @@ public class GuideMapManager extends JsonReloadListener {
                     final Set<ServerPlayerEntity> removal = Collections.newSetFromMap(new IdentityHashMap<>());
                     setDiff(trigger.visiblePlayers, matched, removal, update);
                     for (ServerPlayerEntity p : update) {
-                        SignMeUp.channel.sendTo(new PartialUpdate(PartialUpdate.Mode.ADD_WAYPOINT, id, trigger), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+                        SignMeUp.channel.sendTo(new PartialUpdate(PartialUpdate.Mode.ADD_TRIGGER, id, trigger), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
                     }
                     for (ServerPlayerEntity p : removal) {
-                        SignMeUp.channel.sendTo(new PartialUpdate(PartialUpdate.Mode.REMOVE_WAYPOINT, id, trigger), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+                        SignMeUp.channel.sendTo(new PartialUpdate(PartialUpdate.Mode.REMOVE_TRIGGER, id, trigger), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
                     }
                     trigger.visiblePlayers = matched;
                 } catch (CommandSyntaxException ignored) {
