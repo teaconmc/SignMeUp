@@ -66,9 +66,12 @@ public class Waypoint {
     Location location;
 
     public List<ResourceLocation> triggerIds;
-    private List<Trigger> triggers;
 
     transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
+
+    public boolean hasDynamicLocation() {
+        return location.isDynamic;
+    }
 
     public EntitySelector getSelector() {
         if (parsedSelector == null) {
