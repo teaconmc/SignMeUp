@@ -24,7 +24,6 @@ import java.util.WeakHashMap;
 public class Trigger {
 
     ITextComponent title;
-    // TODO Should be named 'description'
     ITextComponent desc;
 
     public volatile boolean disabled = false;
