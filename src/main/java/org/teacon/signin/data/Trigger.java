@@ -75,7 +75,7 @@ public class Trigger {
                     t.selector = obj.get("selector").getAsString();
                 }
                 if (obj.has("command")) {
-                    t.selector = obj.get("command").getAsString();
+                    t.command = obj.get("command").getAsString();
                 }
                 return t;
             } else {
