@@ -16,6 +16,7 @@ import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import org.teacon.signin.network.PartialUpdate;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -23,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-public class Waypoint {
+public class Waypoint implements PlayerTracker {
 
     public static final class Location {
         Vector3i actualLocation;
@@ -55,8 +56,8 @@ public class Waypoint {
         }
     }
 
-    public ITextComponent title = new TranslationTextComponent("sign_me_in.waypoint.unnamed");
-    public ITextComponent desc = StringTextComponent.EMPTY;
+    public ITextComponent title;
+    public ITextComponent desc;
 
     public volatile boolean disabled = false;
 
@@ -69,10 +70,19 @@ public class Waypoint {
 
     transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
+    public ITextComponent getTitle() {
+        return title == null ? new TranslationTextComponent("sign_me_in.waypoint.unnamed") : this.title;
+    }
+
+    public ITextComponent getDesc() {
+        return this.desc == null ? StringTextComponent.EMPTY : this.desc;
+    }
+
     public boolean hasDynamicLocation() {
         return location.isDynamic;
     }
 
+    @Override
     public EntitySelector getSelector() {
         if (parsedSelector == null) {
             try {
@@ -82,6 +92,21 @@ public class Waypoint {
             }
         }
         return parsedSelector;
+    }
+
+    @Override
+    public Set<ServerPlayerEntity> getTracking() {
+        return this.visiblePlayers;
+    }
+
+    @Override
+    public void setTracking(Set<ServerPlayerEntity> players) {
+        this.visiblePlayers = players;
+    }
+
+    @Override
+    public PartialUpdate getNotifyPacket(boolean remove, ResourceLocation id) {
+        return new PartialUpdate(remove ? PartialUpdate.Mode.REMOVE_TRIGGER : PartialUpdate.Mode.ADD_TRIGGER, id, this);
     }
 
     public static final class Serializer implements JsonDeserializer<Waypoint>, JsonSerializer<Waypoint> {

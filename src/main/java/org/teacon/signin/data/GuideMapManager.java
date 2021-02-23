@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.client.resources.JsonReloadListener;
+import net.minecraft.client.resources.JsonReloadListener; // To anyone who are shocked: yes this class exists on both side!
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.profiler.IProfiler;
 import net.minecraft.resources.IResourceManager;
@@ -23,7 +23,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
 import org.teacon.signin.SignMeUp;
-import org.teacon.signin.network.PartialUpdate;
 import org.teacon.signin.network.SyncGuideMap;
 
 import java.util.Collections;
@@ -90,57 +89,42 @@ public class GuideMapManager extends JsonReloadListener {
     public void tick(TickEvent.ServerTickEvent event) {
         if (event.side.isServer() && event.phase == TickEvent.Phase.START) {
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            this.points.forEach((id, wp) -> {
-                try {
-                    /*
-                     * So there are two sets of players:
-                     *   1. Those who can see this waypoint in previous tick
-                     *   2. Those who should see this waypoint in the next tick
-                     * There are three cases to handle:
-                     *   a. For players in both sets, nothing will happen.
-                     *      These players form the intersection of set 1 and 2.
-                     *   b. For players in set 1 but not set 2, they will receive a
-                     *      packet so the client manager will remove that waypoint.
-                     *      These players form the set diff 1 - 2.
-                     *   c. For players in set 2 but not set 1, they will receive a
-                     *      packet so the client manager will receive that waypoint.
-                     *      These players form the set diff 2 - 1.
-                     */
-                    final Set<ServerPlayerEntity> matched = Collections.newSetFromMap(new WeakHashMap<>());
-                    matched.addAll(wp.getSelector().selectPlayers(server.getCommandSource()));
-                    final Set<ServerPlayerEntity> update = Collections.newSetFromMap(new IdentityHashMap<>());
-                    final Set<ServerPlayerEntity> removal = Collections.newSetFromMap(new IdentityHashMap<>());
-                    setDiff(wp.visiblePlayers, matched, removal, update);
-                    for (ServerPlayerEntity p : update) {
-                        SignMeUp.channel.sendTo(new PartialUpdate(PartialUpdate.Mode.ADD_WAYPOINT, id, wp), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
-                    }
-                    for (ServerPlayerEntity p : removal) {
-                        SignMeUp.channel.sendTo(new PartialUpdate(PartialUpdate.Mode.REMOVE_WAYPOINT, id, wp), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
-                    }
-                    wp.visiblePlayers = matched;
-                } catch (CommandSyntaxException ignored) {
-                    // tfw entity selector requires some permission level...
-                }
-            });
-            this.triggers.forEach((id, trigger) -> {
-                try {
-                    final Set<ServerPlayerEntity> matched = Collections.newSetFromMap(new WeakHashMap<>());
-                    matched.addAll(trigger.getSelector().selectPlayers(server.getCommandSource()));
-                    final Set<ServerPlayerEntity> update = Collections.newSetFromMap(new IdentityHashMap<>());
-                    final Set<ServerPlayerEntity> removal = Collections.newSetFromMap(new IdentityHashMap<>());
-                    setDiff(trigger.visiblePlayers, matched, removal, update);
-                    for (ServerPlayerEntity p : update) {
-                        SignMeUp.channel.sendTo(new PartialUpdate(PartialUpdate.Mode.ADD_TRIGGER, id, trigger), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
-                    }
-                    for (ServerPlayerEntity p : removal) {
-                        SignMeUp.channel.sendTo(new PartialUpdate(PartialUpdate.Mode.REMOVE_TRIGGER, id, trigger), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
-                    }
-                    trigger.visiblePlayers = matched;
-                } catch (CommandSyntaxException ignored) {
-                    // tfw entity selector requires some permission level...
-                }
-            });
+            this.points.forEach((id, wp) -> tickOne(id, wp, server));
+            this.triggers.forEach((id, trigger) -> tickOne(id, trigger, server));
         }
+    }
+
+    private static void tickOne(ResourceLocation id, PlayerTracker trackingComponent, MinecraftServer server) {
+        /*
+         * So there are two sets of players:
+         *   1. Those who can see this waypoint in previous tick
+         *   2. Those who should see this waypoint in the next tick
+         * There are three cases to handle:
+         *   a. For players in both sets, nothing will happen.
+         *      These players form the intersection of set 1 and 2.
+         *   b. For players in set 1 but not set 2, they will receive a
+         *      packet so the client manager will remove that waypoint.
+         *      These players form the set diff 1 - 2.
+         *   c. For players in set 2 but not set 1, they will receive a
+         *      packet so the client manager will receive that waypoint.
+         *      These players form the set diff 2 - 1.
+         */
+        final Set<ServerPlayerEntity> matched = Collections.newSetFromMap(new WeakHashMap<>());
+        try {
+            matched.addAll(trackingComponent.getSelector().selectPlayers(server.getCommandSource()));
+        } catch (CommandSyntaxException e) {
+            return;
+        }
+        final Set<ServerPlayerEntity> update = Collections.newSetFromMap(new IdentityHashMap<>());
+        final Set<ServerPlayerEntity> removal = Collections.newSetFromMap(new IdentityHashMap<>());
+        setDiff(trackingComponent.getTracking(), matched, removal, update);
+        for (ServerPlayerEntity p : update) {
+            SignMeUp.channel.sendTo(trackingComponent.getNotifyPacket(false, id), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+        }
+        for (ServerPlayerEntity p : removal) {
+            SignMeUp.channel.sendTo(trackingComponent.getNotifyPacket(true, id), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+        }
+        trackingComponent.setTracking(matched);
     }
 
     @Override

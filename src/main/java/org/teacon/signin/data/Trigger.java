@@ -13,15 +13,17 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.arguments.EntitySelector;
 import net.minecraft.command.arguments.EntitySelectorParser;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import org.teacon.signin.network.PartialUpdate;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-public class Trigger {
+public class Trigger implements PlayerTracker {
 
     ITextComponent title;
     ITextComponent desc;
@@ -43,6 +45,7 @@ public class Trigger {
         return this.desc == null ? this.getTitle() : this.desc;
     }
 
+    @Override
     public EntitySelector getSelector() {
         if (parsedSelector == null) {
             try {
@@ -52,6 +55,25 @@ public class Trigger {
             }
         }
         return parsedSelector;
+    }
+
+    public boolean isVisibleTo(ServerPlayerEntity p) {
+        return this.visiblePlayers.contains(p);
+    }
+
+    @Override
+    public Set<ServerPlayerEntity> getTracking() {
+        return this.visiblePlayers;
+    }
+
+    @Override
+    public void setTracking(Set<ServerPlayerEntity> players) {
+        this.visiblePlayers = players;
+    }
+
+    @Override
+    public PartialUpdate getNotifyPacket(boolean remove, ResourceLocation id) {
+        return new PartialUpdate(remove ? PartialUpdate.Mode.REMOVE_TRIGGER : PartialUpdate.Mode.ADD_TRIGGER, id, this);
     }
 
     public static final class Serializer implements JsonDeserializer<Trigger>, JsonSerializer<Trigger> {
