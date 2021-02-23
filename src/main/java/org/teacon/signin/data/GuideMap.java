@@ -75,13 +75,13 @@ public final class GuideMap {
             }
             final JsonObject json = src.getAsJsonObject();
             if (json.has("title")) {
-                map.title = ITextComponent.Serializer.getComponentFromJson(json.get("title"));
+                map.title = context.deserialize(json.get("title"), ITextComponent.class);
             }
             if (json.has("subtitle")) {
-                map.subtitle = ITextComponent.Serializer.getComponentFromJson(json.get("subtitle"));
+                map.subtitle = context.deserialize(json.get("subtitle"), ITextComponent.class);
             }
             if (json.has("description")) {
-                map.desc = ITextComponent.Serializer.getComponentFromJson(json.get("description"));
+                map.desc = context.deserialize(json.get("description"), ITextComponent.class);
             }
             if (json.has("center")) {
                 map.center = context.deserialize(json.get("center"), Vector3i.class);
