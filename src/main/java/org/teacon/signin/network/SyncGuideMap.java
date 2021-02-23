@@ -25,24 +25,13 @@ public class SyncGuideMap {
 
     private static final Gson GSON = new GsonBuilder().setLenient()
             .registerTypeAdapter(GuideMap.class, new GuideMap.Serializer())
-            .registerTypeAdapter(Waypoint.class, new Waypoint.Serializer())
-            .registerTypeAdapter(Trigger.class, new Trigger.Serializer())
             .registerTypeHierarchyAdapter(ITextComponent.class, new ITextComponent.Serializer())
             .create();
 
     private final SortedMap<ResourceLocation, GuideMap> maps;
-    private final Map<ResourceLocation, Waypoint> waypoints = new HashMap<>();
-    private final Map<ResourceLocation, Trigger> triggers = new HashMap<>();
 
     public SyncGuideMap(SortedMap<ResourceLocation, GuideMap> mapsToSend) {
-        for (GuideMap map : (this.maps = mapsToSend).values()) {
-            for (ResourceLocation waypointId : map.getWaypointIds()) {
-                this.waypoints.put(waypointId, SignMeUp.MANAGER.findWaypoint(waypointId));
-            }
-            for (ResourceLocation triggerId : map.getTriggerIds()) {
-                this.triggers.put(triggerId, SignMeUp.MANAGER.findTrigger(triggerId));
-            }
-        }
+        this.maps = mapsToSend;
     }
 
     public SyncGuideMap(PacketBuffer buf) {
@@ -50,9 +39,7 @@ public class SyncGuideMap {
         try {
             final String src = new String(buf.readByteArray(), StandardCharsets.UTF_8);
             final JsonObject json = GSON.fromJson(src, JsonObject.class);
-            json.getAsJsonObject("maps").entrySet().forEach(e -> SyncGuideMap.accept(e, GuideMap.class, this.maps));
-            json.getAsJsonObject("waypoints").entrySet().forEach(e -> SyncGuideMap.accept(e, Waypoint.class, this.waypoints));
-            json.getAsJsonObject("triggers").entrySet().forEach(e -> SyncGuideMap.accept(e, Trigger.class, this.triggers));
+            json.entrySet().forEach(e -> SyncGuideMap.accept(e, GuideMap.class, this.maps));
         } catch (Exception ignored) {
             ignored.printStackTrace(System.err);
         }
@@ -63,18 +50,13 @@ public class SyncGuideMap {
     }
 
     public void write(PacketBuffer buf) {
-        final JsonObject json = new JsonObject();
-        json.add("maps", GSON.toJsonTree(this.maps));
-        json.add("waypoints", GSON.toJsonTree(this.waypoints));
-        json.add("triggers", GSON.toJsonTree(this.triggers));
-        final String payload = GSON.toJson(json); //.getBytes(StandardCharsets.UTF_8);
-        buf.writeByteArray(payload.getBytes(StandardCharsets.UTF_8));
+        buf.writeByteArray(GSON.toJson(this.maps).getBytes(StandardCharsets.UTF_8));
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextGetter) {
         // acceptUpdateFromServer has been marked with synchronized keyword,
         // thus we can do this directly on the netty worker thread.
-        SignMeUpClient.MANAGER.acceptUpdateFromServer(this.maps, this.waypoints, this.triggers);
+        SignMeUpClient.MANAGER.acceptUpdateFromServer(this.maps);
         contextGetter.get().setPacketHandled(true);
     }
 

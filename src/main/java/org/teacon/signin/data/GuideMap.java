@@ -42,9 +42,6 @@ public final class GuideMap {
     List<ResourceLocation> waypointIds = Collections.emptyList();
     List<ResourceLocation> triggerIds = Collections.emptyList();
 
-    private List<Waypoint> waypoints;
-    private List<Trigger> triggers;
-
     public ITextComponent getTitle() {
         return this.title != null ? this.title : new TranslationTextComponent("sign_me_in.map.unnamed");
     }
@@ -55,10 +52,6 @@ public final class GuideMap {
 
     public ITextComponent getDesc() {
         return this.desc != null ? this.desc : StringTextComponent.EMPTY;
-    }
-
-    public void setSubtitle(ITextComponent newSubtitle) {
-        this.subtitle = newSubtitle;
     }
 
     public List<ResourceLocation> getWaypointIds() {
@@ -85,7 +78,7 @@ public final class GuideMap {
                 map.title = ITextComponent.Serializer.getComponentFromJson(json.get("title"));
             }
             if (json.has("subtitle")) {
-                map.setSubtitle(ITextComponent.Serializer.getComponentFromJson(json.get("subtitle")));
+                map.subtitle = ITextComponent.Serializer.getComponentFromJson(json.get("subtitle"));
             }
             if (json.has("description")) {
                 map.desc = ITextComponent.Serializer.getComponentFromJson(json.get("description"));

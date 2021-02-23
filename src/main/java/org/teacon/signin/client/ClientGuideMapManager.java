@@ -8,21 +8,18 @@ import org.teacon.signin.data.Trigger;
 import org.teacon.signin.data.Waypoint;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 
 public class ClientGuideMapManager {
 
     private SortedMap<ResourceLocation, GuideMap> availableMaps = Collections.emptySortedMap();
-    private Map<ResourceLocation, Waypoint> availableWaypoints = Collections.emptyMap();
-    private Map<ResourceLocation, Trigger> availableTriggers = Collections.emptyMap();
+    private final Map<ResourceLocation, Waypoint> availableWaypoints = new HashMap<>();
+    private final Map<ResourceLocation, Trigger> availableTriggers = new HashMap<>();
 
-    public synchronized void acceptUpdateFromServer(SortedMap<ResourceLocation, GuideMap> maps,
-                                                    Map<ResourceLocation, Waypoint> waypoints,
-                                                    Map<ResourceLocation, Trigger> triggers) {
+    public synchronized void acceptUpdateFromServer(SortedMap<ResourceLocation, GuideMap> maps) {
         this.availableMaps = maps;
-        this.availableWaypoints = waypoints;
-        this.availableTriggers = triggers;
     }
 
     public GuideMap nearestTo(ClientPlayerEntity player) {
