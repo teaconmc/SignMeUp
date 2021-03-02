@@ -106,7 +106,7 @@ public class Waypoint implements PlayerTracker {
 
     @Override
     public PartialUpdate getNotifyPacket(boolean remove, ResourceLocation id) {
-        return new PartialUpdate(remove ? PartialUpdate.Mode.REMOVE_TRIGGER : PartialUpdate.Mode.ADD_TRIGGER, id, this);
+        return new PartialUpdate(remove ? PartialUpdate.Mode.REMOVE_WAYPOINT : PartialUpdate.Mode.ADD_WAYPOINT, id, this);
     }
 
     public static final class Serializer implements JsonDeserializer<Waypoint>, JsonSerializer<Waypoint> {
