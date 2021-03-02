@@ -37,6 +37,9 @@ minecraft {
                 sign_up {
                     source sourceSets.main
                 }
+                sign_up_test {
+                    source sourceSets.test
+                }
             }
         }
 
@@ -46,6 +49,9 @@ minecraft {
             mods {
                 sign_up {
                     source sourceSets.main
+                }
+                sign_up_test {
+                    source sourceSets.test
                 }
             }
         }

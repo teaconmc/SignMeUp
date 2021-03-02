@@ -1,0 +1,22 @@
+modLoader="javafml"
+loaderVersion="[35,)"
+
+license="BSD 3-Clause"
+
+[[mods]]
+modId="sign_up_test"
+version="${file.jarVersion}"
+displayName="Sign-me-Up Test Suit"
+
+credits=""
+
+authors="3TUSK, ustc-zzzz"
+
+description="Test suit for Sign-me-Up mod."
+
+[[dependencies.sign_up_test]]
+    modId = "sign_up"
+    mandatory = true
+    versionRange = "*"
+    ordering = "NONE"
+    side = "BOTH"

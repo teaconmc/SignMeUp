@@ -1,0 +1,6 @@
+{
+  "type": "point",
+  "selector": "@e[gamemode=creative]",
+  "location": "dynamic",
+  "triggers": []
+}

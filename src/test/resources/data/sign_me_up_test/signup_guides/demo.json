@@ -1,0 +1,12 @@
+{
+  "type": "map",
+  "title": { "text": "Example Map" },
+  "subtitle": { "text": "A demo guide map"},
+  "description": "If you see this, it means that you have successfully created a guide map. Refer to documents for more tricks on how to customize this. Notice that this part also supports mouse scrolling! Try scrolling up and down to see the effect on its long text handling.",
+  "range": 64,
+  "center": [ 0, 0 ],
+  "world": "minecraft:overworld",
+  "texture": "sign_up:textures/logo.png",
+  "points": [],
+  "triggers": [ "sign_up:greeting" ]
+}
