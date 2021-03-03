@@ -137,7 +137,7 @@ public final class GuideMap {
                 json.add("texture", new JsonPrimitive(src.texture.toString()));
             }
             if (src.waypointIds != null && !src.waypointIds.isEmpty()) {
-                json.add("waypoints", src.waypointIds.stream()
+                json.add("points", src.waypointIds.stream()
                         .map(ResourceLocation::toString)
                         .collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
             }
