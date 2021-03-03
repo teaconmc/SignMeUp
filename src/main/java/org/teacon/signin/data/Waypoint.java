@@ -44,7 +44,7 @@ public class Waypoint implements PlayerTracker {
                     return loc;
                 } else if (json.isJsonObject()) {
                     final JsonObject locations = json.getAsJsonObject();
-                    loc.actualLocation = context.deserialize(locations.get("actual"), Vector3i.class);
+                    loc.renderLocation = loc.actualLocation = context.deserialize(locations.get("actual"), Vector3i.class);
                     if (locations.has("render")) {
                         loc.renderLocation = context.deserialize(locations.get("render"), Vector3i.class);
                     }
@@ -80,6 +80,14 @@ public class Waypoint implements PlayerTracker {
 
     public boolean hasDynamicLocation() {
         return location.isDynamic;
+    }
+
+    public Vector3i getRenderLocation() {
+        return location.getRenderLocation();
+    }
+
+    public List<ResourceLocation> getTriggerIds() {
+        return this.triggerIds;
     }
 
     @Override
