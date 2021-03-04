@@ -14,11 +14,12 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.network.NetworkDirection;
 import org.teacon.signin.SignMeUp;
-import org.teacon.signin.client.GuideMapScreen;
 import org.teacon.signin.data.DynamicLocationStorage;
 import org.teacon.signin.data.GuideMap;
 import org.teacon.signin.data.Waypoint;
+import org.teacon.signin.network.MapScreenPacket;
 
 /**
  * This class contains command execution implementations
@@ -37,12 +38,13 @@ public class CommandImpl {
         }
     }
 
-    public static int openSpecificMap(CommandContext<CommandSource> context) {
+    public static int openSpecificMap(CommandContext<CommandSource> context) throws CommandSyntaxException {
         CommandSource src = context.getSource();
+        ServerPlayerEntity player = context.getSource().asPlayer();
         final ResourceLocation id = context.getArgument("id", ResourceLocation.class);
         GuideMap map = SignMeUp.MANAGER.findMap(id);
         if (map != null) {
-            Minecraft.getInstance().displayGuiScreen(new GuideMapScreen(map));
+            SignMeUp.channel.sendTo(new MapScreenPacket(id), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendErrorMessage(new StringTextComponent("Error: map " + id + " does not exist"));
@@ -70,7 +72,7 @@ public class CommandImpl {
         }
 
         if (map != null) {
-            mc.displayGuiScreen(new GuideMapScreen(map));
+            SignMeUp.channel.sendTo(new MapScreenPacket(SignMeUp.MANAGER.findId(map)), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendErrorMessage(new StringTextComponent("Error: No maps currently available :( You might be outside of map range"));

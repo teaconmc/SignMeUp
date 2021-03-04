@@ -1,17 +1,14 @@
 {
   "type": "map",
-  "title": { "text": "Alfheim Map" },
-  "subtitle": { "text": "Another demo guide map"},
+  "title": { "text": "Gensokyo Map" },
+  "subtitle": { "text": "Hi, Earthlings..."},
   "description": "If you see this, it means that you have successfully created a guide map. Refer to documents for more tricks on how to customize this. Notice that this part also supports mouse scrolling! Try scrolling up and down to see the effect on its long text handling.",
   "range": 64,
-  "center": [ 0, 0 ],
+  "center": [ 96, 0 ],
   "world": "minecraft:overworld",
   "texture": "sign_up:textures/logo.png",
   "points": [
-    "sign_up_test:point_1",
-    "sign_up_test:point_2",
-    "sign_up_test:point_3",
-    "sign_up_test:point_4"
+    "sign_up_test:point_5"
   ],
   "triggers": [ "sign_up_test:greeting" ]
 }

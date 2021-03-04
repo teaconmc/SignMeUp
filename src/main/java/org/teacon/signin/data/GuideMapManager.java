@@ -167,6 +167,16 @@ public class GuideMapManager extends JsonReloadListener {
         return this.maps.get(mapId);
     }
 
+    public ResourceLocation findId(GuideMap map) {
+        ResourceLocation id = null;
+        for (Map.Entry<ResourceLocation, GuideMap> entry: this.maps.entrySet()) {
+            if (entry.getValue().equals(map)) {
+                id = entry.getKey();
+            }
+        }
+        return id;
+    }
+
     public Collection<GuideMap> getAllMaps() {
         return this.maps.values();
     }

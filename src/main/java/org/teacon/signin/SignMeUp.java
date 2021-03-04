@@ -21,6 +21,7 @@ import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 import org.teacon.signin.command.CommandImpl;
 import org.teacon.signin.data.*;
+import org.teacon.signin.network.MapScreenPacket;
 import org.teacon.signin.network.PartialUpdate;
 import org.teacon.signin.network.SyncGuideMap;
 import org.teacon.signin.network.TriggerActivation;
@@ -47,6 +48,7 @@ public class SignMeUp {
         channel.registerMessage(0, SyncGuideMap.class, SyncGuideMap::write, SyncGuideMap::new, SyncGuideMap::handle);
         channel.registerMessage(1, PartialUpdate.class, PartialUpdate::write, PartialUpdate::new, PartialUpdate::handle);
         channel.registerMessage(2, TriggerActivation.class, TriggerActivation::write, TriggerActivation::new, TriggerActivation::handle);
+        channel.registerMessage(3, MapScreenPacket.class, MapScreenPacket::write, MapScreenPacket::new, MapScreenPacket::handle);
     }
 
     @SubscribeEvent
