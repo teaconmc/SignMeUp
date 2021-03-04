@@ -1,13 +1,6 @@
 package org.teacon.signin.data;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.*;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.arguments.EntitySelector;
@@ -25,17 +18,13 @@ import java.util.WeakHashMap;
 
 public class Trigger implements PlayerTracker {
 
+    public volatile boolean disabled = false;
+    public String command = "/me successfully created a new trigger";
     ITextComponent title;
     ITextComponent desc;
-
-    public volatile boolean disabled = false;
-
     String selector = "@e";
-    private transient EntitySelector parsedSelector;
-
-    public String command = "/me successfully created a new trigger";
-
     transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
+    private transient EntitySelector parsedSelector;
 
     public ITextComponent getTitle() {
         return this.title == null ? new TranslationTextComponent("sign_me_in.trigger.unnamed") : this.title;

@@ -1,15 +1,6 @@
 package org.teacon.signin.data;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.*;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
@@ -28,17 +19,14 @@ import java.util.stream.StreamSupport;
 
 public final class GuideMap {
 
-    ITextComponent title;
-    ITextComponent subtitle;
-    ITextComponent desc;
-
     public int range = 256;
     public Vector3i center;
     public ResourceLocation dim = null;
-
     // TODO Actually ensure the missing texture exists
     public ResourceLocation texture = new ResourceLocation("minecraft", "missing");
-
+    ITextComponent title;
+    ITextComponent subtitle;
+    ITextComponent desc;
     List<ResourceLocation> waypointIds = Collections.emptyList();
     List<ResourceLocation> triggerIds = Collections.emptyList();
 
