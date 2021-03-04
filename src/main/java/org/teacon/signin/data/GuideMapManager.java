@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.client.resources.JsonReloadListener; // To anyone who are shocked: yes this class exists on both side!
+import net.minecraft.client.resources.JsonReloadListener;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.profiler.IProfiler;
 import net.minecraft.resources.IResourceManager;
@@ -167,7 +167,7 @@ public class GuideMapManager extends JsonReloadListener {
         return this.maps.get(mapId);
     }
 
-    public ResourceLocation findId(GuideMap map) {
+    public ResourceLocation findMapId(GuideMap map) {
         ResourceLocation id = null;
         for (Map.Entry<ResourceLocation, GuideMap> entry: this.maps.entrySet()) {
             if (entry.getValue().equals(map)) {
@@ -175,6 +175,14 @@ public class GuideMapManager extends JsonReloadListener {
             }
         }
         return id;
+    }
+
+    public Collection<Waypoint> getAllWaypoints() {
+        return this.points.values();
+    }
+
+    public Collection<Trigger> getAllTriggers() {
+        return this.triggers.values();
     }
 
     public Collection<GuideMap> getAllMaps() {

@@ -20,7 +20,9 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 import org.teacon.signin.command.CommandImpl;
-import org.teacon.signin.data.*;
+import org.teacon.signin.data.DynamicLocationStorage;
+import org.teacon.signin.data.GuideMapManager;
+import org.teacon.signin.data.Trigger;
 import org.teacon.signin.network.MapScreenPacket;
 import org.teacon.signin.network.PartialUpdate;
 import org.teacon.signin.network.SyncGuideMap;
@@ -66,7 +68,10 @@ public class SignMeUp {
                                         .executes(CommandImpl::openSpecificMap))
                                 .executes(CommandImpl::openNearestMap)))
                 .then(Commands.literal("point")
-                        .then(Commands.literal("list").executes(CommandImpl::listWaypoints))
+                        .then(Commands.literal("list")
+                                .then(Commands.literal("location")
+                                        .executes(CommandImpl::listWaypointPos))
+                                .executes(CommandImpl::listWaypoints))
                         .then(Commands.literal("get")
                                 .then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
                                         .then(Commands.literal("location")

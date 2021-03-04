@@ -1,6 +1,6 @@
 {
   "type": "point",
-  "title": "Test Point 4",
+  "title": "Test Point 5",
   "selector": "@e[gamemode=creative]",
   "location": {
     "actual": [ 96, 0, 0 ]

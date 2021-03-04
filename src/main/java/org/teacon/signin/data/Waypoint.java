@@ -1,14 +1,6 @@
 package org.teacon.signin.data;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.*;
 import com.mojang.brigadier.StringReader;
 import net.minecraft.command.arguments.EntitySelector;
 import net.minecraft.command.arguments.EntitySelectorParser;
@@ -104,6 +96,10 @@ public class Waypoint implements PlayerTracker {
 
     public Vector3i getRenderLocation() {
         return location.getRenderLocation();
+    }
+
+    public Vector3i getActualLocation() {
+        return location.actualLocation;
     }
 
     public List<ResourceLocation> getTriggerIds() {

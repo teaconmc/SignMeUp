@@ -21,6 +21,9 @@ import org.teacon.signin.data.GuideMap;
 import org.teacon.signin.data.Waypoint;
 import org.teacon.signin.network.MapScreenPacket;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+
 /**
  * This class contains command execution implementations
  */
@@ -34,6 +37,7 @@ public class CommandImpl {
             }
             return Command.SINGLE_SUCCESS;
         } else {
+            new StringTextComponent("Error: no map exists");
             return -1;
         }
     }
@@ -44,6 +48,8 @@ public class CommandImpl {
         final ResourceLocation id = context.getArgument("id", ResourceLocation.class);
         GuideMap map = SignMeUp.MANAGER.findMap(id);
         if (map != null) {
+            // Here we have to send a packet to client side
+            // for rendering the map GUI
             SignMeUp.channel.sendTo(new MapScreenPacket(id), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
@@ -72,22 +78,57 @@ public class CommandImpl {
         }
 
         if (map != null) {
-            SignMeUp.channel.sendTo(new MapScreenPacket(SignMeUp.MANAGER.findId(map)), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+            // Same packet as above
+            SignMeUp.channel.sendTo(new MapScreenPacket(SignMeUp.MANAGER.findMapId(map)), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendErrorMessage(new StringTextComponent("Error: No maps currently available :( You might be outside of map range"));
+            src.sendErrorMessage(new StringTextComponent("Error: No maps currently available :( or you might be outside of map range"));
             return -1;
         }
     }
 
-    public static int listWaypoints(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new StringTextComponent("WIP :("), false);
-        return Command.SINGLE_SUCCESS;
+    public static int listWaypoints(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        CommandSource src = context.getSource();
+        ServerPlayerEntity player = src.asPlayer();
+        if (SignMeUp.MANAGER.getAllWaypoints().size() != 0) {
+            src.sendFeedback(new TranslationTextComponent("sign_up.text.list_points"), false);
+            for (Waypoint waypoint : SignMeUp.MANAGER.getAllWaypoints()) {
+                DecimalFormat df = new DecimalFormat("0.00");
+                df.setRoundingMode(RoundingMode.HALF_UP);
+                src.sendFeedback(new StringTextComponent(" - ").append(waypoint.getTitle()).appendString("\n   " + "Distance: " + df.format(waypoint.getActualLocation().distanceSq(player.getPosition())) + " blocks away"), false);
+            }
+            return Command.SINGLE_SUCCESS;
+        } else {
+            new StringTextComponent("Error: no waypoint exists");
+            return -1;
+        }
+    }
+
+    public static int listWaypointPos(CommandContext<CommandSource> context) {
+        CommandSource src = context.getSource();
+        if (SignMeUp.MANAGER.getAllWaypoints().size() != 0) {
+            src.sendFeedback(new TranslationTextComponent("sign_up.text.list_points"), false);
+            for (Waypoint waypoint : SignMeUp.MANAGER.getAllWaypoints()) {
+                src.sendFeedback(new StringTextComponent(" - ").append(waypoint.getTitle()).appendString("\n   " + "Render Location: " + waypoint.getRenderLocation().getCoordinatesAsString() + "\n   " + "Actual Location: " + waypoint.getActualLocation().getCoordinatesAsString()), false);
+            }
+            return Command.SINGLE_SUCCESS;
+        } else {
+            new StringTextComponent("Error: no waypoint exists");
+            return -1;
+        }
     }
 
     public static int getWaypointPos(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new StringTextComponent("WIP :("), false);
-        return Command.SINGLE_SUCCESS;
+        CommandSource src = context.getSource();
+        final ResourceLocation id = context.getArgument("id", ResourceLocation.class);
+        Waypoint waypoint = SignMeUp.MANAGER.findWaypoint(id);
+        if (waypoint != null) {
+            src.sendFeedback(new StringTextComponent(" - ").append(waypoint.getTitle()).appendString("\n   " + "Render Location: " + waypoint.getRenderLocation().getCoordinatesAsString() + "\n   " + "Actual Location: " + waypoint.getActualLocation().getCoordinatesAsString()), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendErrorMessage(new StringTextComponent("Error: waypoint " + id + " does not exist"));
+            return -1;
+        }
     }
 
     public static int setWaypointActualPos(CommandContext<CommandSource> context) {
