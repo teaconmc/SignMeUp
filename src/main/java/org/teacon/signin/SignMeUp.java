@@ -2,16 +2,23 @@ package org.teacon.signin;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Function4;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.BlockPosArgument;
 import net.minecraft.command.arguments.ResourceLocationArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.Dimension;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.CapabilityManager;
@@ -24,10 +31,9 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
-import org.teacon.signin.data.DynamicLocationStorage;
-import org.teacon.signin.data.GuideMapManager;
-import org.teacon.signin.data.Trigger;
-import org.teacon.signin.data.Waypoint;
+import org.teacon.signin.client.GuideMapScreen;
+import org.teacon.signin.client.SignMeUpClient;
+import org.teacon.signin.data.*;
 import org.teacon.signin.network.PartialUpdate;
 import org.teacon.signin.network.SyncGuideMap;
 import org.teacon.signin.network.TriggerActivation;
@@ -90,19 +96,57 @@ public class SignMeUp {
     }
 
     private static int listMaps(CommandContext<CommandSource> context) {
-        //TODO
-        context.getSource().sendFeedback(new StringTextComponent("WIP :("), false);
-        return Command.SINGLE_SUCCESS;
+        CommandSource src = context.getSource();
+        if (MANAGER.getAllMaps().size() != 0) {
+            for (GuideMap map : MANAGER.getAllMaps()) {
+                src.sendFeedback(new TranslationTextComponent("sign_up.text.list_maps"), false);
+                src.sendFeedback(map.getTitle(), false);
+            }
+            return Command.SINGLE_SUCCESS;
+        } else {
+            return -1;
+        }
     }
 
     private static int openSpecificMap(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new StringTextComponent("WIP :("), false);
-        return Command.SINGLE_SUCCESS;
+        CommandSource src = context.getSource();
+        final ResourceLocation id = context.getArgument("id", ResourceLocation.class);
+        GuideMap map = MANAGER.findMap(id);
+        if (map != null) {
+            Minecraft.getInstance().displayGuiScreen(new GuideMapScreen(map));
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendErrorMessage(new StringTextComponent("Error: map " + id + " does not exist"));
+            return -1;
+        }
     }
 
-    private static int openNearestMap(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new StringTextComponent("WIP :("), false);
-        return Command.SINGLE_SUCCESS;
+    private static int openNearestMap(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        CommandSource src = context.getSource();
+        Minecraft mc = Minecraft.getInstance();
+        ServerPlayerEntity player = src.asPlayer();
+        RegistryKey<World> worldKey = src.getWorld().getDimensionKey();
+        GuideMap map = null;
+
+        // We first check the dimension
+        if (src.asPlayer().world.getDimensionKey() == worldKey) {
+            // Then we look for the nearest in-range map
+            for (GuideMap guideMap : MANAGER.getAllMaps()) {
+                final Vector3d destination = Vector3d.copyCenteredWithVerticalOffset(guideMap.center, player.getPosY());
+                if (player.getPosition().withinDistance(destination, guideMap.range)) {
+                    map = guideMap;
+                    break; // Escape from the loop if we find one...
+                }
+            }
+        }
+
+        if (map != null) {
+            mc.displayGuiScreen(new GuideMapScreen(map));
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendErrorMessage(new StringTextComponent("Error: No maps currently available :( You might be outside of map range"));
+            return -1;
+        }
     }
 
     private static int listWaypoints(CommandContext<CommandSource> context) {

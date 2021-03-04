@@ -25,14 +25,7 @@ import org.apache.logging.log4j.MarkerManager;
 import org.teacon.signin.SignMeUp;
 import org.teacon.signin.network.SyncGuideMap;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.WeakHashMap;
+import java.util.*;
 
 public class GuideMapManager extends JsonReloadListener {
 
@@ -170,5 +163,12 @@ public class GuideMapManager extends JsonReloadListener {
         return this.triggers.get(triggerId);
     }
 
+    public GuideMap findMap(ResourceLocation mapId) {
+        return this.maps.get(mapId);
+    }
+
+    public Collection<GuideMap> getAllMaps() {
+        return this.maps.values();
+    }
 
 }

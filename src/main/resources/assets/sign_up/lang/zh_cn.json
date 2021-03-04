@@ -7,5 +7,7 @@
   "sign_me_in.waypoint.distance": "这个点距离你的直线距离为 %1$s 方块",
   "sign_me_in.trigger.unnamed": "新的触发器",
   
-  "sign_up.status.no_map_available": "没有可供查看的导引图 :("
+  "sign_up.status.no_map_available": "没有可供查看的导引图 :( 您可能在导引图范围之外",
+
+  "sign_up.text.list_maps": "引导图列表: "
 }
