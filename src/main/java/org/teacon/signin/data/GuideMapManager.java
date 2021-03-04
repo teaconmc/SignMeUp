@@ -42,9 +42,9 @@ public class GuideMapManager extends JsonReloadListener {
     private static final Gson GSON = new GsonBuilder().setLenient()
             .registerTypeHierarchyAdapter(ITextComponent.class, new ITextComponent.Serializer())
             .registerTypeAdapter(GuideMap.class, new GuideMap.Serializer())
+            .registerTypeAdapter(Waypoint.class, new Waypoint.Serializer())
             .registerTypeAdapter(Waypoint.Location.class, new Waypoint.Location.Serializer())
             .registerTypeAdapter(Trigger.class, new Trigger.Serializer())
-            .registerTypeAdapter(ResourceLocation.class, new Serializers.ResourceLocationSerializer())
             .registerTypeAdapter(Vector3i.class, new Serializers.Vec3iSerializer())
             .create();
 
