@@ -1,0 +1,38 @@
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea/
+
+# gradle
+.gradle/
+build/
+out/
+classes/
+
+# vscode
+
+.settings/
+.vscode/
+bin/
+
+# mc
+
+eclipse/
+run/
+run_server/
+logs/
+remappedSrc/
+
+# apple
+
+**/.DS_Store
