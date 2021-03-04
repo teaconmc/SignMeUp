@@ -4,22 +4,32 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.client.gui.widget.button.ImageButton;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.vector.Vector3i;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import org.teacon.signin.SignMeUp;
 import org.teacon.signin.data.GuideMap;
 import org.teacon.signin.data.Trigger;
 import org.teacon.signin.data.Waypoint;
 import org.teacon.signin.network.TriggerActivation;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 public class GuideMapScreen extends Screen {
 
+    private static final ResourceLocation MAP_ICONS = new ResourceLocation("minecraft", "textures/map/map_icons.png");
+
     private final GuideMap map;
-    private final List<Waypoint> waypoints;
+    private final List<ResourceLocation> waypointIds;
+    private final List<Consumer<ResourceLocation>> waypointFocusListener = new ArrayList<>();
 
     private List<IReorderingProcessor> descText = Collections.emptyList();
     private int startingLine = 0;
@@ -27,7 +37,7 @@ public class GuideMapScreen extends Screen {
     public GuideMapScreen(GuideMap map) {
         super(map.getTitle());
         this.map = map;
-        this.waypoints = map.getWaypointIds().stream().map(SignMeUpClient.MANAGER::findWaypoint).collect(Collectors.toList());
+        this.waypointIds = map.getWaypointIds();
     }
 
     @Override
@@ -47,17 +57,47 @@ public class GuideMapScreen extends Screen {
         for (ResourceLocation triggerId : this.map.getTriggerIds()) {
             final Trigger trigger;
             if ((trigger = SignMeUpClient.MANAGER.findTrigger(triggerId)) != null) {
-                this.addButton(new Button(i + x, j + y, 80, 20, trigger.getTitle(),
-                        btn -> this.handleTrigger(triggerId),
-                        (btn, transform, mouseX, mouseY) -> this.renderTooltip(transform, trigger.getDesc(), mouseX, mouseY))).active = false;
+                this.addButton(new Button(i + x, j + y, 80, 20, trigger.getTitle(), new TriggerHandler(triggerId),
+                        new TooltipRenderer(trigger.getDesc()))).active = false;
+                y += 20;
             }
         }
-
-    }
-
-    private void handleTrigger(ResourceLocation triggerId) {
-        SignMeUp.channel.sendToServer(new TriggerActivation(triggerId));
-        this.closeScreen();
+        y = 30;
+        int mapCanvasX = i + 10, mapCanvasY = j + 40;
+        for (ResourceLocation wpId : this.waypointIds) {
+            y = 100;
+            Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(wpId);
+            if (wp == null || wp.disabled) {
+                continue;
+            }
+            // For map_icons.png, each icon is 16x16 pixels, so after we get the center coordinate,
+            // we also need to shift left/up by 8 pixels to center the icon.
+            final Vector3i absCenter = this.map.center;
+            final Vector3i absPos = wp.getRenderLocation();
+            final Vector3i relativePos = new Vector3i(absPos.getX() - absCenter.getX(), 0, absPos.getZ() - absCenter.getZ());
+            int waypointX = mapCanvasX + Math.round((float)relativePos.getX() / this.map.range * 64F) - 4 + 64;
+            int waypointY = mapCanvasY + Math.round((float)relativePos.getZ() / this.map.range * 64F) - 4 + 64;
+            this.addButton(new ImageButton(waypointX, waypointY, 8, 8, 80, 0, 0,
+                    MAP_ICONS, 128, 128,
+                    (btn) -> this.waypointFocusListener.forEach(listener -> listener.accept(wpId)),
+                    (btn, transform, mouseX, mouseY) -> {
+                        this.renderTooltip(transform, Arrays.asList(
+                                wp.getTitle().func_241878_f(),
+                                new TranslationTextComponent("sign_me_in.waypoint.distance", Math.sqrt(wp.getRenderLocation().distanceSq(this.minecraft.player.getPositionVec(), true))).func_241878_f()
+                        ), mouseX, mouseY);
+                    }, wp.getTitle()));
+            for (ResourceLocation triggerId : wp.getTriggerIds()) {
+                final Trigger trigger;
+                if ((trigger = SignMeUpClient.MANAGER.findTrigger(triggerId)) != null) {
+                    Button btn = this.addButton(new Button(i + x, j + y, 80, 20, trigger.getTitle(),
+                            new TriggerHandler(triggerId),
+                            new TooltipRenderer(trigger.getDesc())));
+                    this.waypointFocusListener.add(newWpId -> btn.visible = Objects.equals(wpId, newWpId));
+                    btn.visible = false; // After first initialization, all buttons associated with a waypoint are invisible
+                    y += 20;
+                }
+            }
+        }
     }
 
     void scrollUp() {
@@ -110,5 +150,42 @@ public class GuideMapScreen extends Screen {
         this.hLine(transforms, i + 160, i + 320, j + 95, -1);
 
         super.render(transforms, mouseX, mouseY, partialTicks);
+    }
+
+    private final class WaypointHandler implements Button.IPressable {
+
+        @Override
+        public void onPress(Button theButton) {
+
+        }
+    }
+
+    private final class TriggerHandler implements Button.IPressable {
+
+        private final ResourceLocation id;
+
+        TriggerHandler(ResourceLocation id) {
+            this.id = id;
+        }
+
+        @Override
+        public void onPress(Button theButton) {
+            SignMeUp.channel.sendToServer(new TriggerActivation(this.id));
+            GuideMapScreen.this.closeScreen();
+        }
+    }
+
+    private final class TooltipRenderer implements Button.ITooltip {
+
+        private final ITextComponent textToRender;
+
+        private TooltipRenderer(ITextComponent text) {
+            this.textToRender = text;
+        }
+
+        @Override
+        public void onTooltip(Button button, MatrixStack transforms, int mouseX, int mouseY) {
+            GuideMapScreen.this.renderTooltip(transforms, this.textToRender, mouseX, mouseY);
+        }
     }
 }
