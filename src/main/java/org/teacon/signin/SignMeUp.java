@@ -90,6 +90,7 @@ public class SignMeUp {
     }
 
     private static int listMaps(CommandContext<CommandSource> context) {
+        //TODO
         context.getSource().sendFeedback(new StringTextComponent("WIP :("), false);
         return Command.SINGLE_SUCCESS;
     }
