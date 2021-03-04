@@ -7,6 +7,11 @@
   "center": [ 0, 0 ],
   "world": "minecraft:overworld",
   "texture": "sign_up:textures/logo.png",
-  "points": [],
-  "triggers": [ "sign_up:greeting" ]
+  "points": [
+    "sign_up_test:point_1",
+    "sign_up_test:point_2",
+    "sign_up_test:point_3",
+    "sign_up_test:point_4"
+  ],
+  "triggers": [ "sign_up_test:greeting" ]
 }
