@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -83,7 +84,7 @@ public class GuideMapScreen extends Screen {
                     (btn, transform, mouseX, mouseY) -> {
                         this.renderTooltip(transform, Arrays.asList(
                                 wp.getTitle().func_241878_f(),
-                                new TranslationTextComponent("sign_me_in.waypoint.distance", Math.sqrt(wp.getRenderLocation().distanceSq(this.minecraft.player.getPositionVec(), true))).func_241878_f()
+                                new TranslationTextComponent("sign_me_in.waypoint.distance", String.format(Locale.ROOT, "%.1f", Math.sqrt(wp.getRenderLocation().distanceSq(this.minecraft.player.getPositionVec(), true)))).func_241878_f()
                         ), mouseX, mouseY);
                     }, wp.getTitle()));
             for (ResourceLocation triggerId : wp.getTriggerIds()) {
