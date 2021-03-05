@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.client.resources.JsonReloadListener;
+import net.minecraft.client.resources.JsonReloadListener; // To anyone who are shocked: yes this class exists on both side!
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.profiler.IProfiler;
 import net.minecraft.resources.IResourceManager;
@@ -25,7 +25,15 @@ import org.apache.logging.log4j.MarkerManager;
 import org.teacon.signin.SignMeUp;
 import org.teacon.signin.network.SyncGuideMap;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.WeakHashMap;
 
 public class GuideMapManager extends JsonReloadListener {
 
