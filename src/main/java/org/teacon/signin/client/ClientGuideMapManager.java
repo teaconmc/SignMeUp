@@ -7,10 +7,7 @@ import org.teacon.signin.data.GuideMap;
 import org.teacon.signin.data.Trigger;
 import org.teacon.signin.data.Waypoint;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedMap;
+import java.util.*;
 
 public class ClientGuideMapManager {
 
@@ -40,6 +37,14 @@ public class ClientGuideMapManager {
 
     public Waypoint findWaypoint(ResourceLocation waypointId) {
         return this.availableWaypoints.get(waypointId);
+    }
+
+    public GuideMap findMap(ResourceLocation mapId) {
+        return this.availableMaps.get(mapId);
+    }
+
+    public Collection<GuideMap> getAllMaps() {
+        return this.availableMaps.values();
     }
 
     public synchronized void addWaypoint(ResourceLocation waypointId, Waypoint waypoint) {

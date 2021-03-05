@@ -1,16 +1,11 @@
 package org.teacon.signin;
 
-import com.mojang.brigadier.Command;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.datafixers.util.Function4;
-import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.BlockPosArgument;
 import net.minecraft.command.arguments.ResourceLocationArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
@@ -24,10 +19,11 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
+import org.teacon.signin.command.CommandImpl;
 import org.teacon.signin.data.DynamicLocationStorage;
 import org.teacon.signin.data.GuideMapManager;
 import org.teacon.signin.data.Trigger;
-import org.teacon.signin.data.Waypoint;
+import org.teacon.signin.network.MapScreenPacket;
 import org.teacon.signin.network.PartialUpdate;
 import org.teacon.signin.network.SyncGuideMap;
 import org.teacon.signin.network.TriggerActivation;
@@ -54,6 +50,7 @@ public class SignMeUp {
         channel.registerMessage(0, SyncGuideMap.class, SyncGuideMap::write, SyncGuideMap::new, SyncGuideMap::handle);
         channel.registerMessage(1, PartialUpdate.class, PartialUpdate::write, PartialUpdate::new, PartialUpdate::handle);
         channel.registerMessage(2, TriggerActivation.class, TriggerActivation::write, TriggerActivation::new, TriggerActivation::handle);
+        channel.registerMessage(3, MapScreenPacket.class, MapScreenPacket::write, MapScreenPacket::new, MapScreenPacket::handle);
     }
 
     @SubscribeEvent
@@ -65,87 +62,31 @@ public class SignMeUp {
     public static void command(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("signmeup")
                 .then(Commands.literal("map")
-                        .then(Commands.literal("list").executes(SignMeUp::listMaps))
+                        .then(Commands.literal("list").executes(CommandImpl::listMaps))
                         .then(Commands.literal("open")
                                 .then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
-                                        .executes(SignMeUp::openSpecificMap))
-                                .executes(SignMeUp::openNearestMap)))
+                                        .executes(CommandImpl::openSpecificMap))
+                                .executes(CommandImpl::openNearestMap)))
                 .then(Commands.literal("point")
-                        .then(Commands.literal("list").executes(SignMeUp::listWaypoints))
+                        .then(Commands.literal("list")
+                                .then(Commands.literal("location")
+                                        .executes(CommandImpl::listWaypointPos))
+                                .executes(CommandImpl::listWaypoints))
                         .then(Commands.literal("get")
                                 .then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
                                         .then(Commands.literal("location")
-                                                .executes(SignMeUp::getWaypointPos))))
+                                                .executes(CommandImpl::getWaypointPos))))
                         .then(Commands.literal("set")
                                 .then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
                                         .then(Commands.literal("actual")
-                                                .then(Commands.argument("pos", BlockPosArgument.blockPos()).executes(SignMeUp::setWaypointActualPos)))
+                                                .then(Commands.argument("pos", BlockPosArgument.blockPos()).executes(CommandImpl::setWaypointActualPos)))
                                         .then(Commands.literal("render")
-                                                .then(Commands.argument("pos", BlockPosArgument.blockPos()).executes(SignMeUp::setWaypointRenderPos)))))));
+                                                .then(Commands.argument("pos", BlockPosArgument.blockPos()).executes(CommandImpl::setWaypointRenderPos)))))));
     }
 
     @SubscribeEvent
     public static void attachCap(AttachCapabilitiesEvent<World> event) {
         event.addCapability(new ResourceLocation("sign_up"), new DynamicLocationStorage.Holder());
-    }
-
-    private static int listMaps(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new StringTextComponent("WIP :("), false);
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int openSpecificMap(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new StringTextComponent("WIP :("), false);
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int openNearestMap(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new StringTextComponent("WIP :("), false);
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int listWaypoints(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new StringTextComponent("WIP :("), false);
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int getWaypointPos(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new StringTextComponent("WIP :("), false);
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int setWaypointActualPos(CommandContext<CommandSource> context) {
-        return setDynamicWaypointPosImpl(context, (store, id, world, pos) -> {
-            store.setActual(id, world, pos);
-            return Command.SINGLE_SUCCESS;
-        });
-    }
-
-
-    private static int setWaypointRenderPos(CommandContext<CommandSource> context) {
-        return setDynamicWaypointPosImpl(context, (store, id, world, pos) -> {
-            store.setRendering(id, world, pos);
-            return Command.SINGLE_SUCCESS;
-        });
-    }
-
-    private static int setDynamicWaypointPosImpl(CommandContext<CommandSource> context, Function4<DynamicLocationStorage, ResourceLocation, World, BlockPos, Integer> handler) {
-        final CommandSource src = context.getSource();
-        final World world = src.getWorld();
-        final BlockPos pos = context.getArgument("pos", BlockPos.class);
-        final ResourceLocation id = context.getArgument("id", ResourceLocation.class);
-        final Waypoint wp = MANAGER.findWaypoint(id);
-        if (wp != null) {
-            if (wp.hasDynamicLocation()) {
-                return world.getCapability(DynamicLocationStorage.CAP).map(store -> handler.apply(store, id, world, pos)).orElse(-1);
-            } else {
-                src.sendErrorMessage(new StringTextComponent("Error: waypoint " + id + " is static"));
-                return -1;
-            }
-        } else {
-            src.sendErrorMessage(new StringTextComponent("Error: waypoint " + id + " does not exist"));
-            return -1;
-        }
     }
 
     public static void trigger(ServerPlayerEntity player, ResourceLocation triggerId) {

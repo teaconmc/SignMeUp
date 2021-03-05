@@ -7,5 +7,18 @@
   "sign_me_in.waypoint.distance": "%1$s block(s) away from you",
   "sign_me_in.trigger.unnamed": "New Trigger",
 
-  "sign_up.status.no_map_available": "No maps currently available :("
+  "sign_up.status.no_map_available": "No maps currently available :( or you might be outside of map range",
+
+  "sign_up.text.list_maps": "List of guide maps",
+  "sign_up.text.list_points": "List of waypoints",
+  "sign_up.text.error": "Error",
+  "sign_up.text.no_map_exists": "no map exists",
+  "sign_up.text.no_waypoint_exists": "no waypoint exists",
+  "sign_up.text.map": "map",
+  "sign_up.text.waypoint": "waypoint",
+  "sign_up.text.does_not_exist": "does not exist",
+  "sign_up.text.distance": "Distance",
+  "sign_up.text.blocks_away": "blocks away",
+  "sign_up.text.render_location": "Render Location",
+  "sign_up.text.actual_location": "Actual Location"
 }

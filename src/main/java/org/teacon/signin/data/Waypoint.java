@@ -106,6 +106,10 @@ public class Waypoint implements PlayerTracker {
         return location.getRenderLocation();
     }
 
+    public Vector3i getActualLocation() {
+        return location.actualLocation;
+    }
+
     public List<ResourceLocation> getTriggerIds() {
         return this.triggerIds;
     }
