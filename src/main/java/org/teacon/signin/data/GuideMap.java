@@ -19,14 +19,17 @@ import java.util.stream.StreamSupport;
 
 public final class GuideMap {
 
-    public int range = 256;
-    public Vector3i center;
-    public ResourceLocation dim = null;
-    // TODO Actually ensure the missing texture exists
-    public ResourceLocation texture = new ResourceLocation("minecraft", "missing");
     ITextComponent title;
     ITextComponent subtitle;
     ITextComponent desc;
+
+    public int range = 256;
+    public Vector3i center;
+    public ResourceLocation dim = null;
+
+    // TODO Actually ensure the missing texture exists
+    public ResourceLocation texture = new ResourceLocation("minecraft", "missing");
+
     List<ResourceLocation> waypointIds = Collections.emptyList();
     List<ResourceLocation> triggerIds = Collections.emptyList();
 

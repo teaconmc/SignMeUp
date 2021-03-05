@@ -18,13 +18,17 @@ import java.util.WeakHashMap;
 
 public class Trigger implements PlayerTracker {
 
-    public volatile boolean disabled = false;
-    public String command = "/me successfully created a new trigger";
     ITextComponent title;
     ITextComponent desc;
+
+    public volatile boolean disabled = false;
+
     String selector = "@e";
-    transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
     private transient EntitySelector parsedSelector;
+
+    public String command = "/me successfully created a new trigger";
+
+    transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
     public ITextComponent getTitle() {
         return this.title == null ? new TranslationTextComponent("sign_me_in.trigger.unnamed") : this.title;
