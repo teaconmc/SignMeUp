@@ -10,5 +10,15 @@
   "sign_up.status.no_map_available": "没有可供查看的导引图 :( 或者您可能在导引图范围之外",
 
   "sign_up.text.list_maps": "导引图列表: ",
-  "sign_up.text.list_points": "导引点列表: "
+  "sign_up.text.list_points": "导引点列表: ",
+  "sign_up.text.error": "错误",
+  "sign_up.text.no_map_exists": "导引图不存在",
+  "sign_up.text.no_waypoint_exists": "导引点不存在",
+  "sign_up.text.map": "导引图",
+  "sign_up.text.waypoint": "导引点",
+  "sign_up.text.does_not_exist": "不存在",
+  "sign_up.text.distance": "距离",
+  "sign_up.text.blocks_away": "方块之外",
+  "sign_up.text.render_location": "渲染位置",
+  "sign_up.text.actual_location": "实际位置"
 }
