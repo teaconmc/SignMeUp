@@ -5,5 +5,7 @@
   "location": {
     "actual": [ 32, 0, 32 ]
   },
-  "triggers": []
+  "triggers": [
+    "sign_up_test:time_set_night"
+  ]
 }

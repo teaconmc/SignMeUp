@@ -13,5 +13,8 @@
     "sign_up_test:point_3",
     "sign_up_test:point_4"
   ],
-  "triggers": [ "sign_up_test:greeting" ]
+  "triggers": [
+    "sign_up_test:greeting",
+    "sign_up_test:time_set_night"
+  ]
 }

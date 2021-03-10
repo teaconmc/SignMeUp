@@ -43,7 +43,7 @@ public class CommandImpl {
         } else {
             src.sendErrorMessage(ERROR
                     .appendString(": ")
-                    .append(new TranslationTextComponent("sign_up.text.no_map_exists"))
+                    .appendSibling(new TranslationTextComponent("sign_up.text.no_map_exists"))
             );
             return -1;
         }
@@ -62,9 +62,9 @@ public class CommandImpl {
         } else {
             src.sendErrorMessage(ERROR
                     .appendString(": ")
-                    .append(new TranslationTextComponent("sign_up.text.map"))
+                    .appendSibling(new TranslationTextComponent("sign_up.text.map"))
                     .appendString(" " + id.toString() + " ")
-                    .append(new TranslationTextComponent("sign_up.text.does_not_exist"))
+                    .appendSibling(new TranslationTextComponent("sign_up.text.does_not_exist"))
             );
             return -1;
         }
@@ -96,7 +96,7 @@ public class CommandImpl {
         } else {
             src.sendErrorMessage(ERROR
                     .appendString(": ")
-                    .append(new TranslationTextComponent("sign_up.status.no_map_available"))
+                    .appendSibling(new TranslationTextComponent("sign_up.status.no_map_available"))
             );
             return -1;
         }
@@ -113,16 +113,16 @@ public class CommandImpl {
                 DecimalFormat df = new DecimalFormat("0.00");
                 df.setRoundingMode(RoundingMode.HALF_UP);
                 src.sendFeedback(new StringTextComponent(" - ")
-                        .append(waypoint.getTitle()).appendString("\n   ")
-                        .append(new TranslationTextComponent("sign_up.text.distance"))
+                        .appendSibling(waypoint.getTitle()).appendString("\n   ")
+                        .appendSibling(new TranslationTextComponent("sign_up.text.distance"))
                         .appendString(": " + df.format(waypoint.getActualLocation().distanceSq(player.getPosition())) + " ")
-                        .append(new TranslationTextComponent("sign_up.text.blocks_away"))
+                        .appendSibling(new TranslationTextComponent("sign_up.text.blocks_away"))
                         , false
                 );
             }
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendErrorMessage(ERROR.appendString(": ").append(new TranslationTextComponent("sign_up.text.no_waypoint_exists")));
+            src.sendErrorMessage(ERROR.appendString(": ").appendSibling(new TranslationTextComponent("sign_up.text.no_waypoint_exists")));
             return -1;
         }
     }
@@ -133,13 +133,13 @@ public class CommandImpl {
             src.sendFeedback(new TranslationTextComponent("sign_up.text.list_points"), false);
             for (Waypoint waypoint : SignMeUp.MANAGER.getAllWaypoints()) {
                 src.sendFeedback(new StringTextComponent(" - ")
-                        .append(waypoint.getTitle())
+                        .appendSibling(waypoint.getTitle())
                         .appendString("\n   ")
-                        .append(new TranslationTextComponent("sign_up.text.render_location"))
+                        .appendSibling(new TranslationTextComponent("sign_up.text.render_location"))
                         .appendString(": ")
                         .appendString(waypoint.getRenderLocation().getCoordinatesAsString())
                         .appendString("\n   ")
-                        .append(new TranslationTextComponent("sign_up.text.actual_location"))
+                        .appendSibling(new TranslationTextComponent("sign_up.text.actual_location"))
                         .appendString(": ")
                         .appendString(waypoint.getActualLocation().getCoordinatesAsString())
                         , false
@@ -147,7 +147,7 @@ public class CommandImpl {
             }
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendErrorMessage(ERROR.appendString(": ").append(new TranslationTextComponent("sign_up.text.no_waypoint_exists")));
+            src.sendErrorMessage(ERROR.appendString(": ").appendSibling(new TranslationTextComponent("sign_up.text.no_waypoint_exists")));
             return -1;
         }
     }
@@ -158,13 +158,13 @@ public class CommandImpl {
         Waypoint waypoint = SignMeUp.MANAGER.findWaypoint(id);
         if (waypoint != null) {
             src.sendFeedback(new StringTextComponent(" - ")
-                            .append(waypoint.getTitle())
+                            .appendSibling(waypoint.getTitle())
                             .appendString("\n   ")
-                            .append(new TranslationTextComponent("sign_up.text.render_location"))
+                            .appendSibling(new TranslationTextComponent("sign_up.text.render_location"))
                             .appendString(": ")
                             .appendString(waypoint.getRenderLocation().getCoordinatesAsString())
                             .appendString("\n   ")
-                            .append(new TranslationTextComponent("sign_up.text.actual_location"))
+                            .appendSibling(new TranslationTextComponent("sign_up.text.actual_location"))
                             .appendString(": ")
                             .appendString(waypoint.getActualLocation().getCoordinatesAsString())
                     , false
@@ -174,9 +174,9 @@ public class CommandImpl {
             src.sendErrorMessage(new StringTextComponent("Error: waypoint " + id + " does not exist"));
             src.sendErrorMessage(ERROR
                     .appendString(": ")
-                    .append(new TranslationTextComponent("sign_up.text.waypoint")
+                    .appendSibling(new TranslationTextComponent("sign_up.text.waypoint")
                     .appendString(" " + id.toString() + " ")
-                    .append(new TranslationTextComponent("sign_up.text.does_not_exist")))
+                    .appendSibling(new TranslationTextComponent("sign_up.text.does_not_exist")))
             );
             return -1;
         }

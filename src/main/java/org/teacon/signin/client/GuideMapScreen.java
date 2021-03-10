@@ -55,14 +55,18 @@ public class GuideMapScreen extends Screen {
         this.descText = this.font.trimStringToWidth(this.map.getDesc(), 140);
         this.addListener(new ScrollingHandler(this, i + x, j + y, i + x + 140, j + y + 60));
         y = 100;
+        // Setup trigger buttons from GuideMap
         for (ResourceLocation triggerId : this.map.getTriggerIds()) {
             final Trigger trigger;
             if ((trigger = SignMeUpClient.MANAGER.findTrigger(triggerId)) != null) {
-                this.addButton(new Button(i + x, j + y, 80, 20, trigger.getTitle(), new TriggerHandler(triggerId),
-                        new TooltipRenderer(trigger.getDesc()))).active = false;
+                this.addButton(new Button(i + x, j + y, 80, 20, trigger.getTitle(),
+                        new TriggerHandler(triggerId),
+                        new TooltipRenderer(trigger.getDesc())));
                 y += 20;
             }
         }
+
+        // Setup Waypoints
         y = 30;
         int mapCanvasX = i + 10, mapCanvasY = j + 40;
         for (ResourceLocation wpId : this.waypointIds) {
@@ -78,6 +82,7 @@ public class GuideMapScreen extends Screen {
             final Vector3i relativePos = new Vector3i(absPos.getX() - absCenter.getX(), 0, absPos.getZ() - absCenter.getZ());
             int waypointX = mapCanvasX + Math.round((float)relativePos.getX() / this.map.range * 64F) - 4 + 64;
             int waypointY = mapCanvasY + Math.round((float)relativePos.getZ() / this.map.range * 64F) - 4 + 64;
+            // Setup Waypoints as ImageButtons
             this.addButton(new ImageButton(waypointX, waypointY, 8, 8, 80, 0, 0,
                     MAP_ICONS, 128, 128,
                     (btn) -> this.waypointFocusListener.forEach(listener -> listener.accept(wpId)),
@@ -87,6 +92,8 @@ public class GuideMapScreen extends Screen {
                                 new TranslationTextComponent("sign_me_in.waypoint.distance", String.format(Locale.ROOT, "%.1f", Math.sqrt(wp.getRenderLocation().distanceSq(this.minecraft.player.getPositionVec(), true)))).func_241878_f()
                         ), mouseX, mouseY);
                     }, wp.getTitle()));
+
+            // Setup trigger buttons from Waypoints
             for (ResourceLocation triggerId : wp.getTriggerIds()) {
                 final Trigger trigger;
                 if ((trigger = SignMeUpClient.MANAGER.findTrigger(triggerId)) != null) {
@@ -136,10 +143,10 @@ public class GuideMapScreen extends Screen {
         // Title, size doubled on two dimensions (total quadruple) than normal text
         transforms.push();
         transforms.scale(2F, 2F, 2F);
-        this.font.func_243248_b(transforms, this.title, (i + 10F) / 2, (j + 10F) / 2, 0xA0A0A0);
+        this.font.drawText(transforms, this.title, (i + 10F) / 2, (j + 10F) / 2, 0xA0A0A0);
         transforms.pop();
         // Subtitle
-        this.font.func_243248_b(transforms, this.map.getSubtitle(), i + 170F, j + 10F, 0xA0A0A0);
+        this.font.drawText(transforms, this.map.getSubtitle(), i + 170F, j + 10F, 0xA0A0A0);
 
         int height = 30;
         for (IReorderingProcessor text : this.descText.subList(this.startingLine, Math.min(this.startingLine + 6, this.descText.size()))) {
