@@ -1,12 +1,15 @@
 package org.teacon.signin.client;
 
+import com.google.common.collect.Lists;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.gui.widget.button.ImageButton;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -28,6 +31,13 @@ public class GuideMapScreen extends Screen {
 
     private static final ResourceLocation MAP_ICONS = new ResourceLocation("minecraft", "textures/map/map_icons.png");
 
+    public static final int SIDE = 10;
+    public static final int SIDEBAR_WIDTH = 80;
+    public static final int SIDEBAR_ANIMATION_TIME = 500;
+    private long sidebarAnimationStartTime;
+    private boolean sidebarActivatedLastFrame = false;
+    protected final List<Widget> mapTriggerButtons = Lists.newArrayList();
+
     private final GuideMap map;
     private final List<ResourceLocation> waypointIds;
     private final List<Consumer<ResourceLocation>> waypointFocusListener = new ArrayList<>();
@@ -41,6 +51,69 @@ public class GuideMapScreen extends Screen {
         this.waypointIds = map.getWaypointIds();
     }
 
+    private void renderAnimatedSidebar(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+
+        int displacement;
+
+        // mouse not in this frame, display nothing
+        if (mouseX >= SIDE) {
+            if (this.sidebarActivatedLastFrame) {
+                // if mouse is within the new range
+                if (mouseX < SIDEBAR_WIDTH) {
+                    // just make displacement equals zero this time
+                    for (Widget btn : this.mapTriggerButtons) {
+                        btn.x = 0;
+                    }
+                    // we don't reset start time in this case
+                } else {
+                    // immediately let the list invisible
+                    // todo: do a smooth slide back
+                    for (Widget btn : this.mapTriggerButtons) {
+                        btn.x = -80;
+                    }
+                    // in last frame, moved out this frame
+                    // reset start time
+                    this.sidebarAnimationStartTime = 0;
+                    // display nothing in this case
+                    // mouse is not in zone this frame, so it is "not in zone in last frame" for next frame
+                    this.sidebarActivatedLastFrame = false;
+                }
+            } else {
+                // never in, just display nothing
+                // reset start time
+                this.sidebarAnimationStartTime = 0;
+                // display nothing in this case
+                // mouse is not in zone this frame, so it is "not in zone in last frame" for next frame
+                this.sidebarActivatedLastFrame = false;
+            }
+        }
+        // mouse in this frame, display the sidebar
+        else {
+            if (this.sidebarActivatedLastFrame) {
+                // in last frame, still in this frame. We don't reset startTime in this case.
+                float time = MathHelper.clamp(System.currentTimeMillis() - this.sidebarAnimationStartTime, 0, SIDEBAR_ANIMATION_TIME);
+                displacement = (int) (time / SIDEBAR_ANIMATION_TIME * SIDEBAR_WIDTH);
+            } else {
+                // not in last frame, moved in this frame. We set the startTime in this case.
+                this.sidebarAnimationStartTime = System.currentTimeMillis();
+                // first frame in, so there is no replacement, only display.
+                displacement = 0;
+            }
+            // mouse is in zone this frame, so it is "in zone in last frame" for next frame
+            this.sidebarActivatedLastFrame = true;
+
+            // now we render the sidebar
+            // reduce displacement
+            displacement -= SIDEBAR_WIDTH;
+
+            // render line icons
+            for (Widget btn : this.mapTriggerButtons) {
+                btn.x = displacement;
+            }
+
+        }
+    }
+
     @Override
     protected void init() {
         super.init();
@@ -52,16 +125,26 @@ public class GuideMapScreen extends Screen {
         // A proper line breaking algorithm should comply with UAX #14, link below:
         // http://www.unicode.org/reports/tr14/
         // However it at least get things work for now. So it is the status quo.
+        
+        // Set the descText to be map desc initially
+        // It will change when you select a waypoint
         this.descText = this.font.trimStringToWidth(this.map.getDesc(), 140);
-        this.addListener(new ScrollingHandler(this, i + x, j + y, i + x + 140, j + y + 60));
-        y = 100;
+        
+        // Setup scrolling handler for the description text
+        this.addListener(new DescTextScrollingHandler(this, i + x, j + y, i + x + 140, j + y + 60));
+        // Setup scrolling handler for the map trigger list
+        this.addListener(new LeftSidebarScrollingHandler(this, 0, 0, 80, this.height));
+
+        y = 0;
         // Setup trigger buttons from GuideMap
         for (ResourceLocation triggerId : this.map.getTriggerIds()) {
             final Trigger trigger;
             if ((trigger = SignMeUpClient.MANAGER.findTrigger(triggerId)) != null) {
-                this.addButton(new Button(i + x, j + y, 80, 20, trigger.getTitle(),
+                Button btn = new Button(-80, y, 80, 20, trigger.getTitle(),
                         new TriggerHandler(triggerId),
-                        new TooltipRenderer(trigger.getDesc())));
+                        new TooltipRenderer(trigger.getDesc()));
+                this.addButton(btn);
+                this.mapTriggerButtons.add(btn);
                 y += 20;
             }
         }
@@ -108,15 +191,47 @@ public class GuideMapScreen extends Screen {
         }
     }
 
-    void scrollUp() {
+    void scrollUpDesc() {
         if (--this.startingLine < 0) {
             this.startingLine = 0;
         }
     }
 
-    void scrollDown() {
+    void scrollDownDesc() {
         if (++this.startingLine >= this.descText.size()) {
             this.startingLine = this.descText.size() - 1;
+        }
+    }
+
+    // todo: this lags when reaching borders
+    void scrollDownMapTriggers() {
+        // last button reaches h - 20
+        if (--this.mapTriggerButtons.get(this.mapTriggerButtons.size() - 1).y < this.height - 20) {
+            int btnOffsetY = 20;
+            for (int i = this.mapTriggerButtons.size() -1; i >= 0; i--) {
+                this.mapTriggerButtons.get(i).y = this.height - btnOffsetY;
+                btnOffsetY += 20;
+            }
+        } else {
+            for (Widget btn : this.mapTriggerButtons) {
+                --btn.y;
+            }
+        }
+    }
+
+    // todo: this lags when reaching borders
+    void scrollUpMapTriggers() {
+        // top button reaches 1
+        if (++this.mapTriggerButtons.get(0).y >= 0) {
+            int btnOffsetY = 0;
+            for (Widget btn : this.mapTriggerButtons) {
+                btn.y = btnOffsetY;
+                btnOffsetY += btn.getHeight();
+            }
+        } else {
+            for (Widget btn : this.mapTriggerButtons) {
+                ++btn.y;
+            }
         }
     }
 
@@ -156,6 +271,9 @@ public class GuideMapScreen extends Screen {
 
         // Horizontal bar, dividing long description and triggers
         this.hLine(transforms, i + 160, i + 320, j + 95, -1);
+
+        // Map trigger buttons list
+        this.renderAnimatedSidebar(transforms, mouseX, mouseY, partialTicks);
 
         super.render(transforms, mouseX, mouseY, partialTicks);
     }
