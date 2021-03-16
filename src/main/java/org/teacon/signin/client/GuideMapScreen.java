@@ -52,6 +52,7 @@ public class GuideMapScreen extends Screen {
         this.waypointIds = map.getWaypointIds();
     }
 
+    // Updated every frame in this#render
     private void renderAnimatedSidebar(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 
         int displacement;
@@ -192,18 +193,7 @@ public class GuideMapScreen extends Screen {
         }
     }
 
-    public double getMapSidebarScrollAmount() {
-        return this.mapSidebarScrollAmount;
-    }
-
-    private void updateMapTriggerButtonsY() {
-        int btnOffsetY = 0;
-        for (Widget btn : this.mapTriggerButtons) {
-            btn.y = (int) (- this.mapSidebarScrollAmount + btnOffsetY);
-            btnOffsetY += btn.getHeight();
-        }
-    }
-
+    // --------- Text scrolling (left) related methods --------- //
     void scrollUpDesc() {
         if (--this.startingLine < 0) {
             this.startingLine = 0;
@@ -215,7 +205,24 @@ public class GuideMapScreen extends Screen {
             this.startingLine = this.descText.size() - 1;
         }
     }
+    // ------------------------------------------------------------ //
 
+    // --------- Sidebar scrolling (left) related methods --------- //
+    // Accessor, no need to say more
+    public double getMapSidebarScrollAmount() {
+        return this.mapSidebarScrollAmount;
+    }
+
+    // Updated every frame in this#render
+    private void updateMapTriggerButtonsY() {
+        int btnOffsetY = 0;
+        for (Widget btn : this.mapTriggerButtons) {
+            btn.y = (int) (- this.mapSidebarScrollAmount + btnOffsetY);
+            btnOffsetY += btn.getHeight();
+        }
+    }
+
+    // Basically getting the scroll region's height
     int getMaxSidebarPosition() {
         return this.mapTriggerButtons.size() * this.mapTriggerButtons.get(0).getHeight(); //todo: do we need header height?
     }
@@ -230,9 +237,11 @@ public class GuideMapScreen extends Screen {
         return this.mapTriggerButtons.get(0).getHeight();
     }
 
+    // Clamp between 0 and max scroll amt
     void setSidebarScrollAmount(double scroll) {
         this.mapSidebarScrollAmount = MathHelper.clamp(scroll, 0.0D, (double)this.getMaxSidebarScroll());
     }
+    // ------------------------------------------------------------ //
 
     @Override
     public void render(MatrixStack transforms, int mouseX, int mouseY, float partialTicks) {
