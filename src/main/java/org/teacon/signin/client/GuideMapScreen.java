@@ -44,6 +44,7 @@ public class GuideMapScreen extends Screen {
 
     private List<IReorderingProcessor> descText = Collections.emptyList();
     private int startingLine = 0;
+    private double mapSidebarScrollAmount = 0;
 
     public GuideMapScreen(GuideMap map) {
         super(map.getTitle());
@@ -191,6 +192,18 @@ public class GuideMapScreen extends Screen {
         }
     }
 
+    public double getMapSidebarScrollAmount() {
+        return this.mapSidebarScrollAmount;
+    }
+
+    private void updateMapTriggerButtonsY() {
+        int btnOffsetY = 0;
+        for (Widget btn : this.mapTriggerButtons) {
+            btn.y = (int) (- this.mapSidebarScrollAmount + btnOffsetY);
+            btnOffsetY += btn.getHeight();
+        }
+    }
+
     void scrollUpDesc() {
         if (--this.startingLine < 0) {
             this.startingLine = 0;
@@ -203,36 +216,22 @@ public class GuideMapScreen extends Screen {
         }
     }
 
-    // todo: this lags when reaching borders
-    void scrollDownMapTriggers() {
-        // last button reaches h - 20
-        if (--this.mapTriggerButtons.get(this.mapTriggerButtons.size() - 1).y < this.height - 20) {
-            int btnOffsetY = 20;
-            for (int i = this.mapTriggerButtons.size() -1; i >= 0; i--) {
-                this.mapTriggerButtons.get(i).y = this.height - btnOffsetY;
-                btnOffsetY += 20;
-            }
-        } else {
-            for (Widget btn : this.mapTriggerButtons) {
-                --btn.y;
-            }
-        }
+    int getMaxSidebarPosition() {
+        return this.mapTriggerButtons.size() * this.mapTriggerButtons.get(0).getHeight(); //todo: do we need header height?
     }
 
-    // todo: this lags when reaching borders
-    void scrollUpMapTriggers() {
-        // top button reaches 1
-        if (++this.mapTriggerButtons.get(0).y >= 0) {
-            int btnOffsetY = 0;
-            for (Widget btn : this.mapTriggerButtons) {
-                btn.y = btnOffsetY;
-                btnOffsetY += btn.getHeight();
-            }
-        } else {
-            for (Widget btn : this.mapTriggerButtons) {
-                ++btn.y;
-            }
-        }
+    // Get the maximum amount the list can scroll. When getMaxDescPosition is smaller than this.height, then the list CANNOT be scrolled.
+    int getMaxSidebarScroll() {
+        return Math.max(0, this.getMaxSidebarPosition() - this.height);
+    }
+
+    // Get the height of a single sidebar button
+    int getSidebarButtonHeight() {
+        return this.mapTriggerButtons.get(0).getHeight();
+    }
+
+    void setSidebarScrollAmount(double scroll) {
+        this.mapSidebarScrollAmount = MathHelper.clamp(scroll, 0.0D, (double)this.getMaxSidebarScroll());
     }
 
     @Override
@@ -274,6 +273,7 @@ public class GuideMapScreen extends Screen {
 
         // Map trigger buttons list
         this.renderAnimatedSidebar(transforms, mouseX, mouseY, partialTicks);
+        this.updateMapTriggerButtonsY();
 
         super.render(transforms, mouseX, mouseY, partialTicks);
     }

@@ -13,11 +13,7 @@ public class LeftSidebarScrollingHandler extends DescTextScrollingHandler {
         if (Minecraft.IS_RUNNING_ON_MAC) {
             delta = -delta;
         }
-        if (delta > 0) {
-            this.parent.scrollDownMapTriggers();
-        } else {
-            this.parent.scrollUpMapTriggers();
-        }
+        this.parent.setSidebarScrollAmount(this.parent.getMapSidebarScrollAmount() + delta * (double)this.parent.getSidebarButtonHeight() / 2.0D);
         return true;
     }
 }
