@@ -88,6 +88,8 @@ public class Waypoint implements PlayerTracker {
 
     List<ResourceLocation> triggerIds = Collections.emptyList();
 
+    List<ResourceLocation> imageIds = Collections.emptyList();
+
     transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
     public ITextComponent getTitle() {
@@ -112,6 +114,10 @@ public class Waypoint implements PlayerTracker {
 
     public List<ResourceLocation> getTriggerIds() {
         return this.triggerIds;
+    }
+
+    public List<ResourceLocation> getImageIds() {
+        return this.imageIds;
     }
 
     @Override
@@ -167,6 +173,12 @@ public class Waypoint implements PlayerTracker {
                             .map(ResourceLocation::new)
                             .collect(Collectors.toList());
                 }
+                if (obj.has("images")) {
+                    wp.imageIds = StreamSupport.stream(obj.getAsJsonArray("images").spliterator(), false)
+                            .map(JsonElement::getAsString)
+                            .map(ResourceLocation::new)
+                            .collect(Collectors.toList());
+                }
                 return wp;
             } else {
                 throw new JsonParseException("Trigger must be a JSON Object");
@@ -187,6 +199,11 @@ public class Waypoint implements PlayerTracker {
             json.add("location", context.serialize(src.location));
             if (!src.triggerIds.isEmpty()) {
                 json.add("triggers", src.triggerIds.stream()
+                        .map(ResourceLocation::toString)
+                        .collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
+            }
+            if (!src.imageIds.isEmpty()) {
+                json.add("images", src.imageIds.stream()
                         .map(ResourceLocation::toString)
                         .collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
             }

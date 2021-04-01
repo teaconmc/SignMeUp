@@ -133,7 +133,7 @@ public class GuideMapScreen extends Screen {
         this.descText = this.font.trimStringToWidth(this.map.getDesc(), 140);
         
         // Setup scrolling handler for the description text
-        this.addListener(new DescTextScrollingHandler(this, i + x, j + y, i + x + 140, j + y + 60));
+        this.addListener(new DescTextScrollingHandler(this, i + x, j + y + 100, i + x + 140, j + y + 60 + 100));
         // Setup scrolling handler for the map trigger list
         this.addListener(new LeftSidebarScrollingHandler(this, 0, 0, 80, this.height));
 
@@ -205,7 +205,6 @@ public class GuideMapScreen extends Screen {
             this.startingLine = this.descText.size() - 1;
         }
     }
-    // ------------------------------------------------------------ //
 
     // --------- Sidebar scrolling (left) related methods --------- //
     // Accessor, no need to say more
@@ -277,8 +276,10 @@ public class GuideMapScreen extends Screen {
             height += 10;
         }
 
+        // TODO: RENDER IMAGES
+
         // Horizontal bar, dividing long description and triggers
-        this.hLine(transforms, i + 160, i + 320, j + 95, -1);
+//        this.hLine(transforms, i + 160, i + 320, j + 95, -1);
 
         // Map trigger buttons list
         this.renderAnimatedSidebar(transforms, mouseX, mouseY, partialTicks);
