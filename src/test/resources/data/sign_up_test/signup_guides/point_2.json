@@ -5,5 +5,9 @@
   "location": {
     "actual": [ 32, 0, -32 ]
   },
-  "triggers": []
+  "triggers": [],
+  "images": [
+    "sign_up_test:textures/green.png",
+    "sign_up_test:textures/pink.png"
+  ]
 }

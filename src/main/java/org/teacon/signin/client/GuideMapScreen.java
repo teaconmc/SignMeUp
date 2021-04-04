@@ -12,6 +12,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import org.teacon.signin.SignMeUp;
 import org.teacon.signin.data.GuideMap;
@@ -45,6 +46,7 @@ public class GuideMapScreen extends Screen {
     private List<IReorderingProcessor> descText = Collections.emptyList();
     private int startingLine = 0;
     private double mapSidebarScrollAmount = 0;
+    private Waypoint selectedWp;
 
     public GuideMapScreen(GuideMap map) {
         super(map.getTitle());
@@ -137,6 +139,28 @@ public class GuideMapScreen extends Screen {
         // Setup scrolling handler for the map trigger list
         this.addListener(new LeftSidebarScrollingHandler(this, 0, 0, 80, this.height));
 
+        // Left Image Flip Button
+        this.addButton(new Button(i + x, j + 62, 10, 20, new StringTextComponent("<"), (btn) -> {
+            for (ResourceLocation wpId : this.waypointIds) {
+                Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(wpId);
+                if (wp == null || wp.disabled || wp != selectedWp) {
+                    continue;
+                }
+                wp.decrementDisplayingImageIndex();
+            }
+        }));
+
+        // Right Image Flip Button
+        this.addButton(new Button(i + x + 128 - 10, j + 62, 10, 20, new StringTextComponent(">"), (btn) -> {
+            for (ResourceLocation wpId : this.waypointIds) {
+                Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(wpId);
+                if (wp == null || wp.disabled || wp != selectedWp) {
+                    continue;
+                }
+                wp.incrementDisplayingImageIndex();
+            }
+        }));
+
         y = 0;
         // Setup trigger buttons from GuideMap
         for (ResourceLocation triggerId : this.map.getTriggerIds()) {
@@ -170,7 +194,10 @@ public class GuideMapScreen extends Screen {
             // Setup Waypoints as ImageButtons
             this.addButton(new ImageButton(waypointX, waypointY, 8, 8, 80, 0, 0,
                     MAP_ICONS, 128, 128,
-                    (btn) -> this.waypointFocusListener.forEach(listener -> listener.accept(wpId)),
+                    (btn) -> {
+                        this.waypointFocusListener.forEach(listener -> listener.accept(wpId));
+                        this.selectedWp = wp;
+                    },
                     (btn, transform, mouseX, mouseY) -> {
                         this.renderTooltip(transform, Arrays.asList(
                                 wp.getTitle().func_241878_f(),
@@ -191,6 +218,66 @@ public class GuideMapScreen extends Screen {
                 }
             }
         }
+    }
+
+    @Override
+    public void render(MatrixStack transforms, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(transforms);
+        // If your IDE complains about deprecated method: ignore it, there is no proper replacement
+        // available at this time moment. Please wait for Mojang finishing Blaze3D.
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        // Draw 128 * 128 pixels map starting from x = 10, y = 30 relative to the top-left
+        // corner of the in-game window
+        this.minecraft.textureManager.bindTexture(this.map.texture);
+        int i = (this.width - 320) / 2;
+        int j = (this.height - 180) / 2;
+        // Who said we have to use 128 * 128 texture?
+        innerBlit(transforms, i + 10, i + 10 + 128, j + 40, j + 40 + 128, this.getBlitOffset(), 256, 256, 0F, 0F, 256, 256);
+        // Vertical bar
+        this.vLine(transforms, i + 150, j + 5, j+ 175, -1); // -1 aka 0xFFFFFFFF, opaque pure white
+
+        // Text drawing begin.
+        // Remember, fonts is a separate texture, so if you want to do a blit on another texture,
+        // bind it first by calling TextureManager.bindTexture first!
+
+        // TODO: 选中导引点时显示导引点文字和介绍，并且开启导引点Triggers按钮列表
+        // TODO: this.selectedWp 在点击导引图其他位置时更新为null
+        // Title, size doubled on two dimensions (total quadruple) than normal text
+        transforms.push();
+        transforms.scale(2F, 2F, 2F);
+        this.font.drawText(transforms, this.title, (i + 10F) / 2, (j + 10F) / 2, 0xA0A0A0);
+        transforms.pop();
+        // Subtitle
+        this.font.drawText(transforms, this.map.getSubtitle(), i + 170F, j + 10F, 0xA0A0A0);
+
+        int height = 30 + 85;
+        for (IReorderingProcessor text : this.descText.subList(this.startingLine, Math.min(this.startingLine + 6, this.descText.size()))) {
+            this.font.func_238422_b_(transforms, text, i + 170F, j + height, 0xA0A0A0);
+            height += 10;
+        }
+
+        // Render images
+        if (this.selectedWp == null) {
+            this.minecraft.textureManager.bindTexture(Waypoint.DEFAULT_IMAGE);
+            blit(transforms, i + 170, j + 40, 0, 0, 128, 64, 128, 64);
+        } else {
+            for (ResourceLocation wpId : this.waypointIds) {
+                Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(wpId);
+                if (wp == null || wp.disabled) {
+                    continue;
+                }
+                if (this.selectedWp == wp) {
+                    this.minecraft.textureManager.bindTexture(wp.getDisplayingImageId());
+                    blit(transforms, i + 170, j + 40, 0, 0, 128, 64, 128, 64);
+                }
+            }
+        }
+
+        // Map trigger buttons list
+        this.renderAnimatedSidebar(transforms, mouseX, mouseY, partialTicks);
+        this.updateMapTriggerButtonsY();
+
+        super.render(transforms, mouseX, mouseY, partialTicks);
     }
 
     // --------- Text scrolling (left) related methods --------- //
@@ -223,7 +310,7 @@ public class GuideMapScreen extends Screen {
 
     // Basically getting the scroll region's height
     int getMaxSidebarPosition() {
-        return this.mapTriggerButtons.size() * this.mapTriggerButtons.get(0).getHeight(); //todo: do we need header height?
+        return this.mapTriggerButtons.size() * this.mapTriggerButtons.get(0).getHeight();
     }
 
     // Get the maximum amount the list can scroll. When getMaxDescPosition is smaller than this.height, then the list CANNOT be scrolled.
@@ -239,53 +326,6 @@ public class GuideMapScreen extends Screen {
     // Clamp between 0 and max scroll amt
     void setSidebarScrollAmount(double scroll) {
         this.mapSidebarScrollAmount = MathHelper.clamp(scroll, 0.0D, (double)this.getMaxSidebarScroll());
-    }
-    // ------------------------------------------------------------ //
-
-    @Override
-    public void render(MatrixStack transforms, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(transforms);
-        // If your IDE complains about deprecated method: ignore it, there is no proper replacement
-        // available at this time moment. Please wait for Mojang finishing Blaze3D.
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        // Draw 128 * 128 pixels map starting from x = 10, y = 30 relative to the top-left
-        // corner of the in-game window
-        this.minecraft.textureManager.bindTexture(this.map.texture);
-        int i = (this.width - 320) / 2;
-        int j = (this.height - 180) / 2;
-        // Who said we have to use 128 * 128 texture?
-        innerBlit(transforms, i + 10, i + 10 + 128, j + 40, j + 40 + 128, this.getBlitOffset(), 256, 256, 0F, 0F, 256, 256);
-        // Vertical bar
-        this.vLine(transforms, i + 150, j + 5, j+ 175, -1); // -1 aka 0xFFFFFFFF, opaque pure white
-
-        // Text drawing begin.
-        // Remember, fonts is a separate texture, so if you want to do a blit on another texture,
-        // bind it first by calling TextureManager.bindTexture first!
-
-        // Title, size doubled on two dimensions (total quadruple) than normal text
-        transforms.push();
-        transforms.scale(2F, 2F, 2F);
-        this.font.drawText(transforms, this.title, (i + 10F) / 2, (j + 10F) / 2, 0xA0A0A0);
-        transforms.pop();
-        // Subtitle
-        this.font.drawText(transforms, this.map.getSubtitle(), i + 170F, j + 10F, 0xA0A0A0);
-
-        int height = 30;
-        for (IReorderingProcessor text : this.descText.subList(this.startingLine, Math.min(this.startingLine + 6, this.descText.size()))) {
-            this.font.func_238422_b_(transforms, text, i + 170F, j + height, 0xA0A0A0);
-            height += 10;
-        }
-
-        // TODO: RENDER IMAGES
-
-        // Horizontal bar, dividing long description and triggers
-//        this.hLine(transforms, i + 160, i + 320, j + 95, -1);
-
-        // Map trigger buttons list
-        this.renderAnimatedSidebar(transforms, mouseX, mouseY, partialTicks);
-        this.updateMapTriggerButtonsY();
-
-        super.render(transforms, mouseX, mouseY, partialTicks);
     }
 
     private final class WaypointHandler implements Button.IPressable {
