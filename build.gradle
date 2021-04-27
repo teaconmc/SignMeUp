@@ -116,6 +116,10 @@ publishing {
                         id = 'ustc-zzzz'
                         name = 'ustc-zzzz'
                     }
+                    developer {
+                        id = 'yuesha-yc'
+                        name = 'yuesha-yc'
+                    }
                 }
                 issueManagement {
                     system = 'GitHub Issues'

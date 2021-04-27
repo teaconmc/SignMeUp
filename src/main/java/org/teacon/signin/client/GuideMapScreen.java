@@ -401,7 +401,7 @@ public class GuideMapScreen extends Screen {
         int displacement;
 
         // mouse not in this frame, display nothing
-        if (mouseX <= this.width - SIDE) {
+        if (mouseX <= this.width - SIDE - 20) {
             if (this.wpSidebarActivatedLastFrame) {
                 // if mouse is within the new range
                 if (mouseX > this.width - SIDEBAR_WIDTH) {
