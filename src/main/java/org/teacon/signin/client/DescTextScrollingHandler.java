@@ -3,12 +3,12 @@ package org.teacon.signin.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.IGuiEventListener;
 
-public class ScrollingHandler implements IGuiEventListener {
+public class DescTextScrollingHandler implements IGuiEventListener {
 
-    private final GuideMapScreen parent;
+    protected final GuideMapScreen parent;
     private final double topX, topY, bottomX, bottomY;
 
-    public ScrollingHandler(GuideMapScreen parent, double topX, double topY, double bottomX, double bottomY) {
+    public DescTextScrollingHandler(GuideMapScreen parent, double topX, double topY, double bottomX, double bottomY) {
         this.parent = parent;
         this.topX = topX;
         this.topY = topY;
@@ -28,9 +28,9 @@ public class ScrollingHandler implements IGuiEventListener {
             delta = -delta;
         }
         if (delta > 0) {
-            this.parent.scrollDown();
+            this.parent.scrollDownDesc();
         } else {
-            this.parent.scrollUp();
+            this.parent.scrollUpDesc();
         }
         return true;
     }

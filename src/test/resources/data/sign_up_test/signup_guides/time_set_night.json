@@ -1,0 +1,6 @@
+{
+  "type": "trigger",
+  "title": "Night",
+  "desc": "Set time to night",
+  "command": "/time set night"
+}

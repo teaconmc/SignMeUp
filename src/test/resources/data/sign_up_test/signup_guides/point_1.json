@@ -5,5 +5,11 @@
   "location": {
     "actual": [ 32, 0, 32 ]
   },
-  "triggers": []
+  "triggers": [
+    "sign_up_test:time_set_night"
+  ],
+  "images": [
+    "sign_up_test:textures/green.png",
+    "sign_up_test:textures/pink.png"
+  ]
 }

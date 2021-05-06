@@ -76,6 +76,8 @@ public class Waypoint implements PlayerTracker {
         }
     }
 
+    public static final ResourceLocation DEFAULT_IMAGE = new ResourceLocation("sign_up:textures/default.png");
+
     public ITextComponent title;
     public ITextComponent desc;
 
@@ -87,6 +89,9 @@ public class Waypoint implements PlayerTracker {
     Location location;
 
     List<ResourceLocation> triggerIds = Collections.emptyList();
+
+    List<ResourceLocation> imageIds = Collections.emptyList();
+    int displayingImageIndex;
 
     transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
@@ -112,6 +117,30 @@ public class Waypoint implements PlayerTracker {
 
     public List<ResourceLocation> getTriggerIds() {
         return this.triggerIds;
+    }
+
+    public List<ResourceLocation> getImageIds() {
+        return this.imageIds;
+    }
+
+    public void incrementDisplayingImageIndex() {
+        if (this.displayingImageIndex == this.imageIds.size() - 1) {
+            this.displayingImageIndex = 0;
+        } else {
+            this.displayingImageIndex++;
+        }
+    }
+
+    public void decrementDisplayingImageIndex() {
+        if (this.displayingImageIndex == 0) {
+            this.displayingImageIndex = this.imageIds.size() - 1;
+        } else {
+            this.displayingImageIndex--;
+        }
+    }
+
+    public ResourceLocation getDisplayingImageId() {
+        return this.imageIds.isEmpty() ? DEFAULT_IMAGE : this.imageIds.get(this.displayingImageIndex);
     }
 
     @Override
@@ -167,6 +196,12 @@ public class Waypoint implements PlayerTracker {
                             .map(ResourceLocation::new)
                             .collect(Collectors.toList());
                 }
+                if (obj.has("images")) {
+                    wp.imageIds = StreamSupport.stream(obj.getAsJsonArray("images").spliterator(), false)
+                            .map(JsonElement::getAsString)
+                            .map(ResourceLocation::new)
+                            .collect(Collectors.toList());
+                }
                 return wp;
             } else {
                 throw new JsonParseException("Trigger must be a JSON Object");
@@ -187,6 +222,11 @@ public class Waypoint implements PlayerTracker {
             json.add("location", context.serialize(src.location));
             if (!src.triggerIds.isEmpty()) {
                 json.add("triggers", src.triggerIds.stream()
+                        .map(ResourceLocation::toString)
+                        .collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
+            }
+            if (!src.imageIds.isEmpty()) {
+                json.add("images", src.imageIds.stream()
                         .map(ResourceLocation::toString)
                         .collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
             }
