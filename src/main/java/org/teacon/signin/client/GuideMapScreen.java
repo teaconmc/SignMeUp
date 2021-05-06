@@ -452,7 +452,7 @@ public class GuideMapScreen extends Screen {
 
             // render line icons
             for (Widget btn : this.wpTriggerButtons) {
-                btn.x = this.width - displacement;
+                btn.x = this.width - displacement - SIDEBAR_WIDTH;
             }
 
         }
