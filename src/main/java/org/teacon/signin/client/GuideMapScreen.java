@@ -137,6 +137,8 @@ public class GuideMapScreen extends Screen {
                     (btn) -> {
                         this.waypointFocusListener.forEach(listener -> listener.accept(wpId));
                         this.selectedWp = wp;
+                        // Reset starting line to prevent crash due to wrong index range
+                        this.startingLine = 0;
                         // Make the trigger buttons in the selected Waypoint visible
                         for (ResourceLocation triggerId: this.selectedWp.getTriggerIds()) {
                             final Trigger trigger;
@@ -199,12 +201,15 @@ public class GuideMapScreen extends Screen {
         this.font.drawText(transforms, this.selectedWp != null ? this.selectedWp.getTitle() : this.map.getSubtitle(), i + 170F, j + 10F, 0xA0A0A0);
 
         List<IReorderingProcessor> displayedDesc = this.descText;
-        if (this.selectedWp != null) displayedDesc = this.font.trimStringToWidth(this.selectedWp.getDesc(), 140);
-
-        int height = 30 + 85;
-        for (IReorderingProcessor text : displayedDesc.subList(this.startingLine, Math.min(this.startingLine + 6, displayedDesc.size()))) {
-            this.font.func_238422_b_(transforms, text, i + 170F, j + height, 0xA0A0A0);
-            height += 10;
+        if (this.selectedWp != null) {
+            displayedDesc = this.font.trimStringToWidth(this.selectedWp.getDesc(), 140);
+        }
+        if (!displayedDesc.isEmpty()) {
+            int height = 30 + 85;
+            for (IReorderingProcessor text : displayedDesc.subList(this.startingLine, Math.min(this.startingLine + 6, displayedDesc.size()))) {
+                this.font.func_238422_b_(transforms, text, i + 170F, j + height, 0xA0A0A0);
+                height += 10;
+            }
         }
 
         // Render images
