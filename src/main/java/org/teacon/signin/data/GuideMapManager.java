@@ -46,7 +46,7 @@ public final class GuideMapManager extends JsonReloadListener {
             .registerTypeAdapter(Waypoint.class, new Waypoint.Serializer())
             .registerTypeAdapter(Waypoint.Location.class, new Waypoint.Location.Serializer())
             .registerTypeAdapter(Trigger.class, new Trigger.Serializer())
-            .registerTypeAdapter(Vector3i.class, new Serializers.Vec3iSerializer())
+            .registerTypeAdapter(Vector3i.class, new Vec3iSerializer())
             .create();
 
     private static <T> void setDiff(Set<T> a, Set<T> b, Set<T> aMinusB, Set<T> bMinusA) {

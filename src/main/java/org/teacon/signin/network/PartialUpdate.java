@@ -8,10 +8,7 @@ import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
 import org.teacon.signin.client.SignMeUpClient;
-import org.teacon.signin.data.GuideMap;
-import org.teacon.signin.data.Serializers;
-import org.teacon.signin.data.Trigger;
-import org.teacon.signin.data.Waypoint;
+import org.teacon.signin.data.*;
 
 import java.util.function.Supplier;
 
@@ -24,7 +21,7 @@ public class PartialUpdate {
     private static final Gson GSON = new GsonBuilder().setLenient()
             .registerTypeAdapter(Waypoint.class, new Waypoint.Serializer())
             .registerTypeAdapter(Waypoint.Location.class, new Waypoint.Location.Serializer())
-            .registerTypeAdapter(Vector3i.class, new Serializers.Vec3iSerializer())
+            .registerTypeAdapter(Vector3i.class, new Vec3iSerializer())
             .registerTypeAdapter(Trigger.class, new Trigger.Serializer())
             .registerTypeHierarchyAdapter(ITextComponent.class, new ITextComponent.Serializer())
             .create();
