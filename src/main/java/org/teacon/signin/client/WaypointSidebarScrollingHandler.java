@@ -2,7 +2,7 @@ package org.teacon.signin.client;
 
 import net.minecraft.client.Minecraft;
 
-public class WaypointSidebarScrollingHandler extends DescTextScrollingHandler {
+public final class WaypointSidebarScrollingHandler extends DescTextScrollingHandler {
     public WaypointSidebarScrollingHandler(GuideMapScreen parent, double topX, double topY, double bottomX, double bottomY) {
         super(parent, topX, topY, bottomX, bottomY);
     }

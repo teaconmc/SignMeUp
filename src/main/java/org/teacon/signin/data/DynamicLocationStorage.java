@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DynamicLocationStorage {
+public final class DynamicLocationStorage {
 
     private static final Logger LOGGER = LogManager.getLogger("SignMeUp");
 

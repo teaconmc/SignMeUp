@@ -9,7 +9,7 @@ import org.teacon.signin.data.Waypoint;
 
 import java.util.*;
 
-public class ClientGuideMapManager {
+public final class ClientGuideMapManager {
 
     private SortedMap<ResourceLocation, GuideMap> availableMaps = Collections.emptySortedMap();
     private final Map<ResourceLocation, Waypoint> availableWaypoints = new HashMap<>();

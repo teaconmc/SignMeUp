@@ -28,7 +28,7 @@ import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class Waypoint implements PlayerTracker {
+public final class Waypoint implements PlayerTracker {
 
     public static final class Location {
         Vector3i actualLocation;

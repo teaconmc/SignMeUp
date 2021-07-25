@@ -27,7 +27,7 @@ import java.text.DecimalFormat;
 /**
  * This class contains command execution implementations
  */
-public class CommandImpl {
+public final class CommandImpl {
     public static final TranslationTextComponent ERROR = new TranslationTextComponent("sign_up.text.error");
 
     public static int listMaps(CommandContext<CommandSource> context) {

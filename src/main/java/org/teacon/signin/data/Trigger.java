@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-public class Trigger implements PlayerTracker {
+public final class Trigger implements PlayerTracker {
 
     ITextComponent title;
     ITextComponent desc;

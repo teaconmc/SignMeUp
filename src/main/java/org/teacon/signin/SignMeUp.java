@@ -30,7 +30,7 @@ import org.teacon.signin.network.TriggerActivation;
 
 @Mod("sign_up")
 @Mod.EventBusSubscriber(modid = "sign_up", bus = Mod.EventBusSubscriber.Bus.FORGE)
-public class SignMeUp {
+public final class SignMeUp {
 
     public static final GuideMapManager MANAGER = new GuideMapManager();
 

@@ -24,7 +24,7 @@ import org.teacon.signin.network.TriggerActivation;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class GuideMapScreen extends Screen {
+public final class GuideMapScreen extends Screen {
 
     private static final ResourceLocation MAP_ICONS = new ResourceLocation("minecraft", "textures/map/map_icons.png");
 

@@ -12,7 +12,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.lwjgl.glfw.GLFW;
 
 @Mod.EventBusSubscriber(modid = "sign_up", bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-public class SignMeUpClient {
+public final class SignMeUpClient {
 
     public static final ClientGuideMapManager MANAGER = new ClientGuideMapManager();
 

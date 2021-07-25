@@ -35,7 +35,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 
-public class GuideMapManager extends JsonReloadListener {
+public final class GuideMapManager extends JsonReloadListener {
 
     private static final Logger LOGGER = LogManager.getLogger("SignMeIn");
     private static final Marker MARKER = MarkerManager.getMarker("GuideMapManager");
