@@ -212,8 +212,10 @@ public final class GuideMapScreen extends Screen {
             }
         }
         // Draw title and subtitle depending on whether a waypoint is selected
-        font.drawText(transforms, title, x0 + 142F - font.getStringPropertyWidth(title) / 2F, y0 + 7F, 0x404040);
-        font.drawText(transforms, subtitle, x1 + 55F - font.getStringPropertyWidth(subtitle) / 2F, y0 + 7F, 0x404040);
+        final int xTitle = x0 + 142 - font.getStringPropertyWidth(title) / 2;
+        font.drawText(transforms, title, xTitle, y0 + 7F, 0x404040);
+        final int xSubtitle = x1 + 56 - font.getStringPropertyWidth(subtitle) / 2;
+        font.drawText(transforms, subtitle, xSubtitle, y0 + 7F, 0x404040);
         // I DISLIKE THIS METHOD BECAUSE IT FAILS TO HANDLE LINE BREAKING
         // A proper line breaking algorithm should comply with UAX #14, link below:
         // http://www.unicode.org/reports/tr14/
@@ -329,7 +331,7 @@ public final class GuideMapScreen extends Screen {
             super.renderWidget(transforms, mouseX, mouseY, partialTicks);
             final FontRenderer font = Minecraft.getInstance().fontRenderer;
             final int stringWidth = font.getStringPropertyWidth(this.trigger.getTitle());
-            final float x0 = this.x + (this.width - stringWidth) / 2F, y0 = this.y + (this.height - 9) / 2F;
+            final int x0 = this.x + this.width / 2 - stringWidth / 2, y0 = this.y + (this.height - 8) / 2;
             font.drawText(transforms, this.trigger.getTitle(), x0, y0, this.trigger.disabled ? 0xFFFFFF : 0x404040);
             if (this.isHovered()) {
                 GuideMapScreen.this.renderTooltip(transforms, this.trigger.getDesc(), mouseX, mouseY);
