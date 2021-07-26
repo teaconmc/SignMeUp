@@ -68,10 +68,6 @@ public final class GuideMapScreen extends Screen {
     protected void init() {
         super.init();
         int x0 = (this.width - X_SIZE) / 2, y0 = (this.height - Y_SIZE) / 2, x1 = x0 + 206;
-        // I DISLIKE THIS METHOD BECAUSE IT FAILS TO HANDLE LINE BREAKING
-        // A proper line breaking algorithm should comply with UAX #14, link below:
-        // http://www.unicode.org/reports/tr14/
-        // However it at least get things work for now. So it is the status quo.
 
         // Left and Right Image Flip Button
         this.leftFlip = this.addButton(new ImageButton(x1 + 7, y0 + 20, 10, 54, 155, 163, 0, GUIDE_MAP_RIGHT, new FlipHandler(1)));
@@ -168,8 +164,12 @@ public final class GuideMapScreen extends Screen {
         // Draw title and subtitle depending on whether a waypoint is selected
         font.drawText(transforms, title, x0 + 142F - font.getStringPropertyWidth(title) / 2F, y0 + 7F, 0x404040);
         font.drawText(transforms, subtitle, x1 + 55F - font.getStringPropertyWidth(subtitle) / 2F, y0 + 7F, 0x404040);
-        // Draw desc text
+        // I DISLIKE THIS METHOD BECAUSE IT FAILS TO HANDLE LINE BREAKING
+        // A proper line breaking algorithm should comply with UAX #14, link below:
+        // http://www.unicode.org/reports/tr14/
+        // However it at least get things work for now. So it is the status quo.
         List<IReorderingProcessor> displayedDescList = font.trimStringToWidth(desc, 90);
+        // Draw desc text
         for (int i = 0, size = Math.min(8, displayedDescList.size()); i < size; ++i) {
             font.func_238422_b_(transforms, displayedDescList.get(i), x1 + 10F, y0 + 82F + 9 * i, 0x808080);
         }
