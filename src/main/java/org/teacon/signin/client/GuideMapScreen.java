@@ -3,6 +3,7 @@ package org.teacon.signin.client;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import mcp.MethodsReturnNonnullByDefault;
@@ -13,7 +14,6 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.gui.widget.button.ImageButton;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
@@ -26,10 +26,7 @@ import org.teacon.signin.network.TriggerFromMapPacket;
 import org.teacon.signin.network.TriggerFromWaypointPacket;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -48,9 +45,8 @@ public final class GuideMapScreen extends Screen {
     private int mapTriggerPageSize = 0;
     private ResourceLocation selectedWaypoint;
 
-    private int lastWaypointTextureOpacity = 0;
-    private int lastWaypointTextureOpacityPrev = 0;
-    private ResourceLocation lastWaypointTexture = null;
+    private int ticksAfterWaypointTextureChanged = 0;
+    private Deque<ResourceLocation> lastWaypointTextures = Queues.newArrayDeque();
 
     private boolean hasWaypointTrigger = false;
 
@@ -161,11 +157,7 @@ public final class GuideMapScreen extends Screen {
             this.needRefresh = false;
         }
 
-        this.lastWaypointTextureOpacityPrev = this.lastWaypointTextureOpacity;
-        if ((this.lastWaypointTextureOpacity -= 10) <= 0) {
-            this.lastWaypointTextureOpacity = 0;
-            this.lastWaypointTexture = null;
-        }
+        ++this.ticksAfterWaypointTextureChanged;
 
         this.mapTriggerPrev.visible = this.mapTriggerPage >= 1;
         this.mapTriggerNext.visible = this.mapTriggerPage < this.mapTriggerPageSize - 1;
@@ -250,18 +242,31 @@ public final class GuideMapScreen extends Screen {
                 image = wp.getDisplayingImageId();
             }
         }
-        if (this.lastWaypointTexture == null) {
-            this.lastWaypointTexture = image;
-        } else if (this.lastWaypointTexture.equals(image)) {
-            this.lastWaypointTextureOpacity = 100;
-        } else if (this.lastWaypointTextureOpacity > 0) {
-            final float alpha = MathHelper.lerp(partialTicks, this.lastWaypointTextureOpacityPrev, this.lastWaypointTextureOpacity) / 100F;
-            mc.textureManager.bindTexture(this.lastWaypointTexture);
+        // Drop images that will not be used in the future
+        float alpha = (this.ticksAfterWaypointTextureChanged + partialTicks) / 4F;
+        while (alpha >= 1) {
+            this.ticksAfterWaypointTextureChanged -= 4;
+            this.lastWaypointTextures.pollFirst();
+            --alpha;
+        }
+        // Ensure that the last image is current image
+        final ResourceLocation tail = this.lastWaypointTextures.peekLast();
+        if (!image.equals(tail)) {
+            this.lastWaypointTextures.addLast(image);
+        }
+        // If there are more than one images, render both of them, otherwise set the timer to zero
+        final ResourceLocation head = this.lastWaypointTextures.removeFirst();
+        if (this.lastWaypointTextures.isEmpty()) {
+            this.ticksAfterWaypointTextureChanged = 0;
+        } else {
+            mc.textureManager.bindTexture(head);
             blit(transforms, x1 + 7, y0 + 20, 0, 0, 96, 54, 96, 54);
-            RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F - alpha);
+            RenderSystem.color4f(1.0F, 1.0F, 1.0F, alpha);
             mc.textureManager.bindTexture(GUIDE_MAP_RIGHT);
             blit(transforms, x1 + 7, y0 + 20, 7, 20, 96, 54);
+            image = this.lastWaypointTextures.getFirst();
         }
+        this.lastWaypointTextures.addFirst(head);
         mc.textureManager.bindTexture(image);
         blit(transforms, x1 + 7, y0 + 20, 0, 0, 96, 54, 96, 54);
     }
