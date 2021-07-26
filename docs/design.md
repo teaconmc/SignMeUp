@@ -154,7 +154,7 @@ SignMeUp 的相关定义位于 `data/<domain>/signup_guides/<path>.json` 里，�
 * 位于所处的世界（`world` 决定）
 * 没有离开地图的范围（`range` 和 `center` 决定）
 
-均满足的第一个导引图（`ResourceLocation` 是有序的）。
+均满足的距离最近的第一个导引图（`ResourceLocation` 是有序的）。
 
 导引图的左上角是标题，下方是 128x128 大小的地图（由资源包渲染），右上角是子标题，下面是介绍，右下角是所有触发器按钮的列表，竖直排列。
 

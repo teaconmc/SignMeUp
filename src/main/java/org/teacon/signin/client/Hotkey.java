@@ -20,11 +20,11 @@ public final class Hotkey {
         if (SignMeUpClient.keyOpenMap != null && SignMeUpClient.keyOpenMap.isPressed()) {
             Minecraft mc = Minecraft.getInstance();
             if (mc.player != null) {
-                final Map.Entry<ResourceLocation, GuideMap> entry = SignMeUpClient.MANAGER.nearestTo(mc.player);
+                final Vector3d position = mc.player.getPositionVec();
+                final Map.Entry<ResourceLocation, GuideMap> entry = SignMeUpClient.MANAGER.nearestTo(position);
                 if (entry != null) {
-                    final Vector3d position = mc.player.getPositionVec();
                     mc.displayGuiScreen(new GuideMapScreen(entry.getKey(), entry.getValue(), position));
-                } else if (mc.player != null) {
+                } else {
                     mc.player.sendStatusMessage(new TranslationTextComponent("sign_up.status.no_map_available"), true);
                 }
             }

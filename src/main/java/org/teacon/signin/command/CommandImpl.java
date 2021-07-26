@@ -56,7 +56,7 @@ public final class CommandImpl {
         if (map != null) {
             // Here we have to send a packet to client side
             // for rendering the map GUI
-            MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.CLOSE_SPECIFIC, player.getPositionVec(), id);
+            MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.CLOSE_SPECIFIC, src.getPos(), id);
             SignMeUp.channel.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
@@ -85,7 +85,7 @@ public final class CommandImpl {
         if (map != null) {
             // Here we have to send a packet to client side
             // for rendering the map GUI
-            final MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, player.getPositionVec(), id);
+            final MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, src.getPos(), id);
             SignMeUp.channel.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
@@ -103,23 +103,29 @@ public final class CommandImpl {
         CommandSource src = context.getSource();
         ServerPlayerEntity player = src.asPlayer();
         RegistryKey<World> worldKey = src.getWorld().getDimensionKey();
+
         GuideMap map = null;
+        double minDistanceSq = Double.MAX_VALUE;
 
         // We first check the dimension
         if (src.asPlayer().world.getDimensionKey() == worldKey) {
             // Then we look for the nearest in-range map
             for (GuideMap guideMap : SignMeUp.MANAGER.getAllMaps()) {
-                final Vector3d destination = Vector3d.copyCenteredWithVerticalOffset(guideMap.center, player.getPosY());
-                if (player.getPosition().withinDistance(destination, guideMap.radius)) {
-                    map = guideMap;
-                    break; // Escape from the loop if we find one...
+                final double dx = src.getPos().getX() - guideMap.center.getX();
+                final double dz = src.getPos().getZ() - guideMap.center.getZ();
+                if (Math.min(Math.abs(dx), Math.abs(dz)) <= guideMap.radius) {
+                    final double distanceSq = dx * dx + dz * dz;
+                    if (distanceSq < minDistanceSq) {
+                        minDistanceSq = distanceSq;
+                        map = guideMap;
+                    }
                 }
             }
         }
 
         if (map != null) {
             // Same packet as above
-            final MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, player.getPositionVec(), SignMeUp.MANAGER.findMapId(map));
+            final MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, src.getPos(), SignMeUp.MANAGER.findMapId(map));
             SignMeUp.channel.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
@@ -144,7 +150,7 @@ public final class CommandImpl {
                 src.sendFeedback(new StringTextComponent(" - ")
                         .appendSibling(waypoint.getTitle()).appendString("\n   ")
                         .appendSibling(new TranslationTextComponent("sign_up.text.distance"))
-                        .appendString(": " + df.format(waypoint.getActualLocation().distanceSq(player.getPosition())) + " ")
+                        .appendString(": " + df.format(Vector3d.copy(waypoint.getActualLocation()).distanceTo(src.getPos())) + " ")
                         .appendSibling(new TranslationTextComponent("sign_up.text.blocks_away"))
                         , false
                 );

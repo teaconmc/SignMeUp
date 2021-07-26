@@ -3,6 +3,7 @@ package org.teacon.signin.client;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3i;
 import org.teacon.signin.data.GuideMap;
 import org.teacon.signin.data.Trigger;
 import org.teacon.signin.data.Waypoint;
@@ -19,17 +20,24 @@ public final class ClientGuideMapManager {
         this.availableMaps = maps;
     }
 
-    public Map.Entry<ResourceLocation, GuideMap> nearestTo(ClientPlayerEntity player) {
+    public Map.Entry<ResourceLocation, GuideMap> nearestTo(Vector3d pos) {
+        double minDistanceSq = Double.MAX_VALUE;
+        Map.Entry<ResourceLocation, GuideMap> result = null;
         for (Map.Entry<ResourceLocation, GuideMap> entry : this.availableMaps.entrySet()) {
             // Skip the dimension check because the client manager only knows
             // guide maps that are for the current dimension.
-            final GuideMap map = entry.getValue();
-            final Vector3d destination = Vector3d.copyCenteredWithVerticalOffset(map.center, player.getPosY());
-            if (player.getPosition().withinDistance(destination, map.radius)) {
-                return entry;
+            final GuideMap guideMap = entry.getValue();
+            final double dx = pos.getX() - guideMap.center.getX();
+            final double dz = pos.getZ() - guideMap.center.getZ();
+            if (Math.min(Math.abs(dx), Math.abs(dz)) <= guideMap.radius) {
+                final double distanceSq = dx * dx + dz * dz;
+                if (distanceSq < minDistanceSq) {
+                    minDistanceSq = distanceSq;
+                    result = entry;
+                }
             }
         }
-        return null;
+        return result;
     }
 
     public Trigger findTrigger(ResourceLocation triggerId) {
