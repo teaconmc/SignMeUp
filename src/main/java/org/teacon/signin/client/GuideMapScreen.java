@@ -13,6 +13,7 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.gui.widget.button.ImageButton;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
@@ -48,6 +49,12 @@ public final class GuideMapScreen extends Screen {
     private int mapTriggerPageSize = 0;
     private ResourceLocation selectedWaypoint;
 
+    private int lastWaypointTextureOpacity = 0;
+    private int lastWaypointTextureOpacityPrev = 0;
+    private ResourceLocation lastWaypointTexture = null;
+
+    private boolean hasWaypointTrigger = false;
+
     private final GuideMap map;
     private final Vector3d playerLocation;
     private final List<ResourceLocation> waypointIds;
@@ -80,6 +87,7 @@ public final class GuideMapScreen extends Screen {
         this.mapTriggerNext = this.addButton(new ImageButton(x0 + 39, y0 + 138, 33, 17, 99, 163, 19, GUIDE_MAP_LEFT, (btn) -> ++this.mapTriggerPage));
 
         // Setup trigger buttons from GuideMap
+        this.mapTriggers.clear();
         List<ResourceLocation> mapTriggerIds = this.map.getTriggerIds();
         for (int i = 0, mapTriggerIdSize = mapTriggerIds.size(); i < mapTriggerIdSize; ++i) {
             ResourceLocation triggerId = mapTriggerIds.get(i);
@@ -92,6 +100,7 @@ public final class GuideMapScreen extends Screen {
         }
 
         // Setup Waypoints
+        this.waypointTriggers.clear();
         int mapCanvasX = x0 + 78, mapCanvasY = y0 + 23;
         for (ResourceLocation wpId : this.waypointIds) {
             Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(wpId);
@@ -131,13 +140,25 @@ public final class GuideMapScreen extends Screen {
 
     @Override
     public void tick() {
+        this.lastWaypointTextureOpacityPrev = this.lastWaypointTextureOpacity;
+        if ((this.lastWaypointTextureOpacity -= 10) <= 0) {
+            this.lastWaypointTextureOpacity = 0;
+            this.lastWaypointTexture = null;
+        }
+
         this.mapTriggerPrev.visible = this.mapTriggerPage >= 1;
         this.mapTriggerNext.visible = this.mapTriggerPage < this.mapTriggerPageSize - 1;
+
         Waypoint wp = this.selectedWaypoint == null ? null : SignMeUp.MANAGER.findWaypoint(this.selectedWaypoint);
-        this.leftFlip.visible = this.rightFlip.visible = wp != null && !wp.isDisabled() && wp.hasMoreThanOneImage();
+        this.leftFlip.visible = this.rightFlip.visible = wp != null && !wp.isDisabled() ? wp.hasMoreThanOneImage() : this.map.hasMoreThanOneImage();
+
+        this.hasWaypointTrigger = false;
         for (Map.Entry<ResourceLocation, TriggerButton> entry : this.waypointTriggers.entries()) {
-            entry.getValue().visible = Objects.equals(entry.getKey(), this.selectedWaypoint);
+            final boolean visible = Objects.equals(entry.getKey(), this.selectedWaypoint);
+            this.hasWaypointTrigger = this.hasWaypointTrigger || visible;
+            entry.getValue().visible = visible;
         }
+
         for (int i = 0, size = this.mapTriggers.size(); i < size; ++i) {
             this.mapTriggers.get(i).visible = i / 6 == this.mapTriggerPage;
         }
@@ -151,7 +172,7 @@ public final class GuideMapScreen extends Screen {
 
         this.renderBackground(transforms);
         this.renderBackgroundTexture(mc, transforms, x0, y0, x1);
-        this.renderWaypointTexture(mc, transforms, x0, y0, x1);
+        this.renderWaypointTexture(mc, transforms, x0, y0, x1, partialTicks);
         this.renderMapTexture(mc, transforms, x0, y0, x1);
 
         super.render(transforms, mouseX, mouseY, partialTicks);
@@ -160,12 +181,6 @@ public final class GuideMapScreen extends Screen {
     }
 
     private void renderTextCollection(FontRenderer font, MatrixStack transforms, int x0, int y0, int x1) {
-        // Display labels for prev and next page buttons
-        final int prevColor = this.mapTriggerPrev.visible ? 0x404040 : 0xFFFFFF;
-        final int nextColor = this.mapTriggerNext.visible ? 0x404040 : 0xFFFFFF;
-        ITextComponent prevPage = new StringTextComponent("<"), nextPage = new StringTextComponent(">");
-        font.drawText(transforms, prevPage, x0 + 23F - font.getStringPropertyWidth(prevPage) / 2F, y0 + 143F, prevColor);
-        font.drawText(transforms, nextPage, x0 + 56F - font.getStringPropertyWidth(nextPage) / 2F, y0 + 143F, nextColor);
         // Display the subtitle/desc of the map if no waypoint is selected
         ITextComponent title = this.map.getTitle(), subtitle = this.map.getSubtitle(), desc = this.map.getDesc();
         if (this.selectedWaypoint != null) {
@@ -185,12 +200,14 @@ public final class GuideMapScreen extends Screen {
         List<IReorderingProcessor> displayedDescList = font.trimStringToWidth(desc, 90);
         // Draw desc text
         for (int i = 0, size = Math.min(8, displayedDescList.size()); i < size; ++i) {
-            font.func_238422_b_(transforms, displayedDescList.get(i), x1 + 10F, y0 + 82F + 9 * i, 0x404040);
+            font.func_238422_b_(transforms, displayedDescList.get(i), x1 + 10F, y0 + 81F + 9 * i, 0x404040);
         }
     }
 
     @SuppressWarnings("deprecation")
     private void renderMapTexture(Minecraft mc, MatrixStack transforms, int x0, int y0, int x1) {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         // corner of the in-game window
         mc.textureManager.bindTexture(this.map.texture);
@@ -199,17 +216,28 @@ public final class GuideMapScreen extends Screen {
     }
 
     @SuppressWarnings("deprecation")
-    private void renderWaypointTexture(Minecraft mc, MatrixStack transforms, int x0, int y0, int x1) {
+    private void renderWaypointTexture(Minecraft mc, MatrixStack transforms, int x0, int y0, int x1, float partialTicks) {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        ResourceLocation image = Waypoint.DEFAULT_IMAGE;
-        for (ResourceLocation wpId : this.waypointIds) {
-            if (this.selectedWaypoint == wpId) {
-                Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(wpId);
-                if (wp != null && !wp.isDisabled()) {
-                    image = wp.getDisplayingImageId();
-                    break;
-                }
+        ResourceLocation image = this.map.getDisplayingImageId();
+        if (this.selectedWaypoint != null) {
+            Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(this.selectedWaypoint);
+            if (wp != null && !wp.isDisabled()) {
+                image = wp.getDisplayingImageId();
             }
+        }
+        if (this.lastWaypointTexture == null) {
+            this.lastWaypointTexture = image;
+        } else if (this.lastWaypointTexture.equals(image)) {
+            this.lastWaypointTextureOpacity = 100;
+        } else if (this.lastWaypointTextureOpacity > 0) {
+            final float alpha = MathHelper.lerp(partialTicks, this.lastWaypointTextureOpacityPrev, this.lastWaypointTextureOpacity) / 100F;
+            mc.textureManager.bindTexture(this.lastWaypointTexture);
+            blit(transforms, x1 + 7, y0 + 20, 0, 0, 96, 54, 96, 54);
+            RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F - alpha);
+            mc.textureManager.bindTexture(GUIDE_MAP_RIGHT);
+            blit(transforms, x1 + 7, y0 + 20, 7, 20, 96, 54);
         }
         mc.textureManager.bindTexture(image);
         blit(transforms, x1 + 7, y0 + 20, 0, 0, 96, 54, 96, 54);
@@ -223,13 +251,16 @@ public final class GuideMapScreen extends Screen {
         blit(transforms, x0 + 6, y0 + 138, 66, 201, 66, 17);
         mc.textureManager.bindTexture(GUIDE_MAP_RIGHT);
         blit(transforms, x1 + 5, y0, 5, 0, 174, 161);
+        if (!this.hasWaypointTrigger) {
+            blit(transforms, x1 + 108, y0 + 20, 181, 20, 64, 134);
+        }
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         int x0 = (this.width - X_SIZE) / 2, y0 = (this.height - Y_SIZE) / 2;
         // Reset selected Wp when clicking everywhere on the map
-        if (mouseX >= x0 + 42 && mouseX < x0 + 170 && mouseY >= y0 + 25 && mouseY < y0 + 153) {
+        if (mouseX >= x0 + 78 && mouseX < x0 + 206 && mouseY >= y0 + 23 && mouseY < y0 + 151) {
             if (this.selectedWaypoint != null) {
                 this.selectedWaypoint = null;
                 return true;
@@ -247,12 +278,14 @@ public final class GuideMapScreen extends Screen {
 
         @Override
         public void onPress(Button p_onPress_1_) {
-            for (ResourceLocation wpId : waypointIds) {
-                Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(wpId);
+            if (selectedWaypoint != null) {
+                Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(selectedWaypoint);
                 if (wp != null && !wp.isDisabled()) {
                     wp.modifyDisplayingImageIndex(this.diff);
+                    return;
                 }
             }
+            map.modifyDisplayingImageIndex(this.diff);
         }
     }
 

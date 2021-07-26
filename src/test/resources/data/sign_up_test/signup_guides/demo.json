@@ -7,6 +7,10 @@
   "center": [ 0, 0 ],
   "world": "minecraft:overworld",
   "texture": "sign_up_test:textures/map.png",
+  "images": [
+    "sign_up:textures/map_default.png",
+    "sign_up_test:textures/map_image.png"
+  ],
   "points": [
     "sign_up_test:points/point_1",
     "sign_up_test:points/point_2",
@@ -15,16 +19,18 @@
   ],
   "triggers": [
     "sign_up_test:triggers/time_set_day",
+    "sign_up_test:triggers/time_set_night",
     "sign_up_test:triggers/greeting",
     "sign_up_test:triggers/greeting",
     "sign_up_test:triggers/greeting",
     "sign_up_test:triggers/greeting",
+    "sign_up_test:triggers/time_set_day",
+    "sign_up_test:triggers/time_set_night",
     "sign_up_test:triggers/greeting",
     "sign_up_test:triggers/greeting",
     "sign_up_test:triggers/greeting",
     "sign_up_test:triggers/greeting",
-    "sign_up_test:triggers/greeting",
-    "sign_up_test:triggers/greeting",
+    "sign_up_test:triggers/time_set_day",
     "sign_up_test:triggers/time_set_night"
   ]
 }

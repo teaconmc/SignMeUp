@@ -84,8 +84,6 @@ public final class Waypoint implements PlayerTracker {
         }
     }
 
-    public static final ResourceLocation DEFAULT_IMAGE = new ResourceLocation("sign_up:textures/default.png");
-
     private ITextComponent title;
     private ITextComponent desc;
 
@@ -139,7 +137,7 @@ public final class Waypoint implements PlayerTracker {
     }
 
     public ResourceLocation getDisplayingImageId() {
-        return this.imageIds.isEmpty() ? DEFAULT_IMAGE : this.imageIds.get(this.displayingImageIndex);
+        return this.imageIds.isEmpty() ? GuideMap.DEFAULT_IMAGE : this.imageIds.get(this.displayingImageIndex);
     }
 
     @Override

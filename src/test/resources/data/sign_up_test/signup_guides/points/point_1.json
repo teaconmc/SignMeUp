@@ -11,7 +11,7 @@
     "sign_up_test:triggers/time_set_night"
   ],
   "images": [
-    "sign_up_test:textures/green.png",
-    "sign_up_test:textures/pink.png"
+    "sign_up_test:textures/point_1a.png",
+    "sign_up_test:textures/point_1b.png"
   ]
 }

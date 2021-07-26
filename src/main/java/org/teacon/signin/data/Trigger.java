@@ -82,7 +82,7 @@ public final class Trigger implements PlayerTracker {
                     t.title = context.deserialize(obj.get("title"), ITextComponent.class);
                 }
                 if (obj.has("description")) {
-                    t.title = context.deserialize(obj.get("description"), ITextComponent.class);
+                    t.desc = context.deserialize(obj.get("description"), ITextComponent.class);
                 }
                 if (obj.has("disabled")) {
                     t.disabled = obj.get("disabled").getAsBoolean();

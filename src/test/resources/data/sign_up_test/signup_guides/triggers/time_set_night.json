@@ -1,7 +1,7 @@
 {
   "type": "trigger",
   "title": "Night",
-  "desc": "Set time to night",
+  "description": "Set time to night",
   "executes": [
     "/time set night",
     "/signmeup map close"

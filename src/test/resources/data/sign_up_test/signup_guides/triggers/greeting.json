@@ -1,6 +1,6 @@
 {
   "type": "trigger",
   "title": "Greeting",
-  "desc": "Send salutation to everyone",
+  "description": "Send salutation to everyone",
   "command": "/me greets everyone"
 }
