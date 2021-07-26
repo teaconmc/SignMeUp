@@ -1,0 +1,9 @@
+{
+  "type": "trigger",
+  "title": "Teleport",
+  "desc": "Teleport to location",
+  "executes": [
+    "/teleport @s ~ ~ ~",
+    "/signmeup map close"
+  ]
+}

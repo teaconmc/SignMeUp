@@ -6,28 +6,25 @@
   "range": 64,
   "center": [ 0, 0 ],
   "world": "minecraft:overworld",
-  "texture": "sign_up:textures/logo.png",
+  "texture": "sign_up_test:textures/map.png",
   "points": [
-    "sign_up_test:point_1",
-    "sign_up_test:point_2",
-    "sign_up_test:point_3",
-    "sign_up_test:point_4"
+    "sign_up_test:points/point_1",
+    "sign_up_test:points/point_2",
+    "sign_up_test:points/point_3",
+    "sign_up_test:points/point_4"
   ],
   "triggers": [
-    "sign_up_test:greeting",
-    "sign_up_test:greeting",
-    "sign_up_test:greeting",
-    "sign_up_test:greeting",
-    "sign_up_test:greeting",
-    "sign_up_test:greeting",
-    "sign_up_test:greeting",
-    "sign_up_test:greeting",
-    "sign_up_test:greeting",
-    "sign_up_test:greeting",
-    "sign_up_test:greeting",
-    "sign_up_test:greeting",
-    "sign_up_test:greeting",
-    "sign_up_test:greeting",
-    "sign_up_test:time_set_night"
+    "sign_up_test:triggers/time_set_day",
+    "sign_up_test:triggers/greeting",
+    "sign_up_test:triggers/greeting",
+    "sign_up_test:triggers/greeting",
+    "sign_up_test:triggers/greeting",
+    "sign_up_test:triggers/greeting",
+    "sign_up_test:triggers/greeting",
+    "sign_up_test:triggers/greeting",
+    "sign_up_test:triggers/greeting",
+    "sign_up_test:triggers/greeting",
+    "sign_up_test:triggers/greeting",
+    "sign_up_test:triggers/time_set_night"
   ]
 }

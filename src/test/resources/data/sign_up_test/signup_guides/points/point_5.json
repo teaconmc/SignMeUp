@@ -1,9 +1,9 @@
 {
   "type": "point",
-  "title": "Test Point 3",
+  "title": "Test Point 5",
   "selector": "@e[gamemode=creative]",
   "location": {
-    "actual": [ -32, 0, -32 ]
+    "actual": [ 50, 0, 0 ]
   },
   "triggers": []
 }

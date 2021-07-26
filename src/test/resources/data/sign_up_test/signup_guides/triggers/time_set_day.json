@@ -1,0 +1,9 @@
+{
+  "type": "trigger",
+  "title": "Day",
+  "desc": "Set time to day",
+  "executes": [
+    "/time set day",
+    "/signmeup map close"
+  ]
+}

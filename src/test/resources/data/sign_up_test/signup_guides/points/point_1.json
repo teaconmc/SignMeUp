@@ -1,0 +1,17 @@
+{
+  "type": "point",
+  "title": "Test Point 1",
+  "selector": "@e[gamemode=creative]",
+  "location": {
+    "actual": [ 10, 70, 10 ]
+  },
+  "triggers": [
+    "sign_up_test:triggers/teleport",
+    "sign_up_test:triggers/time_set_day",
+    "sign_up_test:triggers/time_set_night"
+  ],
+  "images": [
+    "sign_up_test:textures/green.png",
+    "sign_up_test:textures/pink.png"
+  ]
+}

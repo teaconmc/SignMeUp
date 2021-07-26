@@ -25,7 +25,7 @@ public final class ClientGuideMapManager {
             // guide maps that are for the current dimension.
             final GuideMap map = entry.getValue();
             final Vector3d destination = Vector3d.copyCenteredWithVerticalOffset(map.center, player.getPosY());
-            if (player.getPosition().withinDistance(destination, map.range)) {
+            if (player.getPosition().withinDistance(destination, map.radius)) {
                 return entry;
             }
         }

@@ -110,7 +110,7 @@ public final class CommandImpl {
             // Then we look for the nearest in-range map
             for (GuideMap guideMap : SignMeUp.MANAGER.getAllMaps()) {
                 final Vector3d destination = Vector3d.copyCenteredWithVerticalOffset(guideMap.center, player.getPosY());
-                if (player.getPosition().withinDistance(destination, guideMap.range)) {
+                if (player.getPosition().withinDistance(destination, guideMap.radius)) {
                     map = guideMap;
                     break; // Escape from the loop if we find one...
                 }

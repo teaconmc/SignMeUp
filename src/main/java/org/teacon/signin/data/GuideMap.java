@@ -32,8 +32,8 @@ public final class GuideMap {
     ITextComponent subtitle;
     ITextComponent desc;
 
-    public int range = 256;
     public Vector3i center;
+    public float radius = 128F;
     public ResourceLocation dim = null;
 
     // TODO Actually ensure the missing texture exists
@@ -89,9 +89,14 @@ public final class GuideMap {
                 LOGGER.warn(MARKER, "Center coordinate missing, falling back to [0, 0].");
             }
             if (json.has("range")) {
-                map.range = json.get("range").getAsInt();
+                final float range = json.get("range").getAsFloat();
+                if (range > 0) {
+                    map.radius = range / 2F;
+                } else {
+                    LOGGER.warn(MARKER, "Positive range missing, falling back to 256 (blocks)");
+                }
             } else {
-                LOGGER.warn(MARKER, "Range missing, falling back to 256 (blocks)");
+                LOGGER.warn(MARKER, "Positive range missing, falling back to 256 (blocks)");
             }
             if (json.has("world")) {
                 map.dim = new ResourceLocation(json.get("world").getAsString());
@@ -129,7 +134,7 @@ public final class GuideMap {
             if (src.center != null) {
                 json.add("center", context.serialize(src.center));
             }
-            json.add("range", new JsonPrimitive(src.range));
+            json.add("range", new JsonPrimitive(src.radius * 2));
             if (src.dim != null) {
                 json.add("world", new JsonPrimitive(src.dim.toString()));
             }

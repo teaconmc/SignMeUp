@@ -96,33 +96,33 @@ public final class GuideMapScreen extends Screen {
             if (wp == null || wp.isDisabled()) {
                 continue;
             }
-            // For map_icons.png, each icon is 16x16 pixels, so after we get the center coordinate,
-            // we also need to shift left/up by 8 pixels to center the icon.
-            final Vector3i absCenter = this.map.center;
-            final Vector3i absPos = wp.getRenderLocation();
-            final Vector3i relativePos = new Vector3i(absPos.getX() - absCenter.getX(), 0, absPos.getZ() - absCenter.getZ());
-            int waypointX = mapCanvasX + Math.round((float) relativePos.getX() / this.map.range * 64F) - 4 + 64;
-            int waypointY = mapCanvasY + Math.round((float) relativePos.getZ() / this.map.range * 64F) - 4 + 64;
-            // Setup Waypoints as ImageButtons
-            this.addButton(new ImageButton(waypointX, waypointY, 8, 8, 56, 0, 0, MAP_ICONS, 128, 128,
-                    (btn) -> this.selectedWaypoint = wpId, (btn, transform, mouseX, mouseY) -> {
-                double distance = Math.sqrt(wp.getRenderLocation().distanceSq(this.playerLocation, true));
-                this.renderTooltip(transform, Arrays.asList(
-                        wp.getTitle().func_241878_f(),
-                        new TranslationTextComponent("sign_me_in.waypoint.distance",
-                                Math.round(distance * 10.0) / 10.0).func_241878_f()
-                ), mouseX, mouseY);
-            }, wp.getTitle()));
-
-            // Setup trigger buttons from Waypoints
-            List<ResourceLocation> wpTriggerIds = wp.getTriggerIds();
-            for (int i = 0, max = Math.min(7, wpTriggerIds.size()); i < max; ++i) {
-                ResourceLocation triggerId = wpTriggerIds.get(i);
-                TriggerButton btn = this.addButton(new TriggerButton(
-                        x1 + 109, y0 + 21 + i * 19, 62, 18, 2, 163, 20, GUIDE_MAP_RIGHT, triggerId, 0x808080,
-                        (b) -> SignMeUp.channel.sendToServer(new TriggerFromWaypointPacket(wpId, triggerId))));
-                this.waypointTriggers.put(wpId, btn);
-                btn.visible = false;
+            // For map_icons.png, each icon is 4x4 pixels, so after we get the center coordinate,
+            // we also need to shift left/up by 2 pixels to center the icon.
+            final Vector3i center = this.map.center;
+            final Vector3i renderLocation = wp.getRenderLocation();
+            final int wpX = Math.round(((float) (renderLocation.getX() - center.getX())) / this.map.radius * 64) + 64;
+            final int wpY = Math.round(((float) (renderLocation.getZ() - center.getZ())) / this.map.radius * 64) + 64;
+            if (wpX >= 1 && wpX <= 127 && wpY >= 1 && wpY <= 127) {
+                // Setup Waypoints as ImageButtons
+                this.addButton(new ImageButton(mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4, 58, 2, 0, MAP_ICONS,
+                        128, 128, (btn) -> this.selectedWaypoint = wpId, (btn, transform, mouseX, mouseY) -> {
+                    double distance = Math.sqrt(wp.getActualLocation().distanceSq(this.playerLocation, true));
+                    this.renderTooltip(transform, Arrays.asList(
+                            wp.getTitle().func_241878_f(),
+                            new TranslationTextComponent("sign_me_in.waypoint.distance",
+                                    Math.round(distance * 10.0) / 10.0).func_241878_f()
+                    ), mouseX, mouseY);
+                }, wp.getTitle()));
+                // Setup trigger buttons from Waypoints
+                List<ResourceLocation> wpTriggerIds = wp.getTriggerIds();
+                for (int i = 0, max = Math.min(7, wpTriggerIds.size()); i < max; ++i) {
+                    ResourceLocation triggerId = wpTriggerIds.get(i);
+                    TriggerButton btn = this.addButton(new TriggerButton(
+                            x1 + 109, y0 + 21 + i * 19, 62, 18, 2, 163, 20, GUIDE_MAP_RIGHT, triggerId, 0x808080,
+                            (b) -> SignMeUp.channel.sendToServer(new TriggerFromWaypointPacket(wpId, triggerId))));
+                    this.waypointTriggers.put(wpId, btn);
+                    btn.visible = false;
+                }
             }
         }
     }

@@ -1,13 +1,11 @@
 {
   "type": "point",
-  "title": "Test Point 1",
+  "title": "Test Point 2",
   "selector": "@e[gamemode=creative]",
   "location": {
-    "actual": [ 32, 0, 32 ]
+    "actual": [ 20, 0, -20 ]
   },
-  "triggers": [
-    "sign_up_test:time_set_night"
-  ],
+  "triggers": [],
   "images": [
     "sign_up_test:textures/green.png",
     "sign_up_test:textures/pink.png"

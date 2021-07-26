@@ -6,9 +6,9 @@
   "range": 64,
   "center": [ 96, 0 ],
   "world": "minecraft:overworld",
-  "texture": "sign_up:textures/logo.png",
+  "texture": "sign_up_test:textures/map.png",
   "points": [
-    "sign_up_test:point_5"
+    "sign_up_test:points/point_5"
   ],
-  "triggers": [ "sign_up_test:greeting" ]
+  "triggers": [ "sign_up_test:triggers/greeting" ]
 }
