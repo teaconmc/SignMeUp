@@ -114,7 +114,7 @@ public final class GuideMapScreen extends Screen {
                 for (int i = 0, max = Math.min(7, wpTriggerIds.size()); i < max; ++i) {
                     ResourceLocation triggerId = wpTriggerIds.get(i);
                     TriggerButton btn = this.addButton(new TriggerButton(
-                            x1 + 109, y0 + 21 + i * 19, 62, 18, 2, 163, 20, GUIDE_MAP_RIGHT, triggerId, 0x808080,
+                            x1 + 109, y0 + 21 + i * 19, 62, 18, 2, 163, 20, GUIDE_MAP_RIGHT, triggerId, 0x404040,
                             (b) -> SignMeUp.channel.sendToServer(new TriggerFromWaypointPacket(wpId, triggerId))));
                     this.waypointTriggers.put(wpId, btn);
                     btn.visible = false;
@@ -171,7 +171,7 @@ public final class GuideMapScreen extends Screen {
         List<IReorderingProcessor> displayedDescList = font.trimStringToWidth(desc, 90);
         // Draw desc text
         for (int i = 0, size = Math.min(8, displayedDescList.size()); i < size; ++i) {
-            font.func_238422_b_(transforms, displayedDescList.get(i), x1 + 10F, y0 + 82F + 9 * i, 0x808080);
+            font.func_238422_b_(transforms, displayedDescList.get(i), x1 + 10F, y0 + 82F + 9 * i, 0x404040);
         }
     }
 
