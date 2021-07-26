@@ -21,7 +21,7 @@ public final class PartialUpdatePacket {
     private static final Gson GSON = new GsonBuilder().setLenient()
             .registerTypeAdapter(Waypoint.class, new Waypoint.Serializer())
             .registerTypeAdapter(Waypoint.Location.class, new Waypoint.Location.Serializer())
-            .registerTypeAdapter(Vector3i.class, new Vec3iSerializer())
+            .registerTypeAdapter(Vector3i.class, new Vector3iAdapter())
             .registerTypeAdapter(Trigger.class, new Trigger.Serializer())
             .registerTypeHierarchyAdapter(ITextComponent.class, new ITextComponent.Serializer())
             .create();

@@ -5,7 +5,7 @@ import net.minecraft.util.math.vector.Vector3i;
 
 import java.lang.reflect.Type;
 
-public final class Vec3iSerializer
+public final class Vector3iAdapter
         implements JsonSerializer<Vector3i>, JsonDeserializer<Vector3i> {
 
     @Override
@@ -25,6 +25,7 @@ public final class Vec3iSerializer
     public JsonElement serialize(Vector3i src, Type typeOfSrc, JsonSerializationContext context) {
         JsonArray arr = new JsonArray();
         arr.add(src.getX());
+        arr.add(src.getY());
         arr.add(src.getZ());
         return arr;
     }
