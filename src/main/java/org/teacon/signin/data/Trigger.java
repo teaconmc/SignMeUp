@@ -1,5 +1,7 @@
 package org.teacon.signin.data;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.gson.*;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -7,12 +9,14 @@ import net.minecraft.command.arguments.EntitySelector;
 import net.minecraft.command.arguments.EntitySelectorParser;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import org.teacon.signin.network.PartialUpdate;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -26,7 +30,7 @@ public final class Trigger implements PlayerTracker {
     String selector = "@e";
     private transient EntitySelector parsedSelector;
 
-    public String command = "/me successfully created a new trigger";
+    public ImmutableList<String> executes = ImmutableList.of("/me successfully created a new trigger");
 
     transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
@@ -88,8 +92,12 @@ public final class Trigger implements PlayerTracker {
                 if (obj.has("selector")) {
                     t.selector = obj.get("selector").getAsString();
                 }
-                if (obj.has("command")) {
-                    t.command = obj.get("command").getAsString();
+                if (obj.has("executes")) {
+                    ImmutableList.Builder<String> builder = ImmutableList.builder();
+                    for (JsonElement command : obj.getAsJsonArray("executes")) {
+                        builder.add(command.getAsString());
+                    }
+                    t.executes = builder.build();
                 }
                 return t;
             } else {
@@ -108,7 +116,7 @@ public final class Trigger implements PlayerTracker {
             }
             json.add("disabled", new JsonPrimitive(src.disabled));
             json.add("selector", new JsonPrimitive(src.selector));
-            json.add("command", new JsonPrimitive(src.command));
+            json.add("executes", Util.make(new JsonArray(), arr -> src.executes.forEach(arr::add)));
             return json;
         }
     }

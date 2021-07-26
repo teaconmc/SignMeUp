@@ -31,6 +31,9 @@ public final class GuideMapScreen extends Screen {
     public static final int SIDE = 10;
     public static final int SIDEBAR_WIDTH = 80;
     public static final int SIDEBAR_ANIMATION_TIME = 500;
+
+    public final ResourceLocation mapId;
+
     private long mapSidebarAnimationStartTime;
     private boolean mapSidebarActivatedLastFrame = false;
     protected final List<Widget> mapTriggerButtons = Lists.newArrayList();
@@ -50,9 +53,10 @@ public final class GuideMapScreen extends Screen {
     private int startingLine = 0;
     private Waypoint selectedWp;
 
-    public GuideMapScreen(GuideMap map) {
+    public GuideMapScreen(ResourceLocation mapId, GuideMap map) {
         super(map.getTitle());
         this.map = map;
+        this.mapId = mapId;
         this.waypointIds = map.getWaypointIds();
     }
 

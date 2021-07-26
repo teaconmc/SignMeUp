@@ -19,13 +19,14 @@ public final class ClientGuideMapManager {
         this.availableMaps = maps;
     }
 
-    public GuideMap nearestTo(ClientPlayerEntity player) {
-        for (GuideMap map : this.availableMaps.values()) {
+    public Map.Entry<ResourceLocation, GuideMap> nearestTo(ClientPlayerEntity player) {
+        for (Map.Entry<ResourceLocation, GuideMap> entry : this.availableMaps.entrySet()) {
             // Skip the dimension check because the client manager only knows
             // guide maps that are for the current dimension.
+            final GuideMap map = entry.getValue();
             final Vector3d destination = Vector3d.copyCenteredWithVerticalOffset(map.center, player.getPosY());
             if (player.getPosition().withinDistance(destination, map.range)) {
-                return map;
+                return entry;
             }
         }
         return null;

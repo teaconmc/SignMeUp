@@ -63,6 +63,10 @@ public final class SignMeUp {
         event.getDispatcher().register(Commands.literal("signmeup")
                 .then(Commands.literal("map")
                         .then(Commands.literal("list").executes(CommandImpl::listMaps))
+                        .then(Commands.literal("close")
+                                .then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
+                                        .executes(CommandImpl::closeSpecificMap))
+                                .executes(CommandImpl::closeAnyMap))
                         .then(Commands.literal("open")
                                 .then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
                                         .executes(CommandImpl::openSpecificMap))
@@ -94,7 +98,9 @@ public final class SignMeUp {
         if (trigger != null && trigger.isVisibleTo(player)) {
             final MinecraftServer server = player.getServer();
             if (server != null) {
-                server.getCommandManager().handleCommand(player.getCommandSource().withPermissionLevel(2), trigger.command);
+                for (String command : trigger.executes) {
+                    server.getCommandManager().handleCommand(player.getCommandSource().withPermissionLevel(2), command);
+                }
             }
         } else {
             player.sendStatusMessage(new StringTextComponent("You seemed to click the void just now..."), true);

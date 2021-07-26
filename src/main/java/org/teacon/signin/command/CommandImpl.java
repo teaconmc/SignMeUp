@@ -49,6 +49,33 @@ public final class CommandImpl {
         }
     }
 
+    public static int closeSpecificMap(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        CommandSource src = context.getSource();
+        ServerPlayerEntity player = context.getSource().asPlayer();
+        final ResourceLocation id = context.getArgument("id", ResourceLocation.class);
+        GuideMap map = SignMeUp.MANAGER.findMap(id);
+        if (map != null) {
+            // Here we have to send a packet to client side
+            // for rendering the map GUI
+            SignMeUp.channel.sendTo(new MapScreenPacket(MapScreenPacket.Action.CLOSE_SPECIFIC, id), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendErrorMessage(ERROR
+                    .appendString(": ")
+                    .appendSibling(new TranslationTextComponent("sign_up.text.map"))
+                    .appendString(" " + id.toString() + " ")
+                    .appendSibling(new TranslationTextComponent("sign_up.text.does_not_exist"))
+            );
+            return -1;
+        }
+    }
+
+    public static int closeAnyMap(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        ServerPlayerEntity player = context.getSource().asPlayer();
+        SignMeUp.channel.sendTo(new MapScreenPacket(MapScreenPacket.Action.CLOSE_ANY, null), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+        return Command.SINGLE_SUCCESS;
+    }
+
     public static int openSpecificMap(CommandContext<CommandSource> context) throws CommandSyntaxException {
         CommandSource src = context.getSource();
         ServerPlayerEntity player = context.getSource().asPlayer();
@@ -57,7 +84,7 @@ public final class CommandImpl {
         if (map != null) {
             // Here we have to send a packet to client side
             // for rendering the map GUI
-            SignMeUp.channel.sendTo(new MapScreenPacket(id), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+            SignMeUp.channel.sendTo(new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, id), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendErrorMessage(ERROR
@@ -91,7 +118,7 @@ public final class CommandImpl {
 
         if (map != null) {
             // Same packet as above
-            SignMeUp.channel.sendTo(new MapScreenPacket(SignMeUp.MANAGER.findMapId(map)), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+            SignMeUp.channel.sendTo(new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, SignMeUp.MANAGER.findMapId(map)), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendErrorMessage(ERROR
