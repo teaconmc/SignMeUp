@@ -21,7 +21,8 @@ import org.teacon.signin.SignMeUp;
 import org.teacon.signin.data.GuideMap;
 import org.teacon.signin.data.Trigger;
 import org.teacon.signin.data.Waypoint;
-import org.teacon.signin.network.TriggerActivation;
+import org.teacon.signin.network.TriggerFromMapPacket;
+import org.teacon.signin.network.TriggerFromWaypointPacket;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Arrays;
@@ -82,7 +83,8 @@ public final class GuideMapScreen extends Screen {
             ResourceLocation triggerId = mapTriggerIds.get(i);
             this.mapTriggerPageSize = Math.max(this.mapTriggerPageSize, 1 + i / 6);
             final TriggerButton btn = this.addButton(new TriggerButton(
-                    x0 + 8, y0 + 21 + (i % 6) * 19, 62, 18, 2, 163, 20, GUIDE_MAP_LEFT, triggerId, 0x404040));
+                    x0 + 8, y0 + 21 + (i % 6) * 19, 62, 18, 2, 163, 20, GUIDE_MAP_LEFT, triggerId, 0x404040,
+                    (b) -> SignMeUp.channel.sendToServer(new TriggerFromMapPacket(this.mapId, triggerId))));
             this.mapTriggers.add(btn);
             btn.visible = false;
         }
@@ -104,20 +106,21 @@ public final class GuideMapScreen extends Screen {
             // Setup Waypoints as ImageButtons
             this.addButton(new ImageButton(waypointX, waypointY, 8, 8, 56, 0, 0, MAP_ICONS, 128, 128,
                     (btn) -> this.selectedWaypoint = wpId, (btn, transform, mouseX, mouseY) -> {
-                        double distance = Math.sqrt(wp.getRenderLocation().distanceSq(this.playerLocation, true));
-                        this.renderTooltip(transform, Arrays.asList(
-                                wp.getTitle().func_241878_f(),
-                                new TranslationTextComponent("sign_me_in.waypoint.distance",
-                                        Math.round(distance * 10.0) / 10.0).func_241878_f()
-                        ), mouseX, mouseY);
-                    }, wp.getTitle()));
+                double distance = Math.sqrt(wp.getRenderLocation().distanceSq(this.playerLocation, true));
+                this.renderTooltip(transform, Arrays.asList(
+                        wp.getTitle().func_241878_f(),
+                        new TranslationTextComponent("sign_me_in.waypoint.distance",
+                                Math.round(distance * 10.0) / 10.0).func_241878_f()
+                ), mouseX, mouseY);
+            }, wp.getTitle()));
 
             // Setup trigger buttons from Waypoints
             List<ResourceLocation> wpTriggerIds = wp.getTriggerIds();
             for (int i = 0, max = Math.min(7, wpTriggerIds.size()); i < max; ++i) {
                 ResourceLocation triggerId = wpTriggerIds.get(i);
                 TriggerButton btn = this.addButton(new TriggerButton(
-                        x1 + 109, y0 + 21 + i * 19, 62, 18, 2, 163, 20, GUIDE_MAP_RIGHT, triggerId, 0x808080));
+                        x1 + 109, y0 + 21 + i * 19, 62, 18, 2, 163, 20, GUIDE_MAP_RIGHT, triggerId, 0x808080,
+                        (b) -> SignMeUp.channel.sendToServer(new TriggerFromWaypointPacket(wpId, triggerId))));
                 this.waypointTriggers.put(wpId, btn);
                 btn.visible = false;
             }
@@ -242,8 +245,9 @@ public final class GuideMapScreen extends Screen {
         private final ResourceLocation triggerId;
         private final int textColor;
 
-        private TriggerButton(int x, int y, int width, int height, int uOffset, int vOffset, int vDiff, ResourceLocation image, ResourceLocation triggerId, int textColor) {
-            super(x, y, width, height, uOffset, vOffset, vDiff, image, btn -> SignMeUp.channel.sendToServer(new TriggerActivation(triggerId)));
+        private TriggerButton(int x, int y, int width, int height, int uOffset, int vOffset, int vDiff,
+                              ResourceLocation image, ResourceLocation triggerId, int textColor, IPressable pressable) {
+            super(x, y, width, height, uOffset, vOffset, vDiff, image, pressable);
             this.triggerId = triggerId;
             this.textColor = textColor;
         }

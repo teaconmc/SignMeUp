@@ -1,7 +1,6 @@
 package org.teacon.signin.data;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.gson.*;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -12,11 +11,10 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import org.teacon.signin.network.PartialUpdate;
+import org.teacon.signin.network.PartialUpdatePacket;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -69,8 +67,8 @@ public final class Trigger implements PlayerTracker {
     }
 
     @Override
-    public PartialUpdate getNotifyPacket(boolean remove, ResourceLocation id) {
-        return new PartialUpdate(remove ? PartialUpdate.Mode.REMOVE_TRIGGER : PartialUpdate.Mode.ADD_TRIGGER, id, this);
+    public PartialUpdatePacket getNotifyPacket(boolean remove, ResourceLocation id) {
+        return new PartialUpdatePacket(remove ? PartialUpdatePacket.Mode.REMOVE_TRIGGER : PartialUpdatePacket.Mode.ADD_TRIGGER, id, this);
     }
 
     public static final class Serializer implements JsonDeserializer<Trigger>, JsonSerializer<Trigger> {

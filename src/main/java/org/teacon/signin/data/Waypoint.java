@@ -1,6 +1,5 @@
 package org.teacon.signin.data;
 
-import com.google.common.base.Preconditions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -19,7 +18,7 @@ import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import org.teacon.signin.network.PartialUpdate;
+import org.teacon.signin.network.PartialUpdatePacket;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -166,8 +165,8 @@ public final class Waypoint implements PlayerTracker {
     }
 
     @Override
-    public PartialUpdate getNotifyPacket(boolean remove, ResourceLocation id) {
-        return new PartialUpdate(remove ? PartialUpdate.Mode.REMOVE_WAYPOINT : PartialUpdate.Mode.ADD_WAYPOINT, id, this);
+    public PartialUpdatePacket getNotifyPacket(boolean remove, ResourceLocation id) {
+        return new PartialUpdatePacket(remove ? PartialUpdatePacket.Mode.REMOVE_WAYPOINT : PartialUpdatePacket.Mode.ADD_WAYPOINT, id, this);
     }
 
     public static final class Serializer implements JsonDeserializer<Waypoint>, JsonSerializer<Waypoint> {

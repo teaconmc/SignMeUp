@@ -11,7 +11,7 @@ import org.teacon.signin.data.GuideMap;
 
 import java.util.function.Supplier;
 
-public class MapScreenPacket {
+public final class MapScreenPacket {
     private final Action action;
     private final Vector3d position;
     private final ResourceLocation mapId;

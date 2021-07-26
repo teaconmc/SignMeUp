@@ -8,20 +8,16 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
-import org.teacon.signin.SignMeUp;
 import org.teacon.signin.client.SignMeUpClient;
 import org.teacon.signin.data.GuideMap;
-import org.teacon.signin.data.Trigger;
-import org.teacon.signin.data.Waypoint;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Supplier;
 
-public class SyncGuideMap {
+public final class SyncGuideMapPacket {
 
     private static final Gson GSON = new GsonBuilder().setLenient()
             .registerTypeAdapter(GuideMap.class, new GuideMap.Serializer())
@@ -30,16 +26,16 @@ public class SyncGuideMap {
 
     private final SortedMap<ResourceLocation, GuideMap> maps;
 
-    public SyncGuideMap(SortedMap<ResourceLocation, GuideMap> mapsToSend) {
+    public SyncGuideMapPacket(SortedMap<ResourceLocation, GuideMap> mapsToSend) {
         this.maps = mapsToSend;
     }
 
-    public SyncGuideMap(PacketBuffer buf) {
+    public SyncGuideMapPacket(PacketBuffer buf) {
         this.maps = new TreeMap<>(); // We want all guide maps to be sorted by key.
         try {
             final String src = new String(buf.readByteArray(), StandardCharsets.UTF_8);
             final JsonObject json = GSON.fromJson(src, JsonObject.class);
-            json.entrySet().forEach(e -> SyncGuideMap.accept(e, GuideMap.class, this.maps));
+            json.entrySet().forEach(e -> SyncGuideMapPacket.accept(e, GuideMap.class, this.maps));
         } catch (Exception ignored) {
             ignored.printStackTrace(System.err);
         }

@@ -1,11 +1,14 @@
 package org.teacon.signin;
 
+import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.BlockPosArgument;
 import net.minecraft.command.arguments.ResourceLocationArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
@@ -23,10 +26,7 @@ import org.teacon.signin.command.CommandImpl;
 import org.teacon.signin.data.DynamicLocationStorage;
 import org.teacon.signin.data.GuideMapManager;
 import org.teacon.signin.data.Trigger;
-import org.teacon.signin.network.MapScreenPacket;
-import org.teacon.signin.network.PartialUpdate;
-import org.teacon.signin.network.SyncGuideMap;
-import org.teacon.signin.network.TriggerActivation;
+import org.teacon.signin.network.*;
 
 @Mod("sign_up")
 @Mod.EventBusSubscriber(modid = "sign_up", bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -47,10 +47,11 @@ public final class SignMeUp {
 
     public static void setup(FMLCommonSetupEvent event) {
         CapabilityManager.INSTANCE.register(DynamicLocationStorage.class, new DynamicLocationStorage.Serializer(), DynamicLocationStorage::new);
-        channel.registerMessage(0, SyncGuideMap.class, SyncGuideMap::write, SyncGuideMap::new, SyncGuideMap::handle);
-        channel.registerMessage(1, PartialUpdate.class, PartialUpdate::write, PartialUpdate::new, PartialUpdate::handle);
-        channel.registerMessage(2, TriggerActivation.class, TriggerActivation::write, TriggerActivation::new, TriggerActivation::handle);
-        channel.registerMessage(3, MapScreenPacket.class, MapScreenPacket::write, MapScreenPacket::new, MapScreenPacket::handle);
+        channel.registerMessage(0, SyncGuideMapPacket.class, SyncGuideMapPacket::write, SyncGuideMapPacket::new, SyncGuideMapPacket::handle);
+        channel.registerMessage(1, PartialUpdatePacket.class, PartialUpdatePacket::write, PartialUpdatePacket::new, PartialUpdatePacket::handle);
+        channel.registerMessage(2, MapScreenPacket.class, MapScreenPacket::write, MapScreenPacket::new, MapScreenPacket::handle);
+        channel.registerMessage(3, TriggerFromMapPacket.class, TriggerFromMapPacket::write, TriggerFromMapPacket::new, TriggerFromMapPacket::handle);
+        channel.registerMessage(4, TriggerFromWaypointPacket.class, TriggerFromWaypointPacket::write, TriggerFromWaypointPacket::new, TriggerFromWaypointPacket::handle);
     }
 
     @SubscribeEvent
@@ -93,13 +94,14 @@ public final class SignMeUp {
         event.addCapability(new ResourceLocation("sign_up"), new DynamicLocationStorage.Holder());
     }
 
-    public static void trigger(ServerPlayerEntity player, ResourceLocation triggerId) {
+    public static void trigger(ServerPlayerEntity player, Vector3i pos, ResourceLocation triggerId) {
         final Trigger trigger = MANAGER.findTrigger(triggerId);
         if (trigger != null && trigger.isVisibleTo(player)) {
             final MinecraftServer server = player.getServer();
             if (server != null) {
+                final CommandSource source = player.getCommandSource().withPos(Vector3d.copy(pos)).withPermissionLevel(2);
                 for (String command : trigger.executes) {
-                    server.getCommandManager().handleCommand(player.getCommandSource().withPermissionLevel(2), command);
+                    server.getCommandManager().handleCommand(source, command);
                 }
             }
         } else {

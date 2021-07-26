@@ -23,7 +23,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
 import org.teacon.signin.SignMeUp;
-import org.teacon.signin.network.SyncGuideMap;
+import org.teacon.signin.network.SyncGuideMapPacket;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -82,7 +82,7 @@ public final class GuideMapManager extends JsonReloadListener {
                     mapsToSend.put(id, map);
                 }
             });
-            SignMeUp.channel.sendTo(new SyncGuideMap(mapsToSend), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+            SignMeUp.channel.sendTo(new SyncGuideMapPacket(mapsToSend), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
         }
     }
 

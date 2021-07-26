@@ -12,7 +12,7 @@ import org.teacon.signin.data.*;
 
 import java.util.function.Supplier;
 
-public class PartialUpdate {
+public final class PartialUpdatePacket {
 
     public enum Mode {
         ADD_WAYPOINT, REMOVE_WAYPOINT, ADD_TRIGGER, REMOVE_TRIGGER
@@ -32,7 +32,7 @@ public class PartialUpdate {
     private ResourceLocation triggerId;
     private Trigger trigger;
 
-    public PartialUpdate(PacketBuffer buf) {
+    public PartialUpdatePacket(PacketBuffer buf) {
         switch (this.mode = buf.readEnumValue(Mode.class)) {
             case ADD_WAYPOINT:
                 this.waypointId = buf.readResourceLocation();
@@ -50,13 +50,13 @@ public class PartialUpdate {
         }
     }
 
-    public PartialUpdate(Mode mode, ResourceLocation id, Waypoint wp) {
+    public PartialUpdatePacket(Mode mode, ResourceLocation id, Waypoint wp) {
         this.mode = mode;
         this.waypointId = id;
         this.waypoint = wp;
     }
 
-    public PartialUpdate(Mode mode, ResourceLocation id, Trigger trigger) {
+    public PartialUpdatePacket(Mode mode, ResourceLocation id, Trigger trigger) {
         this.mode = mode;
         this.triggerId = id;
         this.trigger = trigger;
