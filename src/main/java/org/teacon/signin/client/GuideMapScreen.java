@@ -16,6 +16,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import org.teacon.signin.SignMeUp;
 import org.teacon.signin.data.GuideMap;
@@ -52,6 +53,7 @@ public final class GuideMapScreen extends Screen {
     private final List<ResourceLocation> waypointIds;
 
     private ImageButton leftFlip, rightFlip;
+    private ImageButton mapTriggerPrev, mapTriggerNext;
 
     private final List<TriggerButton> mapTriggers = Lists.newArrayList();
     private final ListMultimap<ResourceLocation, TriggerButton> waypointTriggers = ArrayListMultimap.create();
@@ -72,6 +74,10 @@ public final class GuideMapScreen extends Screen {
         // Left and Right Image Flip Button
         this.leftFlip = this.addButton(new ImageButton(x1 + 7, y0 + 20, 10, 54, 155, 163, 0, GUIDE_MAP_RIGHT, new FlipHandler(1)));
         this.rightFlip = this.addButton(new ImageButton(x1 + 93, y0 + 20, 10, 54, 167, 163, 0, GUIDE_MAP_RIGHT, new FlipHandler(-1)));
+
+        // Prev and next page for map triggers
+        this.mapTriggerPrev = this.addButton(new ImageButton(x0 + 6, y0 + 138, 33, 17, 66, 163, 19, GUIDE_MAP_LEFT, (btn) -> --this.mapTriggerPage));
+        this.mapTriggerNext = this.addButton(new ImageButton(x0 + 39, y0 + 138, 33, 17, 99, 163, 19, GUIDE_MAP_LEFT, (btn) -> ++this.mapTriggerPage));
 
         // Setup trigger buttons from GuideMap
         List<ResourceLocation> mapTriggerIds = this.map.getTriggerIds();
@@ -105,7 +111,7 @@ public final class GuideMapScreen extends Screen {
                     double distance = Math.sqrt(wp.getActualLocation().distanceSq(this.playerLocation, true));
                     this.renderTooltip(transform, Arrays.asList(
                             wp.getTitle().func_241878_f(),
-                            new TranslationTextComponent("sign_me_in.waypoint.distance",
+                            new TranslationTextComponent("sign_up.waypoint.distance",
                                     Math.round(distance * 10.0) / 10.0).func_241878_f()
                     ), mouseX, mouseY);
                 }, wp.getTitle()));
@@ -125,6 +131,8 @@ public final class GuideMapScreen extends Screen {
 
     @Override
     public void tick() {
+        this.mapTriggerPrev.visible = this.mapTriggerPage >= 1;
+        this.mapTriggerNext.visible = this.mapTriggerPage < this.mapTriggerPageSize - 1;
         Waypoint wp = this.selectedWaypoint == null ? null : SignMeUp.MANAGER.findWaypoint(this.selectedWaypoint);
         this.leftFlip.visible = this.rightFlip.visible = wp != null && !wp.isDisabled() && wp.hasMoreThanOneImage();
         for (Map.Entry<ResourceLocation, TriggerButton> entry : this.waypointTriggers.entries()) {
@@ -152,6 +160,12 @@ public final class GuideMapScreen extends Screen {
     }
 
     private void renderTextCollection(FontRenderer font, MatrixStack transforms, int x0, int y0, int x1) {
+        // Display labels for prev and next page buttons
+        final int prevColor = this.mapTriggerPrev.visible ? 0x404040 : 0xFFFFFF;
+        final int nextColor = this.mapTriggerNext.visible ? 0x404040 : 0xFFFFFF;
+        ITextComponent prevPage = new StringTextComponent("<"), nextPage = new StringTextComponent(">");
+        font.drawText(transforms, prevPage, x0 + 23F - font.getStringPropertyWidth(prevPage) / 2F, y0 + 143F, prevColor);
+        font.drawText(transforms, nextPage, x0 + 56F - font.getStringPropertyWidth(nextPage) / 2F, y0 + 143F, nextColor);
         // Display the subtitle/desc of the map if no waypoint is selected
         ITextComponent title = this.map.getTitle(), subtitle = this.map.getSubtitle(), desc = this.map.getDesc();
         if (this.selectedWaypoint != null) {
@@ -206,6 +220,7 @@ public final class GuideMapScreen extends Screen {
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.textureManager.bindTexture(GUIDE_MAP_LEFT);
         blit(transforms, x0, y0, 0, 0, 211, 161);
+        blit(transforms, x0 + 6, y0 + 138, 66, 201, 66, 17);
         mc.textureManager.bindTexture(GUIDE_MAP_RIGHT);
         blit(transforms, x1 + 5, y0, 5, 0, 174, 161);
     }

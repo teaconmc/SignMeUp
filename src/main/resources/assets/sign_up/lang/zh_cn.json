@@ -2,10 +2,10 @@
   "sign_up.keybinding": "签到",
   "sign_up.keybinding.open_map": "打开导引图",
 
-  "sign_me_in.map.unnamed": "新的导引图",
-  "sign_me_in.waypoint.unnamed": "新的导引点",
-  "sign_me_in.waypoint.distance": "这个点距离你的直线距离为 %1$s 方块",
-  "sign_me_in.trigger.unnamed": "新的触发器",
+  "sign_up.map.unnamed": "新的导引图",
+  "sign_up.waypoint.unnamed": "新的导引点",
+  "sign_up.waypoint.distance": "这个点距离你的直线距离为 %1$s 方块",
+  "sign_up.trigger.unnamed": "新的触发器",
   
   "sign_up.status.no_map_available": "没有可供查看的导引图 :( 或者您可能在导引图范围之外",
 

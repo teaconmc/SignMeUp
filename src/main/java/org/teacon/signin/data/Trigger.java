@@ -33,7 +33,7 @@ public final class Trigger implements PlayerTracker {
     transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
     public ITextComponent getTitle() {
-        return this.title == null ? new TranslationTextComponent("sign_me_in.trigger.unnamed") : this.title;
+        return this.title == null ? new TranslationTextComponent("sign_up.trigger.unnamed") : this.title;
     }
 
     public ITextComponent getDesc() {

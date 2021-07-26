@@ -105,7 +105,7 @@ public final class Waypoint implements PlayerTracker {
     transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
     public ITextComponent getTitle() {
-        return title == null ? new TranslationTextComponent("sign_me_in.waypoint.unnamed") : this.title;
+        return title == null ? new TranslationTextComponent("sign_up.waypoint.unnamed") : this.title;
     }
 
     public ITextComponent getDesc() {

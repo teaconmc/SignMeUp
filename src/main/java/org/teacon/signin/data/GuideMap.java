@@ -43,7 +43,7 @@ public final class GuideMap {
     List<ResourceLocation> triggerIds = Collections.emptyList();
 
     public ITextComponent getTitle() {
-        return this.title != null ? this.title : new TranslationTextComponent("sign_me_in.map.unnamed");
+        return this.title != null ? this.title : new TranslationTextComponent("sign_up.map.unnamed");
     }
 
     public ITextComponent getSubtitle() {
