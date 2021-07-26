@@ -4,7 +4,6 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Function4;
-import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandSource;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.RegistryKey;
@@ -57,7 +56,8 @@ public final class CommandImpl {
         if (map != null) {
             // Here we have to send a packet to client side
             // for rendering the map GUI
-            SignMeUp.channel.sendTo(new MapScreenPacket(MapScreenPacket.Action.CLOSE_SPECIFIC, id), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+            MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.CLOSE_SPECIFIC, player.getPositionVec(), id);
+            SignMeUp.channel.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendErrorMessage(ERROR
@@ -72,7 +72,8 @@ public final class CommandImpl {
 
     public static int closeAnyMap(CommandContext<CommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().asPlayer();
-        SignMeUp.channel.sendTo(new MapScreenPacket(MapScreenPacket.Action.CLOSE_ANY, null), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+        MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.CLOSE_ANY, Vector3d.ZERO, null);
+        SignMeUp.channel.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -84,7 +85,8 @@ public final class CommandImpl {
         if (map != null) {
             // Here we have to send a packet to client side
             // for rendering the map GUI
-            SignMeUp.channel.sendTo(new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, id), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+            final MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, player.getPositionVec(), id);
+            SignMeUp.channel.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendErrorMessage(ERROR
@@ -99,7 +101,6 @@ public final class CommandImpl {
 
     public static int openNearestMap(CommandContext<CommandSource> context) throws CommandSyntaxException {
         CommandSource src = context.getSource();
-        Minecraft mc = Minecraft.getInstance();
         ServerPlayerEntity player = src.asPlayer();
         RegistryKey<World> worldKey = src.getWorld().getDimensionKey();
         GuideMap map = null;
@@ -118,7 +119,8 @@ public final class CommandImpl {
 
         if (map != null) {
             // Same packet as above
-            SignMeUp.channel.sendTo(new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, SignMeUp.MANAGER.findMapId(map)), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+            final MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, player.getPositionVec(), SignMeUp.MANAGER.findMapId(map));
+            SignMeUp.channel.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendErrorMessage(ERROR

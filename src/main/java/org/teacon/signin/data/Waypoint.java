@@ -1,5 +1,6 @@
 package org.teacon.signin.data;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -29,6 +30,14 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public final class Waypoint implements PlayerTracker {
+
+    public boolean isDisabled() {
+        return disabled;
+    }
+
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
+    }
 
     public static final class Location {
         Vector3i actualLocation;
@@ -78,20 +87,21 @@ public final class Waypoint implements PlayerTracker {
 
     public static final ResourceLocation DEFAULT_IMAGE = new ResourceLocation("sign_up:textures/default.png");
 
-    public ITextComponent title;
-    public ITextComponent desc;
+    private ITextComponent title;
+    private ITextComponent desc;
 
-    public volatile boolean disabled = false;
+    private volatile boolean disabled = false;
 
-    String selector = "@e";
+    private String selector = "@e";
     private transient EntitySelector parsedSelector;
 
-    Location location;
+    private Location location;
 
-    List<ResourceLocation> triggerIds = Collections.emptyList();
+    private List<ResourceLocation> triggerIds = Collections.emptyList();
 
-    List<ResourceLocation> imageIds = Collections.emptyList();
-    int displayingImageIndex;
+    private List<ResourceLocation> imageIds = Collections.emptyList();
+
+    private int displayingImageIndex;
 
     transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
@@ -119,23 +129,13 @@ public final class Waypoint implements PlayerTracker {
         return this.triggerIds;
     }
 
-    public List<ResourceLocation> getImageIds() {
-        return this.imageIds;
+    public boolean hasMoreThanOneImage() {
+        return this.imageIds.size() > 1;
     }
 
-    public void incrementDisplayingImageIndex() {
-        if (this.displayingImageIndex == this.imageIds.size() - 1) {
-            this.displayingImageIndex = 0;
-        } else {
-            this.displayingImageIndex++;
-        }
-    }
-
-    public void decrementDisplayingImageIndex() {
-        if (this.displayingImageIndex == 0) {
-            this.displayingImageIndex = this.imageIds.size() - 1;
-        } else {
-            this.displayingImageIndex--;
+    public void modifyDisplayingImageIndex(int diff) {
+        if (!this.imageIds.isEmpty()) {
+            this.displayingImageIndex = Math.floorMod(this.displayingImageIndex + diff, this.imageIds.size());
         }
     }
 
@@ -184,7 +184,7 @@ public final class Waypoint implements PlayerTracker {
                     wp.title = context.deserialize(obj.get("description"), ITextComponent.class);
                 }
                 if (obj.has("disabled")) {
-                    wp.disabled = obj.get("disabled").getAsBoolean();
+                    wp.setDisabled(obj.get("disabled").getAsBoolean());
                 }
                 if (obj.has("selector")) {
                     wp.selector = obj.get("selector").getAsString();
@@ -217,7 +217,7 @@ public final class Waypoint implements PlayerTracker {
             if (src.desc != null) {
                 json.add("description", context.serialize(src.desc));
             }
-            json.add("disabled", new JsonPrimitive(src.disabled));
+            json.add("disabled", new JsonPrimitive(src.isDisabled()));
             json.add("selector", new JsonPrimitive(src.selector));
             json.add("location", context.serialize(src.location));
             if (!src.triggerIds.isEmpty()) {

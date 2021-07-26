@@ -55,7 +55,7 @@ public final class ClientGuideMapManager {
     public synchronized void removeWaypoint(ResourceLocation waypointId) {
         final Waypoint wp = this.availableWaypoints.remove(waypointId);
         if (wp != null) {
-            wp.disabled = true;
+            wp.setDisabled(true);
         }
     }
 

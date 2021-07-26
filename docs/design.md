@@ -10,7 +10,7 @@ SignMeUp 的相关定义位于 `data/<domain>/signup_guides/<path>.json` 里，�
 
 第一种定义以 `"type": "map"` 开头，代表一张导引图（其中包含一张地图），以下是示例：
 
-```javascript
+```json5
 {
   "type": "map",                        // 必需项
 
@@ -54,7 +54,7 @@ SignMeUp 的相关定义位于 `data/<domain>/signup_guides/<path>.json` 里，�
 
 导引点是导引图中的一个点，定义以 `"type": "point"` 开头，以下是示例：
 
-```javascript
+```json5
 {
   "type": "point",                      // 必需项
 
@@ -95,7 +95,7 @@ SignMeUp 的相关定义位于 `data/<domain>/signup_guides/<path>.json` 里，�
 
 触发器的定义以 `"type": "trigger"` 开头，以下是示例：
 
-```javascript
+```json5
 {
   "type": "trigger",                    // 必需项
 
