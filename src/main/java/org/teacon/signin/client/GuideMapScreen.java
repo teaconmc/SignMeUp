@@ -286,15 +286,18 @@ public final class GuideMapScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        int x0 = (this.width - X_SIZE) / 2, y0 = (this.height - Y_SIZE) / 2;
-        // Reset selected Wp when clicking everywhere on the map
-        if (mouseX >= x0 + 78 && mouseX < x0 + 206 && mouseY >= y0 + 23 && mouseY < y0 + 151) {
-            if (this.selectedWaypoint != null) {
-                this.selectedWaypoint = null;
-                return true;
+        if (!super.mouseClicked(mouseX, mouseY, button)) {
+            int x0 = (this.width - X_SIZE) / 2, y0 = (this.height - Y_SIZE) / 2;
+            // Reset selected Wp when clicking everywhere on the map
+            if (mouseX >= x0 + 78 && mouseX < x0 + 206 && mouseY >= y0 + 23 && mouseY < y0 + 151) {
+                if (this.selectedWaypoint != null) {
+                    this.selectedWaypoint = null;
+                    return true;
+                }
             }
+            return false;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return true;
     }
 
     @Override
