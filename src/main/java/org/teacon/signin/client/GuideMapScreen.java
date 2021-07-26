@@ -17,7 +17,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import org.teacon.signin.SignMeUp;
 import org.teacon.signin.data.GuideMap;
@@ -65,12 +64,19 @@ public final class GuideMapScreen extends Screen {
     private final List<TriggerButton> mapTriggers = Lists.newArrayList();
     private final ListMultimap<ResourceLocation, TriggerButton> waypointTriggers = ArrayListMultimap.create();
 
+    private boolean needRefresh = false;
+
     public GuideMapScreen(ResourceLocation mapId, GuideMap map, Vector3d location) {
         super(map.getTitle());
         this.map = map;
         this.mapId = mapId;
         this.playerLocation = location;
         this.waypointIds = map.getWaypointIds();
+    }
+
+    public void refresh() {
+        // Set refresh state
+        this.needRefresh = true;
     }
 
     @Override
@@ -89,14 +95,19 @@ public final class GuideMapScreen extends Screen {
         // Setup trigger buttons from GuideMap
         this.mapTriggers.clear();
         List<ResourceLocation> mapTriggerIds = this.map.getTriggerIds();
-        for (int i = 0, mapTriggerIdSize = mapTriggerIds.size(); i < mapTriggerIdSize; ++i) {
+        for (int i = 0, j = 0; i < mapTriggerIds.size(); ++i) {
             ResourceLocation triggerId = mapTriggerIds.get(i);
-            this.mapTriggerPageSize = Math.max(this.mapTriggerPageSize, 1 + i / 6);
-            final TriggerButton btn = this.addButton(new TriggerButton(
-                    x0 + 8, y0 + 21 + (i % 6) * 19, 62, 18, 2, 163, 20, GUIDE_MAP_LEFT, triggerId, 0x404040,
+            final Trigger trigger = SignMeUpClient.MANAGER.findTrigger(triggerId);
+            if (trigger == null) {
+                continue;
+            }
+            this.mapTriggerPageSize = Math.max(this.mapTriggerPageSize, 1 + j / 6);
+            final TriggerButton btn = this.addButton(new TriggerButton(x0 + 8, y0 + 21 + (j % 6) * 19, 62, 18,
+                    2, trigger.disabled ? 203 : 163, trigger.disabled ? 0 : 20, GUIDE_MAP_LEFT, trigger,
                     (b) -> SignMeUp.channel.sendToServer(new TriggerFromMapPacket(this.mapId, triggerId))));
             this.mapTriggers.add(btn);
             btn.visible = false;
+            ++j;
         }
 
         // Setup Waypoints
@@ -104,7 +115,7 @@ public final class GuideMapScreen extends Screen {
         int mapCanvasX = x0 + 78, mapCanvasY = y0 + 23;
         for (ResourceLocation wpId : this.waypointIds) {
             Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(wpId);
-            if (wp == null || wp.isDisabled()) {
+            if (wp == null) {
                 continue;
             }
             // For map_icons.png, each icon is 4x4 pixels, so after we get the center coordinate,
@@ -126,13 +137,18 @@ public final class GuideMapScreen extends Screen {
                 }, wp.getTitle()));
                 // Setup trigger buttons from Waypoints
                 List<ResourceLocation> wpTriggerIds = wp.getTriggerIds();
-                for (int i = 0, max = Math.min(7, wpTriggerIds.size()); i < max; ++i) {
+                for (int i = 0, j = 0; i < wpTriggerIds.size() && j < 7; ++i) {
                     ResourceLocation triggerId = wpTriggerIds.get(i);
-                    TriggerButton btn = this.addButton(new TriggerButton(
-                            x1 + 109, y0 + 21 + i * 19, 62, 18, 2, 163, 20, GUIDE_MAP_RIGHT, triggerId, 0x404040,
+                    final Trigger trigger = SignMeUpClient.MANAGER.findTrigger(triggerId);
+                    if (trigger == null) {
+                        continue;
+                    }
+                    TriggerButton btn = this.addButton(new TriggerButton(x1 + 109, y0 + 21 + j * 19, 62, 18,
+                            2, trigger.disabled ? 203 : 163, trigger.disabled ? 0 : 20, GUIDE_MAP_RIGHT, trigger,
                             (b) -> SignMeUp.channel.sendToServer(new TriggerFromWaypointPacket(wpId, triggerId))));
                     this.waypointTriggers.put(wpId, btn);
                     btn.visible = false;
+                    ++j;
                 }
             }
         }
@@ -140,6 +156,11 @@ public final class GuideMapScreen extends Screen {
 
     @Override
     public void tick() {
+        if (this.needRefresh) {
+            this.init(Minecraft.getInstance(), this.width, this.height);
+            this.needRefresh = false;
+        }
+
         this.lastWaypointTextureOpacityPrev = this.lastWaypointTextureOpacity;
         if ((this.lastWaypointTextureOpacity -= 10) <= 0) {
             this.lastWaypointTextureOpacity = 0;
@@ -150,7 +171,7 @@ public final class GuideMapScreen extends Screen {
         this.mapTriggerNext.visible = this.mapTriggerPage < this.mapTriggerPageSize - 1;
 
         Waypoint wp = this.selectedWaypoint == null ? null : SignMeUp.MANAGER.findWaypoint(this.selectedWaypoint);
-        this.leftFlip.visible = this.rightFlip.visible = wp != null && !wp.isDisabled() ? wp.hasMoreThanOneImage() : this.map.hasMoreThanOneImage();
+        this.leftFlip.visible = this.rightFlip.visible = wp != null ? wp.hasMoreThanOneImage() : this.map.hasMoreThanOneImage();
 
         this.hasWaypointTrigger = false;
         for (Map.Entry<ResourceLocation, TriggerButton> entry : this.waypointTriggers.entries()) {
@@ -185,7 +206,7 @@ public final class GuideMapScreen extends Screen {
         ITextComponent title = this.map.getTitle(), subtitle = this.map.getSubtitle(), desc = this.map.getDesc();
         if (this.selectedWaypoint != null) {
             Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(this.selectedWaypoint);
-            if (wp != null && !wp.isDisabled()) {
+            if (wp != null) {
                 subtitle = wp.getTitle();
                 desc = wp.getDesc();
             }
@@ -223,7 +244,7 @@ public final class GuideMapScreen extends Screen {
         ResourceLocation image = this.map.getDisplayingImageId();
         if (this.selectedWaypoint != null) {
             Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(this.selectedWaypoint);
-            if (wp != null && !wp.isDisabled()) {
+            if (wp != null) {
                 image = wp.getDisplayingImageId();
             }
         }
@@ -269,6 +290,11 @@ public final class GuideMapScreen extends Screen {
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
+    @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
+
     private final class FlipHandler implements Button.IPressable {
         private final int diff;
 
@@ -280,7 +306,7 @@ public final class GuideMapScreen extends Screen {
         public void onPress(Button p_onPress_1_) {
             if (selectedWaypoint != null) {
                 Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(selectedWaypoint);
-                if (wp != null && !wp.isDisabled()) {
+                if (wp != null) {
                     wp.modifyDisplayingImageIndex(this.diff);
                     return;
                 }
@@ -290,28 +316,23 @@ public final class GuideMapScreen extends Screen {
     }
 
     private final class TriggerButton extends ImageButton {
-        private final ResourceLocation triggerId;
-        private final int textColor;
+        private final Trigger trigger;
 
         private TriggerButton(int x, int y, int width, int height, int uOffset, int vOffset, int vDiff,
-                              ResourceLocation image, ResourceLocation triggerId, int textColor, IPressable pressable) {
+                              ResourceLocation image, Trigger trigger, IPressable pressable) {
             super(x, y, width, height, uOffset, vOffset, vDiff, image, pressable);
-            this.triggerId = triggerId;
-            this.textColor = textColor;
+            this.trigger = trigger;
         }
 
         @Override
         public void renderWidget(MatrixStack transforms, int mouseX, int mouseY, float partialTicks) {
             super.renderWidget(transforms, mouseX, mouseY, partialTicks);
             final FontRenderer font = Minecraft.getInstance().fontRenderer;
-            final Trigger trigger = SignMeUpClient.MANAGER.findTrigger(this.triggerId);
-            if (trigger != null) {
-                final int stringWidth = font.getStringPropertyWidth(trigger.getTitle());
-                final float x0 = this.x + (this.width - stringWidth) / 2F, y0 = this.y + (this.height - 9) / 2F;
-                font.drawText(transforms, trigger.getTitle(), x0, y0, this.textColor);
-                if (this.isHovered()) {
-                    GuideMapScreen.this.renderTooltip(transforms, trigger.getDesc(), mouseX, mouseY);
-                }
+            final int stringWidth = font.getStringPropertyWidth(this.trigger.getTitle());
+            final float x0 = this.x + (this.width - stringWidth) / 2F, y0 = this.y + (this.height - 9) / 2F;
+            font.drawText(transforms, this.trigger.getTitle(), x0, y0, this.trigger.disabled ? 0xFFFFFF : 0x404040);
+            if (this.isHovered()) {
+                GuideMapScreen.this.renderTooltip(transforms, this.trigger.getDesc(), mouseX, mouseY);
             }
         }
     }

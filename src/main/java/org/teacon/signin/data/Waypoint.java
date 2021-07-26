@@ -30,14 +30,6 @@ import java.util.stream.StreamSupport;
 
 public final class Waypoint implements PlayerTracker {
 
-    public boolean isDisabled() {
-        return disabled;
-    }
-
-    public void setDisabled(boolean disabled) {
-        this.disabled = disabled;
-    }
-
     public static final class Location {
         Vector3i actualLocation;
         private Vector3i renderLocation;
@@ -86,8 +78,6 @@ public final class Waypoint implements PlayerTracker {
 
     private ITextComponent title;
     private ITextComponent desc;
-
-    private volatile boolean disabled = false;
 
     private String selector = "@e";
     private transient EntitySelector parsedSelector;
@@ -180,9 +170,6 @@ public final class Waypoint implements PlayerTracker {
                 if (obj.has("description")) {
                     wp.title = context.deserialize(obj.get("description"), ITextComponent.class);
                 }
-                if (obj.has("disabled")) {
-                    wp.setDisabled(obj.get("disabled").getAsBoolean());
-                }
                 if (obj.has("selector")) {
                     wp.selector = obj.get("selector").getAsString();
                 }
@@ -214,7 +201,6 @@ public final class Waypoint implements PlayerTracker {
             if (src.desc != null) {
                 json.add("description", context.serialize(src.desc));
             }
-            json.add("disabled", new JsonPrimitive(src.isDisabled()));
             json.add("selector", new JsonPrimitive(src.selector));
             json.add("location", context.serialize(src.location));
             if (!src.triggerIds.isEmpty()) {

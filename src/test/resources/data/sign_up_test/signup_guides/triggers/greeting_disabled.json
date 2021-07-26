@@ -1,0 +1,6 @@
+{
+  "type": "trigger",
+  "disabled": true,
+  "title": "Greeting",
+  "description": "Send salutation to everyone"
+}

@@ -61,10 +61,7 @@ public final class ClientGuideMapManager {
     }
 
     public synchronized void removeWaypoint(ResourceLocation waypointId) {
-        final Waypoint wp = this.availableWaypoints.remove(waypointId);
-        if (wp != null) {
-            wp.setDisabled(true);
-        }
+        this.availableWaypoints.remove(waypointId);
     }
 
     public synchronized void addTrigger(ResourceLocation triggerId, Trigger trigger) {
@@ -72,9 +69,6 @@ public final class ClientGuideMapManager {
     }
 
     public synchronized void removeTrigger(ResourceLocation triggerId) {
-        final Trigger t = this.availableTriggers.remove(triggerId);
-        if (t != null) {
-            t.disabled = true;
-        }
+        this.availableTriggers.remove(triggerId);
     }
 }

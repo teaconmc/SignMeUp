@@ -2,5 +2,7 @@
   "type": "trigger",
   "title": "Greeting",
   "description": "Send salutation to everyone",
-  "command": "/me greets everyone"
+  "executes": [
+    "/me greets everyone"
+  ]
 }

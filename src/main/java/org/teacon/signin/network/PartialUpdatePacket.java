@@ -2,11 +2,14 @@ package org.teacon.signin.network;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
+import org.teacon.signin.client.GuideMapScreen;
 import org.teacon.signin.client.SignMeUpClient;
 import org.teacon.signin.data.*;
 
@@ -83,20 +86,26 @@ public final class PartialUpdatePacket {
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextGetter) {
-        switch (this.mode) {
-            case ADD_WAYPOINT:
-                SignMeUpClient.MANAGER.addWaypoint(this.waypointId, this.waypoint);
-                break;
-            case REMOVE_WAYPOINT:
-                SignMeUpClient.MANAGER.removeWaypoint(this.waypointId);
-                break;
-            case ADD_TRIGGER:
-                SignMeUpClient.MANAGER.addTrigger(this.triggerId, this.trigger);
-                break;
-            case REMOVE_TRIGGER:
-                SignMeUpClient.MANAGER.removeTrigger(this.triggerId);
-                break;
-        }
+        contextGetter.get().enqueueWork(() -> {
+            switch (this.mode) {
+                case ADD_WAYPOINT:
+                    SignMeUpClient.MANAGER.addWaypoint(this.waypointId, this.waypoint);
+                    break;
+                case REMOVE_WAYPOINT:
+                    SignMeUpClient.MANAGER.removeWaypoint(this.waypointId);
+                    break;
+                case ADD_TRIGGER:
+                    SignMeUpClient.MANAGER.addTrigger(this.triggerId, this.trigger);
+                    break;
+                case REMOVE_TRIGGER:
+                    SignMeUpClient.MANAGER.removeTrigger(this.triggerId);
+                    break;
+            }
+            final Minecraft mc = Minecraft.getInstance();
+            if (mc.currentScreen instanceof GuideMapScreen) {
+                ((GuideMapScreen) mc.currentScreen).refresh();
+            }
+        });
         contextGetter.get().setPacketHandled(true);
     }
 }

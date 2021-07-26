@@ -28,7 +28,7 @@ public final class Trigger implements PlayerTracker {
     String selector = "@e";
     private transient EntitySelector parsedSelector;
 
-    public ImmutableList<String> executes = ImmutableList.of("/me successfully created a new trigger");
+    public ImmutableList<String> executes = ImmutableList.of();
 
     transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
@@ -96,6 +96,8 @@ public final class Trigger implements PlayerTracker {
                         builder.add(command.getAsString());
                     }
                     t.executes = builder.build();
+                } else {
+                    t.executes = t.disabled ? ImmutableList.of() : ImmutableList.of("/me successfully created a new trigger");
                 }
                 return t;
             } else {
@@ -114,7 +116,9 @@ public final class Trigger implements PlayerTracker {
             }
             json.add("disabled", new JsonPrimitive(src.disabled));
             json.add("selector", new JsonPrimitive(src.selector));
-            json.add("executes", Util.make(new JsonArray(), arr -> src.executes.forEach(arr::add)));
+            if (src.executes.isEmpty() && src.disabled) {
+                json.add("executes", Util.make(new JsonArray(), arr -> src.executes.forEach(arr::add)));
+            }
             return json;
         }
     }
