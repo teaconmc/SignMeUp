@@ -99,7 +99,8 @@ public final class SignMeUp {
         if (trigger != null && trigger.isVisibleTo(player)) {
             final MinecraftServer server = player.getServer();
             if (server != null) {
-                final CommandSource source = player.getCommandSource().withPos(Vector3d.copy(pos)).withPermissionLevel(2);
+                final CommandSource source = player.getCommandSource()
+                        .withPos(Vector3d.copy(pos)).withFeedbackDisabled().withMinPermissionLevel(2);
                 for (String command : trigger.executes) {
                     server.getCommandManager().handleCommand(source, command);
                 }
