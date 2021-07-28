@@ -1,5 +1,6 @@
 package org.teacon.signin.client;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3d;
@@ -7,6 +8,7 @@ import net.minecraft.util.math.vector.Vector3i;
 import org.teacon.signin.data.GuideMap;
 import org.teacon.signin.data.Trigger;
 import org.teacon.signin.data.Waypoint;
+import org.teacon.signin.network.MapScreenPacket;
 
 import java.util.*;
 
@@ -15,6 +17,22 @@ public final class ClientGuideMapManager {
     private SortedMap<ResourceLocation, GuideMap> availableMaps = Collections.emptySortedMap();
     private final Map<ResourceLocation, Waypoint> availableWaypoints = new HashMap<>();
     private final Map<ResourceLocation, Trigger> availableTriggers = new HashMap<>();
+
+    public void openMapByPacket(MapScreenPacket.Action action, ResourceLocation mapId, Vector3d position) {
+        Minecraft mc = Minecraft.getInstance();
+        mc.runAsync(() -> {
+            if (action == MapScreenPacket.Action.OPEN_SPECIFIC) {
+                Objects.requireNonNull(mapId);
+                GuideMap map = SignMeUpClient.MANAGER.findMap(mapId);
+                mc.displayGuiScreen(new GuideMapScreen(mapId, map, position));
+            } else if (mc.currentScreen instanceof GuideMapScreen) {
+                final GuideMapScreen screen = (GuideMapScreen) mc.currentScreen;
+                if (action != MapScreenPacket.Action.CLOSE_SPECIFIC || screen.mapId.equals(mapId)) {
+                    mc.displayGuiScreen(null);
+                }
+            }
+        });
+    }
 
     public synchronized void acceptUpdateFromServer(SortedMap<ResourceLocation, GuideMap> maps) {
         this.availableMaps = maps;
