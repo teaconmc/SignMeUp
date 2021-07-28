@@ -39,14 +39,14 @@ public final class PartialUpdatePacket {
         switch (this.mode = buf.readEnumValue(Mode.class)) {
             case ADD_WAYPOINT:
                 this.waypointId = buf.readResourceLocation();
-                this.waypoint = GSON.fromJson(buf.readString(), Waypoint.class);
+                this.waypoint = GSON.fromJson(buf.readString(Short.MAX_VALUE), Waypoint.class);
                 break;
             case REMOVE_WAYPOINT:
                 this.waypointId = buf.readResourceLocation();
                 break;
             case ADD_TRIGGER:
                 this.triggerId = buf.readResourceLocation();
-                this.trigger = GSON.fromJson(buf.readString(), Trigger.class);
+                this.trigger = GSON.fromJson(buf.readString(Short.MAX_VALUE), Trigger.class);
                 break;
             case REMOVE_TRIGGER:
                 this.triggerId = buf.readResourceLocation();
