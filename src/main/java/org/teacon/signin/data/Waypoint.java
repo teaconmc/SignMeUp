@@ -168,7 +168,7 @@ public final class Waypoint implements PlayerTracker {
                     wp.title = context.deserialize(obj.get("title"), ITextComponent.class);
                 }
                 if (obj.has("description")) {
-                    wp.title = context.deserialize(obj.get("description"), ITextComponent.class);
+                    wp.desc = context.deserialize(obj.get("description"), ITextComponent.class);
                 }
                 if (obj.has("selector")) {
                     wp.selector = obj.get("selector").getAsString();
