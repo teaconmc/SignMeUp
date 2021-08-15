@@ -111,7 +111,7 @@ public final class SignMeUp {
             if (server != null) {
                 final Vector3d pos3d = Vector3d.copy(pos);
                 final CommandSource source = isCommand
-                        ? player.getCommandSource().withPos(pos3d).withFeedbackDisabled().withPermissionLevel(2)
+                        ? player.getCommandSource().withPos(pos3d).withPermissionLevel(2)
                         : player.getCommandSource().withPos(pos3d).withFeedbackDisabled().withMinPermissionLevel(2);
                 for (String command : trigger.executes) {
                     server.getCommandManager().handleCommand(source, command);
