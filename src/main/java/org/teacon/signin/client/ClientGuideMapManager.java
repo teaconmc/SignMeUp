@@ -58,6 +58,10 @@ public final class ClientGuideMapManager {
         return result;
     }
 
+    public Collection<? extends ResourceLocation> getAllTriggers() {
+        return Collections.unmodifiableSet(this.availableTriggers.keySet());
+    }
+
     public Trigger findTrigger(ResourceLocation triggerId) {
         return this.availableTriggers.get(triggerId);
     }

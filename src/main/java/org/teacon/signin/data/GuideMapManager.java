@@ -189,8 +189,8 @@ public final class GuideMapManager extends JsonReloadListener {
         return this.points.values();
     }
 
-    public Collection<Trigger> getAllTriggers() {
-        return this.triggers.values();
+    public Collection<? extends ResourceLocation> getAllTriggers() {
+        return this.triggers.keySet();
     }
 
     public Collection<GuideMap> getAllMaps() {

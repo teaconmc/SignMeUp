@@ -2,6 +2,7 @@ package org.teacon.signin;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
+import net.minecraft.command.ISuggestionProvider;
 import net.minecraft.command.arguments.BlockPosArgument;
 import net.minecraft.command.arguments.ResourceLocationArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -11,6 +12,7 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.event.AddReloadListenerEvent;
@@ -20,8 +22,10 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
+import org.teacon.signin.client.SignMeUpClient;
 import org.teacon.signin.command.CommandImpl;
 import org.teacon.signin.data.DynamicLocationStorage;
 import org.teacon.signin.data.GuideMapManager;
@@ -86,7 +90,13 @@ public final class SignMeUp {
                                         .then(Commands.literal("actual")
                                                 .then(Commands.argument("pos", BlockPosArgument.blockPos()).executes(CommandImpl::setWaypointActualPos)))
                                         .then(Commands.literal("render")
-                                                .then(Commands.argument("pos", BlockPosArgument.blockPos()).executes(CommandImpl::setWaypointRenderPos)))))));
+                                                .then(Commands.argument("pos", BlockPosArgument.blockPos()).executes(CommandImpl::setWaypointRenderPos))))))
+                .then(Commands.literal("trigger")
+                        .then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
+                                .suggests((src, builder) -> ISuggestionProvider.suggest(FMLEnvironment.dist.isClient()
+                                        ? SignMeUpClient.MANAGER.getAllTriggers().stream().map(ResourceLocation::toString)
+                                        : SignMeUp.MANAGER.getAllTriggers().stream().map(ResourceLocation::toString), builder))
+                                .executes(CommandImpl::trigger))));
     }
 
     @SubscribeEvent
@@ -94,19 +104,23 @@ public final class SignMeUp {
         event.addCapability(new ResourceLocation("sign_up"), new DynamicLocationStorage.Holder());
     }
 
-    public static void trigger(ServerPlayerEntity player, Vector3i pos, ResourceLocation triggerId) {
+    public static boolean trigger(ServerPlayerEntity player, Vector3i pos, ResourceLocation triggerId, boolean isCommand) {
         final Trigger trigger = MANAGER.findTrigger(triggerId);
         if (trigger != null && trigger.isVisibleTo(player)) {
             final MinecraftServer server = player.getServer();
             if (server != null) {
-                final CommandSource source = player.getCommandSource()
-                        .withPos(Vector3d.copy(pos)).withFeedbackDisabled().withMinPermissionLevel(2);
+                final Vector3d pos3d = Vector3d.copy(pos);
+                final CommandSource source = isCommand
+                        ? player.getCommandSource().withPos(pos3d).withFeedbackDisabled().withPermissionLevel(2)
+                        : player.getCommandSource().withPos(pos3d).withFeedbackDisabled().withMinPermissionLevel(2);
                 for (String command : trigger.executes) {
                     server.getCommandManager().handleCommand(source, command);
                 }
             }
+            return true;
         } else {
             player.sendStatusMessage(new StringTextComponent("You seemed to click the void just now..."), true);
+            return false;
         }
     }
 }

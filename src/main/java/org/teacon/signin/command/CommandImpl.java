@@ -5,11 +5,13 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Function4;
 import net.minecraft.command.CommandSource;
+import net.minecraft.command.arguments.ResourceLocationArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
@@ -17,6 +19,7 @@ import net.minecraftforge.fml.network.NetworkDirection;
 import org.teacon.signin.SignMeUp;
 import org.teacon.signin.data.DynamicLocationStorage;
 import org.teacon.signin.data.GuideMap;
+import org.teacon.signin.data.Trigger;
 import org.teacon.signin.data.Waypoint;
 import org.teacon.signin.network.MapScreenPacket;
 
@@ -28,6 +31,13 @@ import java.text.DecimalFormat;
  */
 public final class CommandImpl {
     public static final TranslationTextComponent ERROR = new TranslationTextComponent("sign_up.text.error");
+
+    public static int trigger(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        final ResourceLocation triggerId = ResourceLocationArgument.getResourceLocation(context, "id");
+        final BlockPos pos = new BlockPos(context.getSource().getPos());
+        final ServerPlayerEntity src = context.getSource().asPlayer();
+        return SignMeUp.trigger(src, pos, triggerId, true) ? 1 : 0;
+    }
 
     public static int listMaps(CommandContext<CommandSource> context) {
         CommandSource src = context.getSource();

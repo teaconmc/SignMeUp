@@ -34,7 +34,7 @@ public final class TriggerFromWaypointPacket {
         context.enqueueWork(() -> {
             final Waypoint wp = SignMeUp.MANAGER.findWaypoint(this.waypoint);
             if (wp != null) {
-                SignMeUp.trigger(context.getSender(), wp.getActualLocation(), this.trigger);
+                SignMeUp.trigger(context.getSender(), wp.getActualLocation(), this.trigger, false);
             }
         });
         context.setPacketHandled(true);

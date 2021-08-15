@@ -34,7 +34,7 @@ public final class TriggerFromMapPacket {
         context.enqueueWork(() -> {
             final GuideMap map = SignMeUp.MANAGER.findMap(this.map);
             if (map != null) {
-                SignMeUp.trigger(context.getSender(), map.center, this.trigger);
+                SignMeUp.trigger(context.getSender(), map.center, this.trigger, false);
             }
         });
         context.setPacketHandled(true);
