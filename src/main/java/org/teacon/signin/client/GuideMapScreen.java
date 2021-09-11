@@ -18,6 +18,10 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 import org.teacon.signin.SignMeUp;
 import org.teacon.signin.data.GuideMap;
 import org.teacon.signin.data.Trigger;
@@ -31,6 +35,9 @@ import java.util.*;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public final class GuideMapScreen extends Screen {
+
+    private static final Logger LOGGER = LogManager.getLogger("SignMeUp");
+    private static final Marker MARKER = MarkerManager.getMarker("GuideMapScreen");
 
     private static final int X_SIZE = 385;
     private static final int Y_SIZE = 161;
@@ -46,13 +53,15 @@ public final class GuideMapScreen extends Screen {
     private ResourceLocation selectedWaypoint;
 
     private int ticksAfterWaypointTextureChanged = 0;
-    private Deque<ResourceLocation> lastWaypointTextures = Queues.newArrayDeque();
+    private final Deque<ResourceLocation> lastWaypointTextures = Queues.newArrayDeque();
 
     private boolean hasWaypointTrigger = false;
 
     private final GuideMap map;
     private final Vector3d playerLocation;
     private final List<ResourceLocation> waypointIds;
+
+    private PolynomialMapping mapping;
 
     private ImageButton leftFlip, rightFlip;
     private ImageButton mapTriggerPrev, mapTriggerNext;
@@ -106,20 +115,47 @@ public final class GuideMapScreen extends Screen {
             ++j;
         }
 
-        // Setup Waypoints
+        // Collect Waypoints
         this.waypointTriggers.clear();
         int mapCanvasX = x0 + 78, mapCanvasY = y0 + 23;
+        final List<Waypoint> waypoints = new ArrayList<>(this.waypointIds.size());
+        final List<ResourceLocation> waypointIds = new ArrayList<>(this.waypointIds.size());
         for (ResourceLocation wpId : this.waypointIds) {
             Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(wpId);
-            if (wp == null) {
-                continue;
+            if (wp != null) {
+                waypoints.add(wp);
+                waypointIds.add(wpId);
             }
-            // For map_icons.png, each icon is 4x4 pixels, so after we get the center coordinate,
-            // we also need to shift left/up by 2 pixels to center the icon.
-            final Vector3i center = this.map.center;
+        }
+
+        // Setup Mapping
+        final int waypointSize = waypoints.size();
+        final double[] inputX = new double[waypointSize], inputY = new double[waypointSize];
+        final double[] outputX = new double[waypointSize], outputY = new double[waypointSize];
+        final Vector3i center = this.map.center;
+        for (int i = 0; i < waypointSize; ++i) {
+            final Waypoint wp = waypoints.get(i);
+            final Vector3i actualLocation = wp.getActualLocation();
             final Vector3i renderLocation = wp.getRenderLocation();
-            final int wpX = Math.round(((float) (renderLocation.getX() - center.getX())) / this.map.radius * 64) + 64;
-            final int wpY = Math.round(((float) (renderLocation.getZ() - center.getZ())) / this.map.radius * 64) + 64;
+            inputX[i] = actualLocation.getX() - center.getX();
+            inputY[i] = actualLocation.getZ() - center.getZ();
+            outputX[i] = renderLocation.getX() - center.getX();
+            outputY[i] = renderLocation.getZ() - center.getZ();
+        }
+        try {
+            this.mapping = new PolynomialMapping(inputX, inputY, outputX, outputY);
+            LOGGER.info(MARKER, "Current mapping for {} waypoint(s): {}", waypointSize, this.mapping);
+        } catch (IllegalArgumentException e) {
+            this.mapping = new PolynomialMapping(new double[0], new double[0], new double[0], new double[0]);
+            LOGGER.warn(MARKER, "Unable to generate mapping for the map.", e);
+        }
+
+        // Setup Waypoints
+        for (int i = 0; i < waypointSize; ++i) {
+            final Waypoint wp = waypoints.get(i);
+            final ResourceLocation wpId = waypointIds.get(i);
+            final int wpX = Math.round((float) outputX[i] / this.map.radius * 64) + 64;
+            final int wpY = Math.round((float) outputY[i] / this.map.radius * 64) + 64;
             if (wpX >= 1 && wpX <= 127 && wpY >= 1 && wpY <= 127) {
                 // Setup Waypoints as ImageButtons
                 this.addButton(new ImageButton(mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4, 58, 2, 0, MAP_ICONS,
@@ -133,8 +169,8 @@ public final class GuideMapScreen extends Screen {
                 }, wp.getTitle()));
                 // Setup trigger buttons from Waypoints
                 List<ResourceLocation> wpTriggerIds = wp.getTriggerIds();
-                for (int i = 0, j = 0; i < wpTriggerIds.size() && j < 7; ++i) {
-                    ResourceLocation triggerId = wpTriggerIds.get(i);
+                for (int j = 0, k = 0; k < wpTriggerIds.size() && j < 7; ++k) {
+                    ResourceLocation triggerId = wpTriggerIds.get(k);
                     final Trigger trigger = SignMeUpClient.MANAGER.findTrigger(triggerId);
                     if (trigger == null) {
                         continue;

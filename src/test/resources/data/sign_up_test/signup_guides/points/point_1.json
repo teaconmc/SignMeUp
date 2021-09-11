@@ -3,7 +3,8 @@
   "title": "Test Point 1",
   "selector": "@e[gamemode=creative]",
   "location": {
-    "actual": [ 10, 70, 10 ]
+    "actual": [ 10, 70, 10 ],
+    "render": [ 0, 70, 0 ]
   },
   "triggers": [
     "sign_up_test:triggers/teleport",

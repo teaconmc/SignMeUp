@@ -37,7 +37,7 @@ import java.util.WeakHashMap;
 
 public final class GuideMapManager extends JsonReloadListener {
 
-    private static final Logger LOGGER = LogManager.getLogger("SignMeIn");
+    private static final Logger LOGGER = LogManager.getLogger("SignMeUp");
     private static final Marker MARKER = MarkerManager.getMarker("GuideMapManager");
 
     private static final Gson GSON = new GsonBuilder().setLenient()
