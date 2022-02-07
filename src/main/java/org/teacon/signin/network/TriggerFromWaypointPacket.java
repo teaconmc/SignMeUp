@@ -1,8 +1,8 @@
 package org.teacon.signin.network;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkEvent;
 import org.teacon.signin.SignMeUp;
 import org.teacon.signin.data.Waypoint;
 
@@ -14,7 +14,7 @@ public final class TriggerFromWaypointPacket {
     private final ResourceLocation trigger;
 
     // Used for deserialization
-    public TriggerFromWaypointPacket(PacketBuffer buf) {
+    public TriggerFromWaypointPacket(FriendlyByteBuf buf) {
         this.waypoint = buf.readResourceLocation();
         this.trigger = buf.readResourceLocation();
     }
@@ -24,7 +24,7 @@ public final class TriggerFromWaypointPacket {
         this.trigger = trigger;
     }
 
-    public void write(PacketBuffer buf) {
+    public void write(FriendlyByteBuf buf) {
         buf.writeResourceLocation(this.waypoint);
         buf.writeResourceLocation(this.trigger);
     }

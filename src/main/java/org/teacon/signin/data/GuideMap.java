@@ -10,11 +10,11 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.JsonSyntaxException;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.core.Vec3i;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
@@ -29,11 +29,11 @@ import java.util.stream.StreamSupport;
 public final class GuideMap {
     public static final ResourceLocation DEFAULT_IMAGE = new ResourceLocation("sign_up:textures/map_default.png");
 
-    ITextComponent title;
-    ITextComponent subtitle;
-    ITextComponent desc;
+    Component title;
+    Component subtitle;
+    Component desc;
 
-    public Vector3i center;
+    public Vec3i center;
     public float radius = 128F;
     public ResourceLocation dim = null;
 
@@ -47,16 +47,16 @@ public final class GuideMap {
     List<ResourceLocation> waypointIds = Collections.emptyList();
     List<ResourceLocation> triggerIds = Collections.emptyList();
 
-    public ITextComponent getTitle() {
-        return this.title != null ? this.title : new TranslationTextComponent("sign_up.map.unnamed");
+    public Component getTitle() {
+        return this.title != null ? this.title : new TranslatableComponent("sign_up.map.unnamed");
     }
 
-    public ITextComponent getSubtitle() {
+    public Component getSubtitle() {
         return this.subtitle != null ? this.subtitle : this.getTitle();
     }
 
-    public ITextComponent getDesc() {
-        return this.desc != null ? this.desc : StringTextComponent.EMPTY;
+    public Component getDesc() {
+        return this.desc != null ? this.desc : TextComponent.EMPTY;
     }
 
     public boolean hasMoreThanOneImage() {
@@ -94,16 +94,16 @@ public final class GuideMap {
             }
             final JsonObject json = src.getAsJsonObject();
             if (json.has("title")) {
-                map.title = context.deserialize(json.get("title"), ITextComponent.class);
+                map.title = context.deserialize(json.get("title"), Component.class);
             }
             if (json.has("subtitle")) {
-                map.subtitle = context.deserialize(json.get("subtitle"), ITextComponent.class);
+                map.subtitle = context.deserialize(json.get("subtitle"), Component.class);
             }
             if (json.has("description")) {
-                map.desc = context.deserialize(json.get("description"), ITextComponent.class);
+                map.desc = context.deserialize(json.get("description"), Component.class);
             }
             if (json.has("center")) {
-                map.center = context.deserialize(json.get("center"), Vector3i.class);
+                map.center = context.deserialize(json.get("center"), Vec3i.class);
             } else {
                 LOGGER.warn(MARKER, "Center coordinate missing, falling back to [0, 0].");
             }

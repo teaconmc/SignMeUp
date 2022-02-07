@@ -3,12 +3,11 @@ package org.teacon.signin.network;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.core.Vec3i;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkEvent;
 import org.teacon.signin.client.GuideMapScreen;
 import org.teacon.signin.client.SignMeUpClient;
 import org.teacon.signin.data.*;
@@ -24,9 +23,9 @@ public final class PartialUpdatePacket {
     private static final Gson GSON = new GsonBuilder().setLenient()
             .registerTypeAdapter(Waypoint.class, new Waypoint.Serializer())
             .registerTypeAdapter(Waypoint.Location.class, new Waypoint.Location.Serializer())
-            .registerTypeAdapter(Vector3i.class, new Vector3iAdapter())
+            .registerTypeAdapter(Vec3i.class, new Vector3iAdapter())
             .registerTypeAdapter(Trigger.class, new Trigger.Serializer())
-            .registerTypeHierarchyAdapter(ITextComponent.class, new ITextComponent.Serializer())
+            .registerTypeHierarchyAdapter(Component.class, new Component.Serializer())
             .create();
 
     private Mode mode;
@@ -35,18 +34,18 @@ public final class PartialUpdatePacket {
     private ResourceLocation triggerId;
     private Trigger trigger;
 
-    public PartialUpdatePacket(PacketBuffer buf) {
-        switch (this.mode = buf.readEnumValue(Mode.class)) {
+    public PartialUpdatePacket(FriendlyByteBuf buf) {
+        switch (this.mode = buf.readEnum(Mode.class)) {
             case ADD_WAYPOINT:
                 this.waypointId = buf.readResourceLocation();
-                this.waypoint = GSON.fromJson(buf.readString(Short.MAX_VALUE), Waypoint.class);
+                this.waypoint = GSON.fromJson(buf.readUtf(Short.MAX_VALUE), Waypoint.class);
                 break;
             case REMOVE_WAYPOINT:
                 this.waypointId = buf.readResourceLocation();
                 break;
             case ADD_TRIGGER:
                 this.triggerId = buf.readResourceLocation();
-                this.trigger = GSON.fromJson(buf.readString(Short.MAX_VALUE), Trigger.class);
+                this.trigger = GSON.fromJson(buf.readUtf(Short.MAX_VALUE), Trigger.class);
                 break;
             case REMOVE_TRIGGER:
                 this.triggerId = buf.readResourceLocation();
@@ -65,22 +64,22 @@ public final class PartialUpdatePacket {
         this.trigger = trigger;
     }
 
-    public void write(PacketBuffer buf) {
-        buf.writeEnumValue(this.mode);
+    public void write(FriendlyByteBuf buf) {
+        buf.writeEnum(this.mode);
         switch (this.mode) {
             case REMOVE_WAYPOINT:
                 buf.writeResourceLocation(this.waypointId);
                 break;
             case ADD_WAYPOINT:
                 buf.writeResourceLocation(this.waypointId);
-                buf.writeString(GSON.toJson(this.waypoint));
+                buf.writeUtf(GSON.toJson(this.waypoint));
                 break;
             case REMOVE_TRIGGER:
                 buf.writeResourceLocation(this.triggerId);
                 break;
             case ADD_TRIGGER:
                 buf.writeResourceLocation(this.triggerId);
-                buf.writeString(GSON.toJson(this.trigger));
+                buf.writeUtf(GSON.toJson(this.trigger));
                 break;
         }
     }
@@ -102,8 +101,8 @@ public final class PartialUpdatePacket {
                     break;
             }
             final Minecraft mc = Minecraft.getInstance();
-            if (mc.currentScreen instanceof GuideMapScreen) {
-                ((GuideMapScreen) mc.currentScreen).refresh();
+            if (mc.screen instanceof GuideMapScreen) {
+                ((GuideMapScreen) mc.screen).refresh();
             }
         });
         contextGetter.get().setPacketHandled(true);

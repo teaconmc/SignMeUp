@@ -10,14 +10,14 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.mojang.brigadier.StringReader;
-import net.minecraft.command.arguments.EntitySelector;
-import net.minecraft.command.arguments.EntitySelectorParser;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.commands.arguments.selector.EntitySelector;
+import net.minecraft.commands.arguments.selector.EntitySelectorParser;
+import net.minecraft.core.Vec3i;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import org.teacon.signin.network.PartialUpdatePacket;
 
 import java.lang.reflect.Type;
@@ -31,11 +31,11 @@ import java.util.stream.StreamSupport;
 public final class Waypoint implements PlayerTracker {
 
     public static final class Location {
-        Vector3i actualLocation;
-        private Vector3i renderLocation;
+        Vec3i actualLocation;
+        private Vec3i renderLocation;
         boolean isDynamic = false;
 
-        public Vector3i getRenderLocation() {
+        public Vec3i getRenderLocation() {
             return this.renderLocation == null ? this.actualLocation : this.renderLocation;
         }
 
@@ -50,9 +50,9 @@ public final class Waypoint implements PlayerTracker {
                     return loc;
                 } else if (json.isJsonObject()) {
                     final JsonObject locations = json.getAsJsonObject();
-                    loc.actualLocation = context.deserialize(locations.get("actual"), Vector3i.class);
+                    loc.actualLocation = context.deserialize(locations.get("actual"), Vec3i.class);
                     if (locations.has("render")) {
-                        loc.renderLocation = context.deserialize(locations.get("render"), Vector3i.class);
+                        loc.renderLocation = context.deserialize(locations.get("render"), Vec3i.class);
                     }
                     return loc;
                 } else {
@@ -76,8 +76,8 @@ public final class Waypoint implements PlayerTracker {
         }
     }
 
-    private ITextComponent title;
-    private ITextComponent desc;
+    private Component title;
+    private Component desc;
 
     private String selector = "@e";
     private transient EntitySelector parsedSelector;
@@ -90,25 +90,25 @@ public final class Waypoint implements PlayerTracker {
 
     private int displayingImageIndex;
 
-    transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
+    transient Set<ServerPlayer> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
-    public ITextComponent getTitle() {
-        return title == null ? new TranslationTextComponent("sign_up.waypoint.unnamed") : this.title;
+    public Component getTitle() {
+        return title == null ? new TranslatableComponent("sign_up.waypoint.unnamed") : this.title;
     }
 
-    public ITextComponent getDesc() {
-        return this.desc == null ? StringTextComponent.EMPTY : this.desc;
+    public Component getDesc() {
+        return this.desc == null ? TextComponent.EMPTY : this.desc;
     }
 
     public boolean hasDynamicLocation() {
         return location.isDynamic;
     }
 
-    public Vector3i getRenderLocation() {
+    public Vec3i getRenderLocation() {
         return location.getRenderLocation();
     }
 
-    public Vector3i getActualLocation() {
+    public Vec3i getActualLocation() {
         return location.actualLocation;
     }
 
@@ -143,12 +143,12 @@ public final class Waypoint implements PlayerTracker {
     }
 
     @Override
-    public Set<ServerPlayerEntity> getTracking() {
+    public Set<ServerPlayer> getTracking() {
         return this.visiblePlayers;
     }
 
     @Override
-    public void setTracking(Set<ServerPlayerEntity> players) {
+    public void setTracking(Set<ServerPlayer> players) {
         this.visiblePlayers = players;
     }
 
@@ -165,10 +165,10 @@ public final class Waypoint implements PlayerTracker {
                 final JsonObject obj = json.getAsJsonObject();
                 final Waypoint wp = new Waypoint();
                 if (obj.has("title")) {
-                    wp.title = context.deserialize(obj.get("title"), ITextComponent.class);
+                    wp.title = context.deserialize(obj.get("title"), Component.class);
                 }
                 if (obj.has("description")) {
-                    wp.desc = context.deserialize(obj.get("description"), ITextComponent.class);
+                    wp.desc = context.deserialize(obj.get("description"), Component.class);
                 }
                 if (obj.has("selector")) {
                     wp.selector = obj.get("selector").getAsString();

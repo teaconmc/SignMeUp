@@ -5,19 +5,19 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.client.resources.JsonReloadListener; // To anyone who are shocked: yes this class exists on both side!
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.profiler.IProfiler;
-import net.minecraft.resources.IResourceManager;
+import net.minecraft.core.Vec3i;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
@@ -35,18 +35,18 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 
-public final class GuideMapManager extends JsonReloadListener {
+public final class GuideMapManager extends SimpleJsonResourceReloadListener {
 
     private static final Logger LOGGER = LogManager.getLogger("SignMeUp");
     private static final Marker MARKER = MarkerManager.getMarker("GuideMapManager");
 
     private static final Gson GSON = new GsonBuilder().setLenient()
-            .registerTypeHierarchyAdapter(ITextComponent.class, new ITextComponent.Serializer())
+            .registerTypeHierarchyAdapter(Component.class, new Component.Serializer())
             .registerTypeAdapter(GuideMap.class, new GuideMap.Serializer())
             .registerTypeAdapter(Waypoint.class, new Waypoint.Serializer())
             .registerTypeAdapter(Waypoint.Location.class, new Waypoint.Location.Serializer())
             .registerTypeAdapter(Trigger.class, new Trigger.Serializer())
-            .registerTypeAdapter(Vector3i.class, new Vector3iAdapter())
+            .registerTypeAdapter(Vec3i.class, new Vector3iAdapter())
             .create();
 
     private static <T> void setDiff(Set<T> a, Set<T> b, Set<T> aMinusB, Set<T> bMinusA) {
@@ -74,15 +74,15 @@ public final class GuideMapManager extends JsonReloadListener {
     @SubscribeEvent
     public void sync(EntityJoinWorldEvent event) {
         // Being a ServerPlayerEntity implies a logical server, thus no isRemote check.
-        if (event.getEntity() instanceof ServerPlayerEntity) {
-            final ServerPlayerEntity p = (ServerPlayerEntity) event.getEntity();
+        if (event.getEntity() instanceof ServerPlayer) {
+            final ServerPlayer p = (ServerPlayer) event.getEntity();
             final SortedMap<ResourceLocation, GuideMap> mapsToSend = new TreeMap<>();
             this.maps.forEach((id, map) -> {
-                if (p.world.getDimensionKey().getLocation().equals(map.dim)) {
+                if (p.level.dimension().location().equals(map.dim)) {
                     mapsToSend.put(id, map);
                 }
             });
-            SignMeUp.channel.sendTo(new SyncGuideMapPacket(mapsToSend), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+            SignMeUp.channel.sendTo(new SyncGuideMapPacket(mapsToSend), p.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
         }
     }
 
@@ -110,32 +110,32 @@ public final class GuideMapManager extends JsonReloadListener {
          *      packet so the client manager will receive that waypoint.
          *      These players form the set diff 2 - 1.
          */
-        final Set<ServerPlayerEntity> matched = Collections.newSetFromMap(new WeakHashMap<>());
+        final Set<ServerPlayer> matched = Collections.newSetFromMap(new WeakHashMap<>());
         try {
-            matched.addAll(trackingComponent.getSelector().selectPlayers(server.getCommandSource()));
+            matched.addAll(trackingComponent.getSelector().findPlayers(server.createCommandSourceStack()));
         } catch (CommandSyntaxException e) {
             return;
         }
-        final Set<ServerPlayerEntity> update = Collections.newSetFromMap(new IdentityHashMap<>());
-        final Set<ServerPlayerEntity> removal = Collections.newSetFromMap(new IdentityHashMap<>());
+        final Set<ServerPlayer> update = Collections.newSetFromMap(new IdentityHashMap<>());
+        final Set<ServerPlayer> removal = Collections.newSetFromMap(new IdentityHashMap<>());
         setDiff(trackingComponent.getTracking(), matched, removal, update);
-        for (ServerPlayerEntity p : update) {
-            SignMeUp.channel.sendTo(trackingComponent.getNotifyPacket(false, id), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+        for (ServerPlayer p : update) {
+            SignMeUp.channel.sendTo(trackingComponent.getNotifyPacket(false, id), p.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
         }
-        for (ServerPlayerEntity p : removal) {
-            SignMeUp.channel.sendTo(trackingComponent.getNotifyPacket(true, id), p.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+        for (ServerPlayer p : removal) {
+            SignMeUp.channel.sendTo(trackingComponent.getNotifyPacket(true, id), p.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
         }
         trackingComponent.setTracking(matched);
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> objects, IResourceManager manager, IProfiler profiler) {
+    protected void apply(Map<ResourceLocation, JsonElement> objects, ResourceManager manager, ProfilerFiller profiler) {
         this.maps.clear();
         this.points.clear();
         this.triggers.clear();
-        profiler.startSection("SignInGuides");
+        profiler.push("SignInGuides");
         objects.forEach(this::process);
-        profiler.endSection();
+        profiler.pop();
     }
 
     private void process(ResourceLocation id, JsonElement json) {

@@ -1,20 +1,18 @@
 package org.teacon.signin;
 
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.ISuggestionProvider;
-import net.minecraft.command.arguments.BlockPosArgument;
-import net.minecraft.command.arguments.ResourceLocationArgument;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.core.Vec3i;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.api.distmarker.Dist;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -23,8 +21,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
+
 import org.teacon.signin.client.SignMeUpClient;
 import org.teacon.signin.command.CommandImpl;
 import org.teacon.signin.data.DynamicLocationStorage;
@@ -50,12 +49,17 @@ public final class SignMeUp {
     }
 
     public static void setup(FMLCommonSetupEvent event) {
-        CapabilityManager.INSTANCE.register(DynamicLocationStorage.class, new DynamicLocationStorage.Serializer(), DynamicLocationStorage::new);
+        //CapabilityManager.INSTANCE.register(DynamicLocationStorage.class, new DynamicLocationStorage.Serializer(), DynamicLocationStorage::new);
         channel.registerMessage(0, SyncGuideMapPacket.class, SyncGuideMapPacket::write, SyncGuideMapPacket::new, SyncGuideMapPacket::handle);
         channel.registerMessage(1, PartialUpdatePacket.class, PartialUpdatePacket::write, PartialUpdatePacket::new, PartialUpdatePacket::handle);
         channel.registerMessage(2, MapScreenPacket.class, MapScreenPacket::write, MapScreenPacket::new, MapScreenPacket::handle);
         channel.registerMessage(3, TriggerFromMapPacket.class, TriggerFromMapPacket::write, TriggerFromMapPacket::new, TriggerFromMapPacket::handle);
         channel.registerMessage(4, TriggerFromWaypointPacket.class, TriggerFromWaypointPacket::write, TriggerFromWaypointPacket::new, TriggerFromWaypointPacket::handle);
+    }
+
+    @SubscribeEvent
+    public void registerCaps(RegisterCapabilitiesEvent event) {
+        event.register(DynamicLocationStorage.class);
     }
 
     @SubscribeEvent
@@ -69,11 +73,11 @@ public final class SignMeUp {
                 .then(Commands.literal("map")
                         .then(Commands.literal("list").executes(CommandImpl::listMaps))
                         .then(Commands.literal("close")
-                                .then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
+                                .then(Commands.argument("id", ResourceLocationArgument.id())
                                         .executes(CommandImpl::closeSpecificMap))
                                 .executes(CommandImpl::closeAnyMap))
                         .then(Commands.literal("open")
-                                .then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
+                                .then(Commands.argument("id", ResourceLocationArgument.id())
                                         .executes(CommandImpl::openSpecificMap))
                                 .executes(CommandImpl::openNearestMap)))
                 .then(Commands.literal("point")
@@ -82,44 +86,48 @@ public final class SignMeUp {
                                         .executes(CommandImpl::listWaypointPos))
                                 .executes(CommandImpl::listWaypoints))
                         .then(Commands.literal("get")
-                                .then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
+                                .then(Commands.argument("id", ResourceLocationArgument.id())
                                         .then(Commands.literal("location")
                                                 .executes(CommandImpl::getWaypointPos))))
                         .then(Commands.literal("set")
-                                .then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
+                                .then(Commands.argument("id", ResourceLocationArgument.id())
                                         .then(Commands.literal("actual")
                                                 .then(Commands.argument("pos", BlockPosArgument.blockPos()).executes(CommandImpl::setWaypointActualPos)))
                                         .then(Commands.literal("render")
                                                 .then(Commands.argument("pos", BlockPosArgument.blockPos()).executes(CommandImpl::setWaypointRenderPos))))))
                 .then(Commands.literal("trigger")
-                        .then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
-                                .suggests((src, builder) -> ISuggestionProvider.suggest(FMLEnvironment.dist.isClient()
-                                        ? SignMeUpClient.MANAGER.getAllTriggers().stream().map(ResourceLocation::toString)
-                                        : SignMeUp.MANAGER.getAllTriggers().stream().map(ResourceLocation::toString), builder))
-                                .executes(CommandImpl::trigger))));
+                        .then(Commands.argument("id", ResourceLocationArgument.id())
+                                .suggests((src, builder) -> {
+                                    if(FMLEnvironment.dist.isClient()) {
+                                        SignMeUpClient.MANAGER.getAllTriggers().stream().forEach(location -> builder.suggest(location.toString()));
+                                    } else {
+                                        SignMeUp.MANAGER.getAllTriggers().stream().forEach(location -> builder.suggest(location.toString()));
+                                    }
+                                    return builder.buildFuture();
+                                }).executes(CommandImpl::trigger))));
     }
 
     @SubscribeEvent
-    public static void attachCap(AttachCapabilitiesEvent<World> event) {
+    public static void attachCap(AttachCapabilitiesEvent<Level> event) {
         event.addCapability(new ResourceLocation("sign_up"), new DynamicLocationStorage.Holder());
     }
 
-    public static boolean trigger(ServerPlayerEntity player, Vector3i pos, ResourceLocation triggerId, boolean isCommand) {
+    public static boolean trigger(ServerPlayer player, Vec3i pos, ResourceLocation triggerId, boolean isCommand) {
         final Trigger trigger = MANAGER.findTrigger(triggerId);
         if (trigger != null && trigger.isVisibleTo(player)) {
             final MinecraftServer server = player.getServer();
             if (server != null) {
-                final Vector3d pos3d = Vector3d.copy(pos);
-                final CommandSource source = isCommand
-                        ? player.getCommandSource().withPos(pos3d).withPermissionLevel(2)
-                        : player.getCommandSource().withPos(pos3d).withFeedbackDisabled().withMinPermissionLevel(2);
+                final Vec3 pos3d = Vec3.atLowerCornerOf(pos);
+                final CommandSourceStack source = isCommand
+                        ? player.createCommandSourceStack().withPosition(pos3d).withPermission(2)
+                        : player.createCommandSourceStack().withPosition(pos3d).withSuppressedOutput().withMaximumPermission(2);
                 for (String command : trigger.executes) {
-                    server.getCommandManager().handleCommand(source, command);
+                    server.getCommands().performCommand(source, command);
                 }
             }
             return true;
         } else {
-            player.sendStatusMessage(new StringTextComponent("You seemed to click the void just now..."), true);
+            player.displayClientMessage(new TextComponent("You seemed to click the void just now..."), true);
             return false;
         }
     }

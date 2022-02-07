@@ -4,22 +4,22 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Function4;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.arguments.ResourceLocationArgument;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkDirection;
+
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.network.NetworkDirection;
+
 import org.teacon.signin.SignMeUp;
 import org.teacon.signin.data.DynamicLocationStorage;
 import org.teacon.signin.data.GuideMap;
-import org.teacon.signin.data.Trigger;
 import org.teacon.signin.data.Waypoint;
 import org.teacon.signin.network.MapScreenPacket;
 
@@ -30,99 +30,99 @@ import java.text.DecimalFormat;
  * This class contains command execution implementations
  */
 public final class CommandImpl {
-    public static final TranslationTextComponent ERROR = new TranslationTextComponent("sign_up.text.error");
+    public static final TranslatableComponent ERROR = new TranslatableComponent("sign_up.text.error");
 
-    public static int trigger(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final ResourceLocation triggerId = ResourceLocationArgument.getResourceLocation(context, "id");
-        final BlockPos pos = new BlockPos(context.getSource().getPos());
-        final ServerPlayerEntity src = context.getSource().asPlayer();
+    public static int trigger(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final ResourceLocation triggerId = ResourceLocationArgument.getId(context, "id");
+        final BlockPos pos = new BlockPos(context.getSource().getPosition());
+        final ServerPlayer src = context.getSource().getPlayerOrException();
         return SignMeUp.trigger(src, pos, triggerId, true) ? 1 : 0;
     }
 
-    public static int listMaps(CommandContext<CommandSource> context) {
-        CommandSource src = context.getSource();
+    public static int listMaps(CommandContext<CommandSourceStack> context) {
+        CommandSourceStack src = context.getSource();
         if (SignMeUp.MANAGER.getAllMaps().size() != 0) {
-            src.sendFeedback(new TranslationTextComponent("sign_up.text.list_maps")
-                    .appendString(": ")
+            src.sendSuccess(new TranslatableComponent("sign_up.text.list_maps")
+                    .append(": ")
                     , false);
             for (GuideMap map : SignMeUp.MANAGER.getAllMaps()) {
-                src.sendFeedback(map.getTitle(), false);
+                src.sendSuccess(map.getTitle(), false);
             }
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendErrorMessage(ERROR
-                    .appendString(": ")
-                    .appendSibling(new TranslationTextComponent("sign_up.text.no_map_exists"))
+            src.sendFailure(ERROR
+                    .append(": ")
+                    .append(new TranslatableComponent("sign_up.text.no_map_exists"))
             );
             return -1;
         }
     }
 
-    public static int closeSpecificMap(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        CommandSource src = context.getSource();
-        ServerPlayerEntity player = context.getSource().asPlayer();
+    public static int closeSpecificMap(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack src = context.getSource();
+        ServerPlayer player = context.getSource().getPlayerOrException();
         final ResourceLocation id = context.getArgument("id", ResourceLocation.class);
         GuideMap map = SignMeUp.MANAGER.findMap(id);
         if (map != null) {
             // Here we have to send a packet to client side
             // for rendering the map GUI
-            MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.CLOSE_SPECIFIC, src.getPos(), id);
-            SignMeUp.channel.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+            MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.CLOSE_SPECIFIC, src.getPosition(), id);
+            SignMeUp.channel.sendTo(packet, player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendErrorMessage(ERROR
-                    .appendString(": ")
-                    .appendSibling(new TranslationTextComponent("sign_up.text.map"))
-                    .appendString(" " + id.toString() + " ")
-                    .appendSibling(new TranslationTextComponent("sign_up.text.does_not_exist"))
+            src.sendFailure(ERROR
+                    .append(": ")
+                    .append(new TranslatableComponent("sign_up.text.map"))
+                    .append(" " + id.toString() + " ")
+                    .append(new TranslatableComponent("sign_up.text.does_not_exist"))
             );
             return -1;
         }
     }
 
-    public static int closeAnyMap(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = context.getSource().asPlayer();
-        MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.CLOSE_ANY, Vector3d.ZERO, null);
-        SignMeUp.channel.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+    public static int closeAnyMap(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.CLOSE_ANY, Vec3.ZERO, null);
+        SignMeUp.channel.sendTo(packet, player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
         return Command.SINGLE_SUCCESS;
     }
 
-    public static int openSpecificMap(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        CommandSource src = context.getSource();
-        ServerPlayerEntity player = context.getSource().asPlayer();
+    public static int openSpecificMap(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack src = context.getSource();
+        ServerPlayer player = context.getSource().getPlayerOrException();
         final ResourceLocation id = context.getArgument("id", ResourceLocation.class);
         GuideMap map = SignMeUp.MANAGER.findMap(id);
         if (map != null) {
             // Here we have to send a packet to client side
             // for rendering the map GUI
-            final MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, src.getPos(), id);
-            SignMeUp.channel.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+            final MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, src.getPosition(), id);
+            SignMeUp.channel.sendTo(packet, player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendErrorMessage(ERROR
-                    .appendString(": ")
-                    .appendSibling(new TranslationTextComponent("sign_up.text.map"))
-                    .appendString(" " + id.toString() + " ")
-                    .appendSibling(new TranslationTextComponent("sign_up.text.does_not_exist"))
+            src.sendFailure(ERROR
+                    .append(": ")
+                    .append(new TranslatableComponent("sign_up.text.map"))
+                    .append(" " + id.toString() + " ")
+                    .append(new TranslatableComponent("sign_up.text.does_not_exist"))
             );
             return -1;
         }
     }
 
-    public static int openNearestMap(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        CommandSource src = context.getSource();
-        ServerPlayerEntity player = src.asPlayer();
-        RegistryKey<World> worldKey = src.getWorld().getDimensionKey();
+    public static int openNearestMap(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack src = context.getSource();
+        ServerPlayer player = src.getPlayerOrException();
+        ResourceKey<Level> worldKey = src.getLevel().dimension();
 
         GuideMap map = null;
         double minDistanceSq = Double.MAX_VALUE;
 
         // We first check the dimension
-        if (src.asPlayer().world.getDimensionKey() == worldKey) {
+        if (src.getPlayerOrException().getLevel().dimension() == worldKey) {
             // Then we look for the nearest in-range map
             for (GuideMap guideMap : SignMeUp.MANAGER.getAllMaps()) {
-                final double dx = src.getPos().getX() - guideMap.center.getX();
-                final double dz = src.getPos().getZ() - guideMap.center.getZ();
+                final double dx = src.getPosition().x() - guideMap.center.getX();
+                final double dz = src.getPosition().z() - guideMap.center.getZ();
                 if (Math.min(Math.abs(dx), Math.abs(dz)) <= guideMap.radius) {
                     final double distanceSq = dx * dx + dz * dz;
                     if (distanceSq < minDistanceSq) {
@@ -135,128 +135,128 @@ public final class CommandImpl {
 
         if (map != null) {
             // Same packet as above
-            final MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, src.getPos(), SignMeUp.MANAGER.findMapId(map));
-            SignMeUp.channel.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+            final MapScreenPacket packet = new MapScreenPacket(MapScreenPacket.Action.OPEN_SPECIFIC, src.getPosition(), SignMeUp.MANAGER.findMapId(map));
+            SignMeUp.channel.sendTo(packet, player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendErrorMessage(ERROR
-                    .appendString(": ")
-                    .appendSibling(new TranslationTextComponent("sign_up.status.no_map_available"))
+            src.sendFailure(ERROR
+                    .append(": ")
+                    .append(new TranslatableComponent("sign_up.status.no_map_available"))
             );
             return -1;
         }
     }
 
-    public static int listWaypoints(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        CommandSource src = context.getSource();
-        ServerPlayerEntity player = src.asPlayer();
+    public static int listWaypoints(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack src = context.getSource();
+        ServerPlayer player = src.getPlayerOrException();
         if (SignMeUp.MANAGER.getAllWaypoints().size() != 0) {
-            src.sendFeedback(new TranslationTextComponent("sign_up.text.list_points")
-                    .appendString(": ")
+            src.sendSuccess(new TranslatableComponent("sign_up.text.list_points")
+                    .append(": ")
                     , false);
             for (Waypoint waypoint : SignMeUp.MANAGER.getAllWaypoints()) {
                 DecimalFormat df = new DecimalFormat("0.00");
                 df.setRoundingMode(RoundingMode.HALF_UP);
-                src.sendFeedback(new StringTextComponent(" - ")
-                        .appendSibling(waypoint.getTitle()).appendString("\n   ")
-                        .appendSibling(new TranslationTextComponent("sign_up.text.distance"))
-                        .appendString(": " + df.format(Vector3d.copy(waypoint.getActualLocation()).distanceTo(src.getPos())) + " ")
-                        .appendSibling(new TranslationTextComponent("sign_up.text.blocks_away"))
+                src.sendSuccess(new TextComponent(" - ")
+                        .append(waypoint.getTitle()).append("\n   ")
+                        .append(new TranslatableComponent("sign_up.text.distance"))
+                        .append(": " + df.format(Vec3.atLowerCornerOf(waypoint.getActualLocation()).distanceTo(src.getPosition())) + " ")
+                        .append(new TranslatableComponent("sign_up.text.blocks_away"))
                         , false
                 );
             }
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendErrorMessage(ERROR.appendString(": ").appendSibling(new TranslationTextComponent("sign_up.text.no_waypoint_exists")));
+            src.sendFailure(ERROR.append(": ").append(new TranslatableComponent("sign_up.text.no_waypoint_exists")));
             return -1;
         }
     }
 
-    public static int listWaypointPos(CommandContext<CommandSource> context) {
-        CommandSource src = context.getSource();
+    public static int listWaypointPos(CommandContext<CommandSourceStack> context) {
+        CommandSourceStack src = context.getSource();
         if (SignMeUp.MANAGER.getAllWaypoints().size() != 0) {
-            src.sendFeedback(new TranslationTextComponent("sign_up.text.list_points"), false);
+            src.sendSuccess(new TranslatableComponent("sign_up.text.list_points"), false);
             for (Waypoint waypoint : SignMeUp.MANAGER.getAllWaypoints()) {
-                src.sendFeedback(new StringTextComponent(" - ")
-                        .appendSibling(waypoint.getTitle())
-                        .appendString("\n   ")
-                        .appendSibling(new TranslationTextComponent("sign_up.text.render_location"))
-                        .appendString(": ")
-                        .appendString(waypoint.getRenderLocation().getCoordinatesAsString())
-                        .appendString("\n   ")
-                        .appendSibling(new TranslationTextComponent("sign_up.text.actual_location"))
-                        .appendString(": ")
-                        .appendString(waypoint.getActualLocation().getCoordinatesAsString())
+                src.sendSuccess(new TextComponent(" - ")
+                        .append(waypoint.getTitle())
+                        .append("\n   ")
+                        .append(new TranslatableComponent("sign_up.text.render_location"))
+                        .append(": ")
+                        .append(waypoint.getRenderLocation().toShortString())
+                        .append("\n   ")
+                        .append(new TranslatableComponent("sign_up.text.actual_location"))
+                        .append(": ")
+                        .append(waypoint.getActualLocation().toShortString())
                         , false
                 );
             }
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendErrorMessage(ERROR.appendString(": ").appendSibling(new TranslationTextComponent("sign_up.text.no_waypoint_exists")));
+            src.sendFailure(ERROR.append(": ").append(new TranslatableComponent("sign_up.text.no_waypoint_exists")));
             return -1;
         }
     }
 
-    public static int getWaypointPos(CommandContext<CommandSource> context) {
-        CommandSource src = context.getSource();
+    public static int getWaypointPos(CommandContext<CommandSourceStack> context) {
+        CommandSourceStack src = context.getSource();
         final ResourceLocation id = context.getArgument("id", ResourceLocation.class);
         Waypoint waypoint = SignMeUp.MANAGER.findWaypoint(id);
         if (waypoint != null) {
-            src.sendFeedback(new StringTextComponent(" - ")
-                            .appendSibling(waypoint.getTitle())
-                            .appendString("\n   ")
-                            .appendSibling(new TranslationTextComponent("sign_up.text.render_location"))
-                            .appendString(": ")
-                            .appendString(waypoint.getRenderLocation().getCoordinatesAsString())
-                            .appendString("\n   ")
-                            .appendSibling(new TranslationTextComponent("sign_up.text.actual_location"))
-                            .appendString(": ")
-                            .appendString(waypoint.getActualLocation().getCoordinatesAsString())
+            src.sendSuccess(new TextComponent(" - ")
+                            .append(waypoint.getTitle())
+                            .append("\n   ")
+                            .append(new TranslatableComponent("sign_up.text.render_location"))
+                            .append(": ")
+                            .append(waypoint.getRenderLocation().toShortString())
+                            .append("\n   ")
+                            .append(new TranslatableComponent("sign_up.text.actual_location"))
+                            .append(": ")
+                            .append(waypoint.getActualLocation().toShortString())
                     , false
             );
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendErrorMessage(new StringTextComponent("Error: waypoint " + id + " does not exist"));
-            src.sendErrorMessage(ERROR
-                    .appendString(": ")
-                    .appendSibling(new TranslationTextComponent("sign_up.text.waypoint")
-                    .appendString(" " + id.toString() + " ")
-                    .appendSibling(new TranslationTextComponent("sign_up.text.does_not_exist")))
+            src.sendFailure(new TextComponent("Error: waypoint " + id + " does not exist"));
+            src.sendFailure(ERROR
+                    .append(": ")
+                    .append(new TranslatableComponent("sign_up.text.waypoint")
+                    .append(" " + id.toString() + " ")
+                    .append(new TranslatableComponent("sign_up.text.does_not_exist")))
             );
             return -1;
         }
     }
 
-    public static int setWaypointActualPos(CommandContext<CommandSource> context) {
-        return setDynamicWaypointPosImpl(context, (store, id, world, pos) -> {
-            store.setActual(id, world, pos);
+    public static int setWaypointActualPos(CommandContext<CommandSourceStack> context) {
+        return setDynamicWaypointPosImpl(context, (store, id, level, pos) -> {
+            store.setActual(id, level, pos);
             return Command.SINGLE_SUCCESS;
         });
     }
 
 
-    public static int setWaypointRenderPos(CommandContext<CommandSource> context) {
-        return setDynamicWaypointPosImpl(context, (store, id, world, pos) -> {
-            store.setRendering(id, world, pos);
+    public static int setWaypointRenderPos(CommandContext<CommandSourceStack> context) {
+        return setDynamicWaypointPosImpl(context, (store, id, level, pos) -> {
+            store.setRendering(id, level, pos);
             return Command.SINGLE_SUCCESS;
         });
     }
 
-    public static int setDynamicWaypointPosImpl(CommandContext<CommandSource> context, Function4<DynamicLocationStorage, ResourceLocation, World, BlockPos, Integer> handler) {
-        final CommandSource src = context.getSource();
-        final World world = src.getWorld();
+    public static int setDynamicWaypointPosImpl(CommandContext<CommandSourceStack> context, Function4<DynamicLocationStorage, ResourceLocation, Level, BlockPos, Integer> handler) {
+        final CommandSourceStack src = context.getSource();
+        final Level level = src.getLevel();
         final BlockPos pos = context.getArgument("pos", BlockPos.class);
         final ResourceLocation id = context.getArgument("id", ResourceLocation.class);
         final Waypoint wp = SignMeUp.MANAGER.findWaypoint(id);
         if (wp != null) {
             if (wp.hasDynamicLocation()) {
-                return world.getCapability(DynamicLocationStorage.CAP).map(store -> handler.apply(store, id, world, pos)).orElse(-1);
+                return level.getCapability(DynamicLocationStorage.CAP).map(store -> handler.apply(store, id, level, pos)).orElse(-1);
             } else {
-                src.sendErrorMessage(new StringTextComponent("Error: waypoint " + id + " is static"));
+                src.sendFailure(new TextComponent("Error: waypoint " + id + " is static"));
                 return -1;
             }
         } else {
-            src.sendErrorMessage(new StringTextComponent("Error: waypoint " + id + " does not exist"));
+            src.sendFailure(new TextComponent("Error: waypoint " + id + " does not exist"));
             return -1;
         }
     }

@@ -4,20 +4,20 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import mcp.MethodsReturnNonnullByDefault;
+import com.mojang.blaze3d.vertex.*;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.gui.widget.button.ImageButton;
-import net.minecraft.util.IReorderingProcessor;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.Vec3i;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.phys.Vec3;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
@@ -34,7 +34,8 @@ import java.util.*;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public final class GuideMapScreen extends Screen {
+public final class GuideMapScreen extends Screen
+{
 
     private static final Logger LOGGER = LogManager.getLogger("SignMeUp");
     private static final Marker MARKER = MarkerManager.getMarker("GuideMapScreen");
@@ -58,7 +59,7 @@ public final class GuideMapScreen extends Screen {
     private boolean hasWaypointTrigger = false;
 
     private final GuideMap map;
-    private final Vector3d playerLocation;
+    private final Vec3 playerLocation;
     private final List<ResourceLocation> waypointIds;
 
     private PolynomialMapping mapping;
@@ -71,7 +72,7 @@ public final class GuideMapScreen extends Screen {
 
     private boolean needRefresh = false;
 
-    public GuideMapScreen(ResourceLocation mapId, GuideMap map, Vector3d location) {
+    public GuideMapScreen(ResourceLocation mapId, GuideMap map, Vec3 location) {
         super(map.getTitle());
         this.map = map;
         this.mapId = mapId;
@@ -90,12 +91,12 @@ public final class GuideMapScreen extends Screen {
         int x0 = (this.width - X_SIZE) / 2, y0 = (this.height - Y_SIZE) / 2, x1 = x0 + 206;
 
         // Left and Right Image Flip Button
-        this.leftFlip = this.addButton(new ImageButton(x1 + 7, y0 + 20, 10, 54, 155, 163, 0, GUIDE_MAP_RIGHT, new FlipHandler(1)));
-        this.rightFlip = this.addButton(new ImageButton(x1 + 93, y0 + 20, 10, 54, 167, 163, 0, GUIDE_MAP_RIGHT, new FlipHandler(-1)));
+        this.leftFlip = this.addRenderableWidget(new ImageButton(x1 + 7, y0 + 20, 10, 54, 155, 163, 0, GUIDE_MAP_RIGHT, new FlipHandler(1)));
+        this.rightFlip = this.addRenderableWidget(new ImageButton(x1 + 93, y0 + 20, 10, 54, 167, 163, 0, GUIDE_MAP_RIGHT, new FlipHandler(-1)));
 
         // Prev and next page for map triggers
-        this.mapTriggerPrev = this.addButton(new ImageButton(x0 + 6, y0 + 138, 33, 17, 66, 163, 19, GUIDE_MAP_LEFT, (btn) -> --this.mapTriggerPage));
-        this.mapTriggerNext = this.addButton(new ImageButton(x0 + 39, y0 + 138, 33, 17, 99, 163, 19, GUIDE_MAP_LEFT, (btn) -> ++this.mapTriggerPage));
+        this.mapTriggerPrev = this.addRenderableWidget(new ImageButton(x0 + 6, y0 + 138, 33, 17, 66, 163, 19, GUIDE_MAP_LEFT, (btn) -> --this.mapTriggerPage));
+        this.mapTriggerNext = this.addRenderableWidget(new ImageButton(x0 + 39, y0 + 138, 33, 17, 99, 163, 19, GUIDE_MAP_LEFT, (btn) -> ++this.mapTriggerPage));
 
         // Setup trigger buttons from GuideMap
         this.mapTriggers.clear();
@@ -107,7 +108,7 @@ public final class GuideMapScreen extends Screen {
                 continue;
             }
             this.mapTriggerPageSize = Math.max(this.mapTriggerPageSize, 1 + j / 6);
-            final TriggerButton btn = this.addButton(new TriggerButton(x0 + 8, y0 + 21 + (j % 6) * 19, 62, 18,
+            final TriggerButton btn = this.addRenderableWidget(new TriggerButton(x0 + 8, y0 + 21 + (j % 6) * 19, 62, 18,
                     2, trigger.disabled ? 203 : 163, trigger.disabled ? 0 : 20, GUIDE_MAP_LEFT, trigger,
                     (b) -> SignMeUp.channel.sendToServer(new TriggerFromMapPacket(this.mapId, triggerId))));
             this.mapTriggers.add(btn);
@@ -132,11 +133,11 @@ public final class GuideMapScreen extends Screen {
         final int waypointSize = waypoints.size();
         final double[] inputX = new double[waypointSize], inputY = new double[waypointSize];
         final double[] outputX = new double[waypointSize], outputY = new double[waypointSize];
-        final Vector3i center = this.map.center;
+        final Vec3i center = this.map.center;
         for (int i = 0; i < waypointSize; ++i) {
             final Waypoint wp = waypoints.get(i);
-            final Vector3i actualLocation = wp.getActualLocation();
-            final Vector3i renderLocation = wp.getRenderLocation();
+            final Vec3i actualLocation = wp.getActualLocation();
+            final Vec3i renderLocation = wp.getRenderLocation();
             inputX[i] = actualLocation.getX() - center.getX();
             inputY[i] = actualLocation.getZ() - center.getZ();
             outputX[i] = renderLocation.getX() - center.getX();
@@ -158,13 +159,13 @@ public final class GuideMapScreen extends Screen {
             final int wpY = Math.round((float) outputY[i] / this.map.radius * 64) + 64;
             if (wpX >= 1 && wpX <= 127 && wpY >= 1 && wpY <= 127) {
                 // Setup Waypoints as ImageButtons
-                this.addButton(new ImageButton(mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4, 58, 2, 0, MAP_ICONS,
+                this.addRenderableWidget(new ImageButton(mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4, 58, 2, 0, MAP_ICONS,
                         128, 128, (btn) -> this.selectedWaypoint = wpId, (btn, transform, mouseX, mouseY) -> {
-                    double distance = Math.sqrt(wp.getActualLocation().distanceSq(this.playerLocation, true));
-                    this.renderTooltip(transform, Arrays.asList(
-                            wp.getTitle().func_241878_f(),
-                            new TranslationTextComponent("sign_up.waypoint.distance",
-                                    Math.round(distance * 10.0) / 10.0).func_241878_f()
+                    double distance = Math.sqrt(wp.getActualLocation().distSqr(this.playerLocation, true));
+                    this.renderComponentTooltip(transform, Arrays.asList(
+                            wp.getTitle(),
+                            new TranslatableComponent("sign_up.waypoint.distance",
+                                    Math.round(distance * 10.0) / 10.0)
                     ), mouseX, mouseY);
                 }, wp.getTitle()));
                 // Setup trigger buttons from Waypoints
@@ -175,7 +176,7 @@ public final class GuideMapScreen extends Screen {
                     if (trigger == null) {
                         continue;
                     }
-                    TriggerButton btn = this.addButton(new TriggerButton(x1 + 109, y0 + 21 + j * 19, 62, 18,
+                    TriggerButton btn = this.addRenderableWidget(new TriggerButton(x1 + 109, y0 + 21 + j * 19, 62, 18,
                             2, trigger.disabled ? 203 : 163, trigger.disabled ? 0 : 20, GUIDE_MAP_RIGHT, trigger,
                             (b) -> SignMeUp.channel.sendToServer(new TriggerFromWaypointPacket(wpId, triggerId))));
                     this.waypointTriggers.put(wpId, btn);
@@ -214,7 +215,7 @@ public final class GuideMapScreen extends Screen {
     }
 
     @Override
-    public void render(MatrixStack transforms, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack transforms, int mouseX, int mouseY, float partialTicks) {
         final Minecraft mc = Objects.requireNonNull(this.minecraft);
 
         int x0 = (this.width - X_SIZE) / 2, y0 = (this.height - Y_SIZE) / 2, x1 = x0 + 206;
@@ -226,12 +227,12 @@ public final class GuideMapScreen extends Screen {
 
         super.render(transforms, mouseX, mouseY, partialTicks);
 
-        this.renderTextCollection(this.font, transforms, x0, y0, x1);
+        this.renderTextCollection(transforms, x0, y0, x1);
     }
 
-    private void renderTextCollection(FontRenderer font, MatrixStack transforms, int x0, int y0, int x1) {
+    private void renderTextCollection(PoseStack transforms, int x0, int y0, int x1) {
         // Display the subtitle/desc of the map if no waypoint is selected
-        ITextComponent title = this.map.getTitle(), subtitle = this.map.getSubtitle(), desc = this.map.getDesc();
+        Component title = this.map.getTitle(), subtitle = this.map.getSubtitle(), desc = this.map.getDesc();
         if (this.selectedWaypoint != null) {
             Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(this.selectedWaypoint);
             if (wp != null) {
@@ -240,37 +241,37 @@ public final class GuideMapScreen extends Screen {
             }
         }
         // Draw title and subtitle depending on whether a waypoint is selected
-        final int xTitle = x0 + 142 - font.getStringPropertyWidth(title) / 2;
-        font.drawText(transforms, title, xTitle, y0 + 7F, 0x404040);
-        final int xSubtitle = x1 + 56 - font.getStringPropertyWidth(subtitle) / 2;
-        font.drawText(transforms, subtitle, xSubtitle, y0 + 7F, 0x404040);
+        final int xTitle = x0 + 142 - font.width(title) / 2;
+        font.draw(transforms, title, xTitle, y0 + 7F, 0x404040);
+        final int xSubtitle = x1 + 56 - font.width(subtitle) / 2;
+        font.draw(transforms, subtitle, xSubtitle, y0 + 7F, 0x404040);
         // I DISLIKE THIS METHOD BECAUSE IT FAILS TO HANDLE LINE BREAKING
         // A proper line breaking algorithm should comply with UAX #14, link below:
         // http://www.unicode.org/reports/tr14/
         // However it at least get things work for now. So it is the status quo.
-        List<IReorderingProcessor> displayedDescList = font.trimStringToWidth(desc, 90);
+        List<FormattedCharSequence> displayedDescList = font.split(desc, 90);
         // Draw desc text
         for (int i = 0, size = Math.min(8, displayedDescList.size()); i < size; ++i) {
-            font.func_238422_b_(transforms, displayedDescList.get(i), x1 + 10F, y0 + 81F + 9 * i, 0x404040);
+            font.draw(transforms, displayedDescList.get(i), x1 + 10F, y0 + 81F + 9 * i, 0x404040);
         }
     }
 
     @SuppressWarnings("deprecation")
-    private void renderMapTexture(Minecraft mc, MatrixStack transforms, int x0, int y0, int x1) {
+    private void renderMapTexture(Minecraft mc, PoseStack transforms, int x0, int y0, int x1) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         // corner of the in-game window
-        mc.textureManager.bindTexture(this.map.texture);
+        RenderSystem.setShaderTexture(0, this.map.texture);
         // Who said we have to use 128 * 128 texture?
         blit(transforms, x0 + 78, y0 + 23, 0, 0, 128, 128, 128, 128);
     }
 
     @SuppressWarnings("deprecation")
-    private void renderWaypointTexture(Minecraft mc, MatrixStack transforms, int x0, int y0, int x1, float partialTicks) {
+    private void renderWaypointTexture(Minecraft mc, PoseStack transforms, int x0, int y0, int x1, float partialTicks) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         ResourceLocation image = this.map.getDisplayingImageId();
         if (this.selectedWaypoint != null) {
             Waypoint wp = SignMeUpClient.MANAGER.findWaypoint(this.selectedWaypoint);
@@ -295,25 +296,25 @@ public final class GuideMapScreen extends Screen {
         if (this.lastWaypointTextures.isEmpty()) {
             this.ticksAfterWaypointTextureChanged = 0;
         } else {
-            mc.textureManager.bindTexture(head);
+            RenderSystem.setShaderTexture(0, head);
             blit(transforms, x1 + 7, y0 + 20, 0, 0, 96, 54, 96, 54);
-            RenderSystem.color4f(1.0F, 1.0F, 1.0F, alpha);
-            mc.textureManager.bindTexture(GUIDE_MAP_RIGHT);
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
+            RenderSystem.setShaderTexture(0, GUIDE_MAP_RIGHT);
             blit(transforms, x1 + 7, y0 + 20, 7, 20, 96, 54);
             image = this.lastWaypointTextures.getFirst();
         }
         this.lastWaypointTextures.addFirst(head);
-        mc.textureManager.bindTexture(image);
+        RenderSystem.setShaderTexture(0, image);
         blit(transforms, x1 + 7, y0 + 20, 0, 0, 96, 54, 96, 54);
     }
 
     @SuppressWarnings("deprecation")
-    private void renderBackgroundTexture(Minecraft mc, MatrixStack transforms, int x0, int y0, int x1) {
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        mc.textureManager.bindTexture(GUIDE_MAP_LEFT);
+    private void renderBackgroundTexture(Minecraft mc, PoseStack transforms, int x0, int y0, int x1) {
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, GUIDE_MAP_LEFT);
         blit(transforms, x0, y0, 0, 0, 211, 161);
         blit(transforms, x0 + 6, y0 + 138, 66, 201, 66, 17);
-        mc.textureManager.bindTexture(GUIDE_MAP_RIGHT);
+        RenderSystem.setShaderTexture(0, GUIDE_MAP_RIGHT);
         blit(transforms, x1 + 5, y0, 5, 0, 174, 161);
         if (!this.hasWaypointTrigger) {
             blit(transforms, x1 + 108, y0 + 20, 181, 20, 64, 134);
@@ -341,7 +342,8 @@ public final class GuideMapScreen extends Screen {
         return false;
     }
 
-    private final class FlipHandler implements Button.IPressable {
+    private final class FlipHandler implements Button.OnPress
+    {
         private final int diff;
 
         private FlipHandler(int diff) {
@@ -365,19 +367,19 @@ public final class GuideMapScreen extends Screen {
         private final Trigger trigger;
 
         private TriggerButton(int x, int y, int width, int height, int uOffset, int vOffset, int vDiff,
-                              ResourceLocation image, Trigger trigger, IPressable pressable) {
+                              ResourceLocation image, Trigger trigger, OnPress pressable) {
             super(x, y, width, height, uOffset, vOffset, vDiff, image, pressable);
             this.trigger = trigger;
         }
 
         @Override
-        public void renderWidget(MatrixStack transforms, int mouseX, int mouseY, float partialTicks) {
-            super.renderWidget(transforms, mouseX, mouseY, partialTicks);
-            final FontRenderer font = Minecraft.getInstance().fontRenderer;
-            final int stringWidth = font.getStringPropertyWidth(this.trigger.getTitle());
+        public void renderButton(PoseStack transforms, int mouseX, int mouseY, float partialTicks) {
+            super.renderButton(transforms, mouseX, mouseY, partialTicks);
+            //final Font font = Minecraft.getInstance().font;
+            final int stringWidth = font.width(this.trigger.getTitle());
             final int x0 = this.x + this.width / 2 - stringWidth / 2, y0 = this.y + (this.height - 8) / 2;
-            font.drawText(transforms, this.trigger.getTitle(), x0, y0, this.trigger.disabled ? 0xFFFFFF : 0x404040);
-            if (this.isHovered()) {
+            font.draw(transforms, this.trigger.getTitle(), x0, y0, this.trigger.disabled ? 0xFFFFFF : 0x404040);
+            if (this.isHovered) {
                 GuideMapScreen.this.renderTooltip(transforms, this.trigger.getDesc(), mouseX, mouseY);
             }
         }

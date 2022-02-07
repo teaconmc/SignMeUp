@@ -4,13 +4,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.*;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.arguments.EntitySelector;
-import net.minecraft.command.arguments.EntitySelectorParser;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.Util;
+import net.minecraft.commands.arguments.selector.EntitySelector;
+import net.minecraft.commands.arguments.selector.EntitySelectorParser;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import org.teacon.signin.network.PartialUpdatePacket;
 
 import java.lang.reflect.Type;
@@ -20,8 +20,8 @@ import java.util.WeakHashMap;
 
 public final class Trigger implements PlayerTracker {
 
-    ITextComponent title;
-    ITextComponent desc;
+    Component title;
+    Component desc;
 
     public volatile boolean disabled = false;
 
@@ -30,13 +30,13 @@ public final class Trigger implements PlayerTracker {
 
     public ImmutableList<String> executes = ImmutableList.of();
 
-    transient Set<ServerPlayerEntity> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
+    transient Set<ServerPlayer> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
-    public ITextComponent getTitle() {
-        return this.title == null ? new TranslationTextComponent("sign_up.trigger.unnamed") : this.title;
+    public Component getTitle() {
+        return this.title == null ? new TranslatableComponent("sign_up.trigger.unnamed") : this.title;
     }
 
-    public ITextComponent getDesc() {
+    public Component getDesc() {
         return this.desc == null ? this.getTitle() : this.desc;
     }
 
@@ -52,17 +52,17 @@ public final class Trigger implements PlayerTracker {
         return parsedSelector;
     }
 
-    public boolean isVisibleTo(ServerPlayerEntity p) {
+    public boolean isVisibleTo(ServerPlayer p) {
         return this.visiblePlayers.contains(p);
     }
 
     @Override
-    public Set<ServerPlayerEntity> getTracking() {
+    public Set<ServerPlayer> getTracking() {
         return this.visiblePlayers;
     }
 
     @Override
-    public void setTracking(Set<ServerPlayerEntity> players) {
+    public void setTracking(Set<ServerPlayer> players) {
         this.visiblePlayers = players;
     }
 
@@ -79,10 +79,10 @@ public final class Trigger implements PlayerTracker {
                 final JsonObject obj = json.getAsJsonObject();
                 final Trigger t = new Trigger();
                 if (obj.has("title")) {
-                    t.title = context.deserialize(obj.get("title"), ITextComponent.class);
+                    t.title = context.deserialize(obj.get("title"), Component.class);
                 }
                 if (obj.has("description")) {
-                    t.desc = context.deserialize(obj.get("description"), ITextComponent.class);
+                    t.desc = context.deserialize(obj.get("description"), Component.class);
                 }
                 if (obj.has("disabled")) {
                     t.disabled = obj.get("disabled").getAsBoolean();

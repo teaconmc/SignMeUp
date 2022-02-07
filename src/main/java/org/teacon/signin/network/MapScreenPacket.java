@@ -1,41 +1,41 @@
 package org.teacon.signin.network;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.network.NetworkEvent;
 import org.teacon.signin.client.SignMeUpClient;
 
 import java.util.function.Supplier;
 
 public final class MapScreenPacket {
     private final Action action;
-    private final Vector3d position;
+    private final Vec3 position;
     private final ResourceLocation mapId;
 
-    public MapScreenPacket(Action action, Vector3d position, ResourceLocation id) {
+    public MapScreenPacket(Action action, Vec3 position, ResourceLocation id) {
         this.position = position;
         this.action = action;
         this.mapId = id;
     }
 
-    public MapScreenPacket(PacketBuffer buf) {
-        this.action = buf.readEnumValue(Action.class);
+    public MapScreenPacket(FriendlyByteBuf buf) {
+        this.action = buf.readEnum(Action.class);
         if (this.action != Action.CLOSE_ANY) {
-            this.position =  new Vector3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+            this.position =  new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble());
             this.mapId = buf.readResourceLocation();
         } else {
-            this.position = Vector3d.ZERO;
+            this.position = Vec3.ZERO;
             this.mapId = null;
         }
     }
 
-    public void write(PacketBuffer buf) {
-        buf.writeEnumValue(this.action);
+    public void write(FriendlyByteBuf buf) {
+        buf.writeEnum(this.action);
         if (this.action != Action.CLOSE_ANY) {
-            buf.writeDouble(this.position.getX());
-            buf.writeDouble(this.position.getY());
-            buf.writeDouble(this.position.getZ());
+            buf.writeDouble(this.position.x());
+            buf.writeDouble(this.position.y());
+            buf.writeDouble(this.position.z());
             buf.writeResourceLocation(this.mapId);
         }
     }

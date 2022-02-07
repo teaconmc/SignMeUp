@@ -1,10 +1,9 @@
 package org.teacon.signin.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3i;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
+
 import org.teacon.signin.data.GuideMap;
 import org.teacon.signin.data.Trigger;
 import org.teacon.signin.data.Waypoint;
@@ -18,17 +17,17 @@ public final class ClientGuideMapManager {
     private final Map<ResourceLocation, Waypoint> availableWaypoints = new HashMap<>();
     private final Map<ResourceLocation, Trigger> availableTriggers = new HashMap<>();
 
-    public void openMapByPacket(MapScreenPacket.Action action, ResourceLocation mapId, Vector3d position) {
+    public void openMapByPacket(MapScreenPacket.Action action, ResourceLocation mapId, Vec3 position) {
         Minecraft mc = Minecraft.getInstance();
-        mc.runAsync(() -> {
+        mc.submitAsync(() -> {
             if (action == MapScreenPacket.Action.OPEN_SPECIFIC) {
                 Objects.requireNonNull(mapId);
                 GuideMap map = SignMeUpClient.MANAGER.findMap(mapId);
-                mc.displayGuiScreen(new GuideMapScreen(mapId, map, position));
-            } else if (mc.currentScreen instanceof GuideMapScreen) {
-                final GuideMapScreen screen = (GuideMapScreen) mc.currentScreen;
+                mc.setScreen(new GuideMapScreen(mapId, map, position));
+            } else if (mc.screen instanceof GuideMapScreen) {
+                final GuideMapScreen screen = (GuideMapScreen) mc.screen;
                 if (action != MapScreenPacket.Action.CLOSE_SPECIFIC || screen.mapId.equals(mapId)) {
-                    mc.displayGuiScreen(null);
+                    mc.setScreen(null);
                 }
             }
         });
@@ -38,15 +37,15 @@ public final class ClientGuideMapManager {
         this.availableMaps = maps;
     }
 
-    public Map.Entry<ResourceLocation, GuideMap> nearestTo(Vector3d pos) {
+    public Map.Entry<ResourceLocation, GuideMap> nearestTo(Vec3 pos) {
         double minDistanceSq = Double.MAX_VALUE;
         Map.Entry<ResourceLocation, GuideMap> result = null;
         for (Map.Entry<ResourceLocation, GuideMap> entry : this.availableMaps.entrySet()) {
             // Skip the dimension check because the client manager only knows
             // guide maps that are for the current dimension.
             final GuideMap guideMap = entry.getValue();
-            final double dx = pos.getX() - guideMap.center.getX();
-            final double dz = pos.getZ() - guideMap.center.getZ();
+            final double dx = pos.x() - guideMap.center.getX();
+            final double dz = pos.z() - guideMap.center.getZ();
             if (Math.min(Math.abs(dx), Math.abs(dz)) <= guideMap.radius) {
                 final double distanceSq = dx * dx + dz * dz;
                 if (distanceSq < minDistanceSq) {
