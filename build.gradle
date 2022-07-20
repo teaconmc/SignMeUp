@@ -18,7 +18,7 @@ apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '0.1.6'
+version = '0.2.0'
 group = 'org.teacon'
 archivesBaseName = 'SignMeUp-Forge-1.18'
 
