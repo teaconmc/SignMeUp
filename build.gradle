@@ -24,7 +24,7 @@ teacon {
     modId = 'sign_up'
     modVersion = '0.2.0'
     modLicense = 'BSD-3-Clause'
-    modGitHubRepo = 'teaconmc/SlideShow'
+    modGitHubRepo = 'teaconmc/SignMeUp'
     modAuthors = ['3TUSK', 'yuesha-yc (YueSha)', 'Hookan', 'ustc-zzzz']
     modDescription = 'Sign up, sign in, in-game guide map and more.'
 
