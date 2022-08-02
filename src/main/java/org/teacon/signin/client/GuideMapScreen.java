@@ -161,7 +161,7 @@ public final class GuideMapScreen extends Screen
                 // Setup Waypoints as ImageButtons
                 this.addRenderableWidget(new ImageButton(mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4, 58, 2, 0, MAP_ICONS,
                         128, 128, (btn) -> this.selectedWaypoint = wpId, (btn, transform, mouseX, mouseY) -> {
-                    double distance = Math.sqrt(wp.getActualLocation().distSqr(this.playerLocation, true));
+                    double distance = Math.sqrt(wp.getActualLocation().distToCenterSqr(this.playerLocation));
                     this.renderComponentTooltip(transform, Arrays.asList(
                             wp.getTitle(),
                             new TranslatableComponent("sign_up.waypoint.distance",
