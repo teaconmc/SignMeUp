@@ -145,7 +145,8 @@ public final class GuideMapScreen extends Screen
         }
         try {
             this.mapping = new PolynomialMapping(inputX, inputY, outputX, outputY);
-            LOGGER.info(MARKER, "Current mapping for {} waypoint(s): {}", waypointSize, this.mapping);
+            LOGGER.info(MARKER, "Generated the mapping for {} waypoint(s).", waypointSize);
+            LOGGER.debug(MARKER, "The mapping is: {}", this.mapping);
         } catch (IllegalArgumentException e) {
             this.mapping = new PolynomialMapping(new double[0], new double[0], new double[0], new double[0]);
             LOGGER.warn(MARKER, "Unable to generate mapping for the map.", e);
