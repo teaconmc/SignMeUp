@@ -5,19 +5,21 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
@@ -34,8 +36,7 @@ import java.util.*;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public final class GuideMapScreen extends Screen
-{
+public final class GuideMapScreen extends Screen {
 
     private static final Logger LOGGER = LogManager.getLogger("SignMeUp");
     private static final Marker MARKER = MarkerManager.getMarker("GuideMapScreen");
@@ -217,14 +218,13 @@ public final class GuideMapScreen extends Screen
 
     @Override
     public void render(PoseStack transforms, int mouseX, int mouseY, float partialTicks) {
-        final Minecraft mc = Objects.requireNonNull(this.minecraft);
-
         int x0 = (this.width - X_SIZE) / 2, y0 = (this.height - Y_SIZE) / 2, x1 = x0 + 206;
 
         this.renderBackground(transforms);
-        this.renderBackgroundTexture(mc, transforms, x0, y0, x1);
-        this.renderWaypointTexture(mc, transforms, x0, y0, x1, partialTicks);
-        this.renderMapTexture(mc, transforms, x0, y0, x1);
+        this.renderBackgroundTexture(transforms, x0, y0, x1);
+        this.renderWaypointTexture(transforms, x0, y0, x1, partialTicks);
+        this.renderMapTexture(transforms, x0, y0, x1);
+        this.renderPlayerHeads(transforms, x0, y0, x1);
 
         super.render(transforms, mouseX, mouseY, partialTicks);
 
@@ -257,8 +257,52 @@ public final class GuideMapScreen extends Screen
         }
     }
 
-    @SuppressWarnings("deprecation")
-    private void renderMapTexture(Minecraft mc, PoseStack transforms, int x0, int y0, int x1) {
+    private void renderPlayerHeads(PoseStack transforms, int x0, int y0, int x1) {
+        Minecraft mc = Objects.requireNonNull(this.minecraft);
+        List<? extends Player> players = mc.level == null ? List.of() : mc.level.players();
+
+        int size = players.size();
+        double[] inputX = new double[size], inputY = new double[size];
+        double[] outputX = new double[size], outputY = new double[size];
+
+        int currentIndex = size;
+        Vec3i center = this.map.center;
+        UUID current = mc.player == null ? null : mc.player.getUUID();
+        for (int i = 0; i < size; ++i) {
+            Player player = players.get(i);
+            if (player.getUUID().equals(current)) {
+                currentIndex = i;
+            }
+            inputX[i] = player.getX() - center.getX();
+            inputY[i] = player.getZ() - center.getY();
+        }
+        this.mapping.interpolate(inputX, inputY, outputX, outputY);
+
+        // make sure that current player is rendered at last
+        for (int i = currentIndex - 1; i >= 0; --i) {
+            this.renderPlayerHead(transforms, x0, y0, players.get(i), outputX[i], outputY[i]);
+        }
+        for (int i = size - 1; i >= currentIndex; --i) {
+            this.renderPlayerHead(transforms, x0, y0, players.get(i), outputX[i], outputY[i]);
+        }
+    }
+
+    private void renderPlayerHead(PoseStack transforms, int x0, int y0, Player player, double outputX, double outputY) {
+        int wpX = Math.round((float) outputX / this.map.radius * 64) + 64;
+        int wpY = Math.round((float) outputY / this.map.radius * 64) + 64;
+        if (wpX >= 1 && wpX <= 127 && wpY >= 1 && wpY <= 127) {
+            // could we have dinnerbone or grumm joined our server?
+            if (LivingEntityRenderer.isEntityUpsideDown(player)) {
+                RenderSystem.setShaderTexture(0, DefaultPlayerSkin.getDefaultSkin(player.getUUID()));
+                blit(transforms, x0 + 76 + wpX, y0 + 21 + wpY, 4, 4, 8, 16, 8, -8, 64, 64);
+            } else {
+                RenderSystem.setShaderTexture(0, DefaultPlayerSkin.getDefaultSkin(player.getUUID()));
+                blit(transforms, x0 + 76 + wpX, y0 + 21 + wpY, 4, 4, 8, 8, 8, 8, 64, 64);
+            }
+        }
+    }
+
+    private void renderMapTexture(PoseStack transforms, int x0, int y0, int x1) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -268,8 +312,7 @@ public final class GuideMapScreen extends Screen
         blit(transforms, x0 + 78, y0 + 23, 0, 0, 128, 128, 128, 128);
     }
 
-    @SuppressWarnings("deprecation")
-    private void renderWaypointTexture(Minecraft mc, PoseStack transforms, int x0, int y0, int x1, float partialTicks) {
+    private void renderWaypointTexture(PoseStack transforms, int x0, int y0, int x1, float partialTicks) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -309,8 +352,7 @@ public final class GuideMapScreen extends Screen
         blit(transforms, x1 + 7, y0 + 20, 0, 0, 96, 54, 96, 54);
     }
 
-    @SuppressWarnings("deprecation")
-    private void renderBackgroundTexture(Minecraft mc, PoseStack transforms, int x0, int y0, int x1) {
+    private void renderBackgroundTexture(PoseStack transforms, int x0, int y0, int x1) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, GUIDE_MAP_LEFT);
         blit(transforms, x0, y0, 0, 0, 211, 161);
@@ -343,8 +385,7 @@ public final class GuideMapScreen extends Screen
         return false;
     }
 
-    private final class FlipHandler implements Button.OnPress
-    {
+    private final class FlipHandler implements Button.OnPress {
         private final int diff;
 
         private FlipHandler(int diff) {

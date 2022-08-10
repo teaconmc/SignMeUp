@@ -50,7 +50,6 @@ public final class PolynomialMapping {
                 current = result;
             }
 
-            // left = [ w_i, w_{i-1}, ..., w_1, w_0 ]
             outputs.offer(current);
         }
 
@@ -90,13 +89,13 @@ public final class PolynomialMapping {
         }
     }
 
-    private void interpolate(double[] inputX, double[] inputY, double[] outputX, double[] outputY) {
+    public void interpolate(double[] inputX, double[] inputY, double[] outputX, double[] outputY) {
         int size = this.ensureSize(inputX, inputY, outputX, outputY);
         double[] dummyInputs = new double[size], dummyOutputs = new double[size];
         interpolate(inputX, inputY, dummyInputs, dummyInputs, outputX, outputY, dummyOutputs, dummyOutputs);
     }
 
-    private void interpolate(double[] inputX, double[] inputY, double[] inputDX, double[] inputDY,
+    public void interpolate(double[] inputX, double[] inputY, double[] inputDX, double[] inputDY,
                              double[] outputX, double[] outputY, double[] outputDX, double[] outputDY) {
         int size = this.ensureSize(inputX, inputY, outputX, outputY);
         int sizeDerivative = this.ensureSize(inputDX, inputDY, outputDX, outputDY);
@@ -114,22 +113,26 @@ public final class PolynomialMapping {
 
             Iterator<Complex> currentOutput = this.outputDifferences.iterator();
 
+            Complex currentOutputFactor = currentOutput.next();
             Complex currentDerivative = one, resultDerivative = zero;
-            Complex currentValue = current.sub(this.inputParameters.get(0)), resultValue = currentOutput.next();
+            Complex currentValue = current.sub(this.inputParameters.get(0)), resultValue = currentOutputFactor;
 
             for (int j = 1; j < degree; ++j) {
                 Complex inputFactor = current.sub(this.inputParameters.get(i));
+                currentOutputFactor = currentOutput.next();
 
-                resultDerivative = resultDerivative.add(currentDerivative.mul(currentOutput.next()));
+                resultDerivative = resultDerivative.add(currentDerivative.mul(currentOutputFactor));
                 currentDerivative = currentDerivative.mul(inputFactor).add(currentValue);
 
-                resultValue = resultValue.add(currentValue.mul(currentOutput.next()));
+                resultValue = resultValue.add(currentValue.mul(currentOutputFactor));
                 currentValue = currentValue.mul(inputFactor);
             }
 
-            resultDerivative = resultDerivative.add(currentDerivative.mul(currentOutput.next()));
+            currentOutputFactor = currentOutput.next();
+
+            resultDerivative = resultDerivative.add(currentDerivative.mul(currentOutputFactor));
             resultDerivative = new Complex(inputDX[i], inputDY[i]).mul(resultDerivative);
-            resultValue = resultValue.add(currentValue.mul(currentOutput.next()));
+            resultValue = resultValue.add(currentValue.mul(currentOutputFactor));
 
             outputDX[i] = resultDerivative.real;
             outputDY[i] = resultDerivative.imag;
