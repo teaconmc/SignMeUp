@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -15,6 +16,7 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
@@ -70,6 +72,8 @@ public final class GuideMapScreen extends Screen {
 
     private final List<TriggerButton> mapTriggers = Lists.newArrayList();
     private final ListMultimap<ResourceLocation, TriggerButton> waypointTriggers = ArrayListMultimap.create();
+
+    private final Queue<Pair<Component, Component>> queuedTips = Queues.newArrayDeque();
 
     private boolean needRefresh = false;
 
@@ -164,11 +168,7 @@ public final class GuideMapScreen extends Screen {
                 this.addRenderableWidget(new ImageButton(mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4, 58, 2, 0, MAP_ICONS,
                         128, 128, (btn) -> this.selectedWaypoint = wpId, (btn, transform, mouseX, mouseY) -> {
                     double distance = Math.sqrt(wp.getActualLocation().distToCenterSqr(this.playerLocation));
-                    this.renderComponentTooltip(transform, Arrays.asList(
-                            wp.getTitle(),
-                            new TranslatableComponent("sign_up.waypoint.distance",
-                                    Math.round(distance * 10.0) / 10.0)
-                    ), mouseX, mouseY);
+                    this.queuedTips.offer(Pair.of(wp.getTitle(), this.toDistanceText(distance)));
                 }, wp.getTitle()));
                 // Setup trigger buttons from Waypoints
                 List<ResourceLocation> wpTriggerIds = wp.getTriggerIds();
@@ -216,6 +216,10 @@ public final class GuideMapScreen extends Screen {
         }
     }
 
+    private TranslatableComponent toDistanceText(double distance) {
+        return new TranslatableComponent("sign_up.waypoint.distance", "%.1f".formatted(distance));
+    }
+
     @Override
     public void render(PoseStack transforms, int mouseX, int mouseY, float partialTicks) {
         int x0 = (this.width - X_SIZE) / 2, y0 = (this.height - Y_SIZE) / 2, x1 = x0 + 206;
@@ -224,14 +228,14 @@ public final class GuideMapScreen extends Screen {
         this.renderBackgroundTexture(transforms, x0, y0, x1);
         this.renderWaypointTexture(transforms, x0, y0, x1, partialTicks);
         this.renderMapTexture(transforms, x0, y0, x1);
-        this.renderPlayerHeads(transforms, x0, y0, x1);
 
         super.render(transforms, mouseX, mouseY, partialTicks);
 
-        this.renderTextCollection(transforms, x0, y0, x1);
+        this.renderPlayerHeads(transforms, mouseX, mouseY, x0, y0, x1);
+        this.renderTextCollection(transforms, mouseX, mouseY, x0, y0, x1);
     }
 
-    private void renderTextCollection(PoseStack transforms, int x0, int y0, int x1) {
+    private void renderTextCollection(PoseStack transforms, int mouseX, int mouseY, int x0, int y0, int x1) {
         // Display the subtitle/desc of the map if no waypoint is selected
         Component title = this.map.getTitle(), subtitle = this.map.getSubtitle(), desc = this.map.getDesc();
         if (this.selectedWaypoint != null) {
@@ -255,9 +259,20 @@ public final class GuideMapScreen extends Screen {
         for (int i = 0, size = Math.min(8, displayedDescList.size()); i < size; ++i) {
             font.draw(transforms, displayedDescList.get(i), x1 + 10F, y0 + 81F + 9 * i, 0x404040);
         }
+        List<Component> tooltipTexts = new ArrayList<>(this.queuedTips.size() * 2 + 1);
+        for (Pair<Component, Component> pair = this.queuedTips.poll(); pair != null; pair = this.queuedTips.poll()) {
+            if (!tooltipTexts.isEmpty()) {
+                tooltipTexts.add(TextComponent.EMPTY);
+            }
+            tooltipTexts.add(pair.getFirst());
+            tooltipTexts.add(pair.getSecond());
+        }
+        if (!tooltipTexts.isEmpty()) {
+            this.renderComponentTooltip(transforms, tooltipTexts, mouseX, mouseY);
+        }
     }
 
-    private void renderPlayerHeads(PoseStack transforms, int x0, int y0, int x1) {
+    private void renderPlayerHeads(PoseStack transforms, int mouseX, int mouseY, int x0, int y0, int x1) {
         Minecraft mc = Objects.requireNonNull(this.minecraft);
         List<? extends Player> players = mc.level == null ? List.of() : mc.level.players();
 
@@ -280,14 +295,16 @@ public final class GuideMapScreen extends Screen {
 
         // make sure that current player is rendered at last
         for (int i = currentIndex - 1; i >= 0; --i) {
-            this.renderPlayerHead(transforms, x0, y0, players.get(i), outputX[i], outputY[i]);
+            this.renderPlayerHead(transforms, mouseX, mouseY, x0, y0, players.get(i), outputX[i], outputY[i]);
         }
         for (int i = size - 1; i >= currentIndex; --i) {
-            this.renderPlayerHead(transforms, x0, y0, players.get(i), outputX[i], outputY[i]);
+            this.renderPlayerHead(transforms, mouseX, mouseY, x0, y0, players.get(i), outputX[i], outputY[i]);
         }
     }
 
-    private void renderPlayerHead(PoseStack transforms, int x0, int y0, Player player, double outputX, double outputY) {
+    private void renderPlayerHead(PoseStack transforms,
+                                  int mouseX, int mouseY, int x0, int y0,
+                                  Player player, double outputX, double outputY) {
         int wpX = Math.round((float) outputX / this.map.radius * 64) + 64;
         int wpY = Math.round((float) outputY / this.map.radius * 64) + 64;
         if (wpX >= 1 && wpX <= 127 && wpY >= 1 && wpY <= 127) {
@@ -298,6 +315,12 @@ public final class GuideMapScreen extends Screen {
             } else {
                 RenderSystem.setShaderTexture(0, DefaultPlayerSkin.getDefaultSkin(player.getUUID()));
                 blit(transforms, x0 + 76 + wpX, y0 + 21 + wpY, 4, 4, 8, 8, 8, 8, 64, 64);
+            }
+            if (mouseX >= x0 + 76 + wpX && mouseX < x0 + 80 + wpX) {
+                if (mouseY >= y0 + 21 + wpY && mouseY < y0 + 25 + wpY) {
+                    double distance = player.position().distanceTo(this.playerLocation);
+                    this.queuedTips.offer(Pair.of(player.getDisplayName(), this.toDistanceText(distance)));
+                }
             }
         }
     }
