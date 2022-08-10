@@ -19,7 +19,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 // definitions at gradle/teacon-forge.gradle
 teacon {
     modId = 'sign_up'
-    modVersion = '0.3.0'
+    modVersion = '0.3.1'
     modLicense = 'BSD-3-Clause'
     modGitHubRepo = 'teaconmc/SignMeUp'
     modAuthors = ['3TUSK', 'yuesha-yc (YueSha)', 'Hookan', 'ustc-zzzz']
