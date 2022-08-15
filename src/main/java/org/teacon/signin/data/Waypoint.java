@@ -10,6 +10,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.commands.arguments.selector.EntitySelectorParser;
 import net.minecraft.core.Vec3i;
@@ -18,6 +19,8 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.teacon.signin.network.PartialUpdatePacket;
 
 import java.lang.reflect.Type;
@@ -29,6 +32,8 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public final class Waypoint implements PlayerTracker {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Waypoint.class);
 
     public static final class Location {
         Vec3i actualLocation;
@@ -81,6 +86,7 @@ public final class Waypoint implements PlayerTracker {
 
     private String selector = "@e";
     private transient EntitySelector parsedSelector;
+    private transient boolean invalid = false;
 
     private Location location;
 
@@ -132,14 +138,16 @@ public final class Waypoint implements PlayerTracker {
 
     @Override
     public EntitySelector getSelector() {
-        if (parsedSelector == null) {
+        if (this.parsedSelector == null && !this.invalid) {
             try {
-                return (parsedSelector = new EntitySelectorParser(new StringReader(this.selector)).parse());
-            } catch (Exception ignored) {
-
+                this.parsedSelector = new EntitySelectorParser(new StringReader(this.selector)).parse();
+            } catch (CommandSyntaxException e) {
+                LOGGER.warn("Invalid selector: {}", this.selector);
+                this.invalid = true;
+                return null;
             }
         }
-        return parsedSelector;
+        return this.parsedSelector;
     }
 
     @Override

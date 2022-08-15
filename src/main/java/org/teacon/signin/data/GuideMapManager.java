@@ -90,8 +90,16 @@ public final class GuideMapManager extends SimpleJsonResourceReloadListener {
     public void tick(TickEvent.ServerTickEvent event) {
         if (event.side.isServer() && event.phase == TickEvent.Phase.START) {
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            this.points.forEach((id, wp) -> tickOne(id, wp, server));
-            this.triggers.forEach((id, trigger) -> tickOne(id, trigger, server));
+            for (Map.Entry<ResourceLocation, Waypoint> entry : this.points.entrySet()) {
+                ResourceLocation key = entry.getKey();
+                Waypoint wp = entry.getValue();
+                tickOne(key, wp, server);
+            }
+            for (Map.Entry<ResourceLocation, Trigger> entry : this.triggers.entrySet()) {
+                ResourceLocation id = entry.getKey();
+                Trigger trigger = entry.getValue();
+                tickOne(id, trigger, server);
+            }
         }
     }
 
@@ -111,8 +119,12 @@ public final class GuideMapManager extends SimpleJsonResourceReloadListener {
          *      These players form the set diff 2 - 1.
          */
         final Set<ServerPlayer> matched = Collections.newSetFromMap(new WeakHashMap<>());
+        var selector = trackingComponent.getSelector();
+        if (selector == null) {
+            return;
+        }
         try {
-            matched.addAll(trackingComponent.getSelector().findPlayers(server.createCommandSourceStack()));
+            matched.addAll(selector.findPlayers(server.createCommandSourceStack()));
         } catch (CommandSyntaxException e) {
             return;
         }

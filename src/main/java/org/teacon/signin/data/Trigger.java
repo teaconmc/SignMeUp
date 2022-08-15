@@ -11,6 +11,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.teacon.signin.network.PartialUpdatePacket;
 
 import java.lang.reflect.Type;
@@ -20,6 +22,8 @@ import java.util.WeakHashMap;
 
 public final class Trigger implements PlayerTracker {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Trigger.class);
+
     Component title;
     Component desc;
 
@@ -27,6 +31,7 @@ public final class Trigger implements PlayerTracker {
 
     String selector = "@e";
     private transient EntitySelector parsedSelector;
+    private transient boolean invalid = false;
 
     public ImmutableList<String> executes = ImmutableList.of();
 
@@ -42,14 +47,16 @@ public final class Trigger implements PlayerTracker {
 
     @Override
     public EntitySelector getSelector() {
-        if (parsedSelector == null) {
+        if (this.parsedSelector == null && !this.invalid) {
             try {
-                parsedSelector = new EntitySelectorParser(new StringReader(this.selector)).parse();
+                this.parsedSelector = new EntitySelectorParser(new StringReader(this.selector)).parse();
             } catch (CommandSyntaxException e) {
+                LOGGER.warn("Invalid selector: {}", this.selector);
+                this.invalid = true;
                 return null;
             }
         }
-        return parsedSelector;
+        return this.parsedSelector;
     }
 
     public boolean isVisibleTo(ServerPlayer p) {
