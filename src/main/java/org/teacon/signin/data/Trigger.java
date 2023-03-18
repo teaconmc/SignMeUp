@@ -8,7 +8,6 @@ import net.minecraft.Util;
 import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.commands.arguments.selector.EntitySelectorParser;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
@@ -38,7 +37,7 @@ public final class Trigger implements PlayerTracker {
     transient Set<ServerPlayer> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
     public Component getTitle() {
-        return this.title == null ? new TranslatableComponent("sign_up.trigger.unnamed") : this.title;
+        return this.title == null ? Component.translatable("sign_up.trigger.unnamed") : this.title;
     }
 
     public Component getDesc() {

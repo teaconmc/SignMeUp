@@ -1,15 +1,25 @@
 modLoader="javafml"
-loaderVersion="[35,)"
-
-license="BSD 3-Clause"
+loaderVersion="[45,)"
+license="BSD-3-Clause"
 
 [[mods]]
 modId="sign_up"
 version="${file.jarVersion}"
-displayName="Sign me Up"
+displayName="Sign Me Up"
+authors="TeaConMC, 3TUSK, yuesha-yc (YueSha), Hookan, ustc-zzzz"
+description="Sign up, sign in, in-game guide map and more."
 
-credits=""
+[[dependencies.sign_up]]
+modId="forge"
+mandatory=true
+versionRange="[45,)"
+ordering="NONE"
+side="BOTH"
 
-authors="3TUSK, ustc-zzzz, YueSha"
+[[dependencies.sign_up]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.19.4,)"
+ordering="NONE"
+side="BOTH"
 
-description="Sign up, sign in, in-game guide map and more"

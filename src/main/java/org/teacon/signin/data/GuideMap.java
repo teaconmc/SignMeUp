@@ -1,19 +1,8 @@
 package org.teacon.signin.data;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.*;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,7 +37,7 @@ public final class GuideMap {
     List<ResourceLocation> triggerIds = Collections.emptyList();
 
     public Component getTitle() {
-        return this.title != null ? this.title : new TranslatableComponent("sign_up.map.unnamed");
+        return this.title != null ? this.title : Component.translatable("sign_up.map.unnamed");
     }
 
     public Component getSubtitle() {
@@ -56,7 +45,7 @@ public final class GuideMap {
     }
 
     public Component getDesc() {
-        return this.desc != null ? this.desc : TextComponent.EMPTY;
+        return this.desc != null ? this.desc : Component.empty();
     }
 
     public boolean hasMoreThanOneImage() {

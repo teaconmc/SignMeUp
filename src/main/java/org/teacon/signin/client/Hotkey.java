@@ -1,7 +1,7 @@
 package org.teacon.signin.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
@@ -16,7 +16,7 @@ import java.util.Map;
 public final class Hotkey {
 
     @SubscribeEvent
-    public static void keyTyped(InputEvent.KeyInputEvent event) {
+    public static void keyTyped(InputEvent.Key event) {
         if (SignMeUpClient.keyOpenMap != null && SignMeUpClient.keyOpenMap.isDown()) {
             Minecraft mc = Minecraft.getInstance();
             if (mc.player != null) {
@@ -25,7 +25,7 @@ public final class Hotkey {
                 if (entry != null) {
                     mc.setScreen(new GuideMapScreen(entry.getKey(), entry.getValue(), position));
                 } else {
-                    mc.player.displayClientMessage(new TranslatableComponent("sign_up.status.no_map_available"), true);
+                    mc.player.displayClientMessage(Component.translatable("sign_up.status.no_map_available"), true);
                 }
             }
         }

@@ -1,16 +1,8 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-    }
+plugins {
+    id 'eclipse'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '5.1.+'
 }
-
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
-apply plugin: 'net.minecraftforge.gradle'
 
 apply from: 'gradle/teacon-forge.gradle'
 
@@ -19,13 +11,13 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 // definitions at gradle/teacon-forge.gradle
 teacon {
     modId = 'sign_up'
-    modVersion = '0.3.2'
+    modVersion = '0.4.0'
     modLicense = 'BSD-3-Clause'
     modGitHubRepo = 'teaconmc/SignMeUp'
     modAuthors = ['3TUSK', 'yuesha-yc (YueSha)', 'Hookan', 'ustc-zzzz']
     modDescription = 'Sign up, sign in, in-game guide map and more.'
 
-    platform = 'forge-1.18.2-40.1.19'
+    platform = 'forge-1.19.4-45.0.9'
     // parchment = '2022.01.23'
 
     // uncomment these lines if you need

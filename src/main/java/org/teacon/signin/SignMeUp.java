@@ -5,7 +5,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.Vec3i;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,7 +23,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
-
 import org.teacon.signin.client.SignMeUpClient;
 import org.teacon.signin.command.CommandImpl;
 import org.teacon.signin.data.DynamicLocationStorage;
@@ -98,10 +97,10 @@ public final class SignMeUp {
                 .then(Commands.literal("trigger")
                         .then(Commands.argument("id", ResourceLocationArgument.id())
                                 .suggests((src, builder) -> {
-                                    if(FMLEnvironment.dist.isClient()) {
-                                        SignMeUpClient.MANAGER.getAllTriggers().stream().forEach(location -> builder.suggest(location.toString()));
+                                    if (FMLEnvironment.dist.isClient()) {
+                                        SignMeUpClient.MANAGER.getAllTriggers().forEach(location -> builder.suggest(location.toString()));
                                     } else {
-                                        SignMeUp.MANAGER.getAllTriggers().stream().forEach(location -> builder.suggest(location.toString()));
+                                        SignMeUp.MANAGER.getAllTriggers().forEach(location -> builder.suggest(location.toString()));
                                     }
                                     return builder.buildFuture();
                                 }).executes(CommandImpl::trigger))));
@@ -122,12 +121,13 @@ public final class SignMeUp {
                         ? player.createCommandSourceStack().withPosition(pos3d).withPermission(2)
                         : player.createCommandSourceStack().withPosition(pos3d).withSuppressedOutput().withMaximumPermission(2);
                 for (String command : trigger.executes) {
-                    server.getCommands().performCommand(source, command);
+                    server.getCommands().performPrefixedCommand(source, command);
                 }
             }
             return true;
         } else {
-            player.displayClientMessage(new TextComponent("You seemed to click the void just now..."), true);
+            // TODO: make it translatable
+            player.displayClientMessage(Component.literal("You seemed to click the void just now..."), true);
             return false;
         }
     }

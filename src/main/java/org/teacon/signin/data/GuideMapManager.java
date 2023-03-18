@@ -14,7 +14,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.server.ServerLifecycleHooks;
@@ -25,15 +25,7 @@ import org.apache.logging.log4j.MarkerManager;
 import org.teacon.signin.SignMeUp;
 import org.teacon.signin.network.SyncGuideMapPacket;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.WeakHashMap;
+import java.util.*;
 
 public final class GuideMapManager extends SimpleJsonResourceReloadListener {
 
@@ -72,17 +64,16 @@ public final class GuideMapManager extends SimpleJsonResourceReloadListener {
      * This way, we avoid syncing unnecessary data while keep maximum availability possible.
      */
     @SubscribeEvent
-    public void sync(EntityJoinWorldEvent event) {
+    public void sync(EntityJoinLevelEvent event) {
         // Being a ServerPlayerEntity implies a logical server, thus no isRemote check.
-        if (event.getEntity() instanceof ServerPlayer) {
-            final ServerPlayer p = (ServerPlayer) event.getEntity();
+        if (event.getEntity() instanceof ServerPlayer p) {
             final SortedMap<ResourceLocation, GuideMap> mapsToSend = new TreeMap<>();
             this.maps.forEach((id, map) -> {
                 if (p.level.dimension().location().equals(map.dim)) {
                     mapsToSend.put(id, map);
                 }
             });
-            SignMeUp.channel.sendTo(new SyncGuideMapPacket(mapsToSend), p.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+            SignMeUp.channel.sendTo(new SyncGuideMapPacket(mapsToSend), p.connection.connection, NetworkDirection.PLAY_TO_CLIENT);
         }
     }
 
@@ -132,10 +123,10 @@ public final class GuideMapManager extends SimpleJsonResourceReloadListener {
         final Set<ServerPlayer> removal = Collections.newSetFromMap(new IdentityHashMap<>());
         setDiff(trackingComponent.getTracking(), matched, removal, update);
         for (ServerPlayer p : update) {
-            SignMeUp.channel.sendTo(trackingComponent.getNotifyPacket(false, id), p.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+            SignMeUp.channel.sendTo(trackingComponent.getNotifyPacket(false, id), p.connection.connection, NetworkDirection.PLAY_TO_CLIENT);
         }
         for (ServerPlayer p : removal) {
-            SignMeUp.channel.sendTo(trackingComponent.getNotifyPacket(true, id), p.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+            SignMeUp.channel.sendTo(trackingComponent.getNotifyPacket(true, id), p.connection.connection, NetworkDirection.PLAY_TO_CLIENT);
         }
         trackingComponent.setTracking(matched);
     }

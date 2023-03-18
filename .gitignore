@@ -28,7 +28,7 @@ bin/
 # mc
 
 eclipse/
-run/
+run_client/
 run_server/
 logs/
 remappedSrc/

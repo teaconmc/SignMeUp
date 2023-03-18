@@ -16,8 +16,6 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Player;
@@ -165,11 +163,16 @@ public final class GuideMapScreen extends Screen {
             final int wpY = Math.round((float) outputY[i] / this.map.radius * 64) + 64;
             if (wpX >= 1 && wpX <= 127 && wpY >= 1 && wpY <= 127) {
                 // Setup Waypoints as ImageButtons
-                this.addRenderableWidget(new ImageButton(mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4, 58, 2, 0, MAP_ICONS,
-                        128, 128, (btn) -> this.selectedWaypoint = wpId, (btn, transform, mouseX, mouseY) -> {
-                    double distance = Math.sqrt(wp.getActualLocation().distToCenterSqr(this.playerLocation));
-                    this.queuedTips.offer(Pair.of(wp.getTitle(), this.toDistanceText(distance)));
-                }, wp.getTitle()));
+                final Button.OnPress onPress = (btn) -> {
+                    this.selectedWaypoint = wpId;
+                    if (btn.isHoveredOrFocused()) {
+                        double distance = Math.sqrt(wp.getActualLocation().distToCenterSqr(this.playerLocation));
+                        this.queuedTips.offer(Pair.of(wp.getTitle(), this.toDistanceText(distance)));
+                    }
+                };
+                this.addRenderableWidget(new ImageButton(
+                        mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4,
+                        58, 2, 0, MAP_ICONS, 128, 128, onPress, wp.getTitle()));
                 // Setup trigger buttons from Waypoints
                 List<ResourceLocation> wpTriggerIds = wp.getTriggerIds();
                 for (int j = 0, k = 0; k < wpTriggerIds.size() && j < 7; ++k) {
@@ -216,8 +219,8 @@ public final class GuideMapScreen extends Screen {
         }
     }
 
-    private TranslatableComponent toDistanceText(double distance) {
-        return new TranslatableComponent("sign_up.waypoint.distance", "%.1f".formatted(distance));
+    private Component toDistanceText(double distance) {
+        return Component.translatable("sign_up.waypoint.distance", "%.1f".formatted(distance));
     }
 
     @Override
@@ -262,7 +265,7 @@ public final class GuideMapScreen extends Screen {
         List<Component> tooltipTexts = new ArrayList<>(this.queuedTips.size() * 2 + 1);
         for (Pair<Component, Component> pair = this.queuedTips.poll(); pair != null; pair = this.queuedTips.poll()) {
             if (!tooltipTexts.isEmpty()) {
-                tooltipTexts.add(TextComponent.EMPTY);
+                tooltipTexts.add(Component.empty());
             }
             tooltipTexts.add(pair.getFirst());
             tooltipTexts.add(pair.getSecond());
@@ -438,11 +441,11 @@ public final class GuideMapScreen extends Screen {
         }
 
         @Override
-        public void renderButton(PoseStack transforms, int mouseX, int mouseY, float partialTicks) {
-            super.renderButton(transforms, mouseX, mouseY, partialTicks);
+        public void renderWidget(PoseStack transforms, int mouseX, int mouseY, float partialTicks) {
+            super.renderWidget(transforms, mouseX, mouseY, partialTicks);
             //final Font font = Minecraft.getInstance().font;
             final int stringWidth = font.width(this.trigger.getTitle());
-            final int x0 = this.x + this.width / 2 - stringWidth / 2, y0 = this.y + (this.height - 8) / 2;
+            final int x0 = this.getX() + this.width / 2 - stringWidth / 2, y0 = this.getY() + (this.height - 8) / 2;
             font.draw(transforms, this.trigger.getTitle(), x0, y0, this.trigger.disabled ? 0xFFFFFF : 0x404040);
             if (this.isHovered) {
                 GuideMapScreen.this.renderTooltip(transforms, this.trigger.getDesc(), mouseX, mouseY);

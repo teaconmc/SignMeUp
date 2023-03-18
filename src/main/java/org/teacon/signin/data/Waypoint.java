@@ -1,22 +1,12 @@
 package org.teacon.signin.data;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.*;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.commands.arguments.selector.EntitySelectorParser;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
@@ -99,11 +89,11 @@ public final class Waypoint implements PlayerTracker {
     transient Set<ServerPlayer> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
     public Component getTitle() {
-        return title == null ? new TranslatableComponent("sign_up.waypoint.unnamed") : this.title;
+        return title == null ? Component.translatable("sign_up.waypoint.unnamed") : this.title;
     }
 
     public Component getDesc() {
-        return this.desc == null ? TextComponent.EMPTY : this.desc;
+        return this.desc == null ? Component.empty() : this.desc;
     }
 
     public boolean hasDynamicLocation() {
