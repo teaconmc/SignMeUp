@@ -163,16 +163,18 @@ public final class GuideMapScreen extends Screen {
             final int wpY = Math.round((float) outputY[i] / this.map.radius * 64) + 64;
             if (wpX >= 1 && wpX <= 127 && wpY >= 1 && wpY <= 127) {
                 // Setup Waypoints as ImageButtons
-                final Button.OnPress onPress = (btn) -> {
-                    this.selectedWaypoint = wpId;
-                    if (btn.isHoveredOrFocused()) {
-                        double distance = Math.sqrt(wp.getActualLocation().distToCenterSqr(this.playerLocation));
-                        this.queuedTips.offer(Pair.of(wp.getTitle(), this.toDistanceText(distance)));
-                    }
-                };
                 this.addRenderableWidget(new ImageButton(
                         mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4,
-                        58, 2, 0, MAP_ICONS, 128, 128, onPress, wp.getTitle()));
+                        58, 2, 0, MAP_ICONS, 128, 128, (btn) -> this.selectedWaypoint = wpId, wp.getTitle()) {
+                    @Override
+                    public void renderWidget(PoseStack transforms, int mouseX, int mouseY, float partialTicks) {
+                        super.renderWidget(transforms, mouseX, mouseY, partialTicks);
+                        if (this.isHovered()) {
+                            double distance = Math.sqrt(wp.getActualLocation().distToCenterSqr(GuideMapScreen.this.playerLocation));
+                            GuideMapScreen.this.queuedTips.offer(Pair.of(wp.getTitle(), GuideMapScreen.this.toDistanceText(distance)));
+                        }
+                    }
+                });
                 // Setup trigger buttons from Waypoints
                 List<ResourceLocation> wpTriggerIds = wp.getTriggerIds();
                 for (int j = 0, k = 0; k < wpTriggerIds.size() && j < 7; ++k) {
