@@ -23,7 +23,7 @@ teacon {
     // uncomment these lines if you need
     modName = 'Sign Me Up' // default to repo name
     // modGitHubBranch = 1.18-forge // for referring the license
-    modifyMemberAccess = true // for access transformer
+    // modifyMemberAccess = true // for access transformer
     // useDataGeneration = true // for data generation
     // publishTask = shadowJar // for shadow jar or other usages
     // lazyTokens = ['minecraft_classpath': { project.configurations.shadow.asPath }] // for runtime tokens
