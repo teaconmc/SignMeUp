@@ -69,7 +69,7 @@ public final class GuideMapManager extends SimpleJsonResourceReloadListener {
         if (event.getEntity() instanceof ServerPlayer p) {
             final SortedMap<ResourceLocation, GuideMap> mapsToSend = new TreeMap<>();
             this.maps.forEach((id, map) -> {
-                if (p.level.dimension().location().equals(map.dim)) {
+                if (p.level().dimension().location().equals(map.dim)) {
                     mapsToSend.put(id, map);
                 }
             });

@@ -38,9 +38,9 @@ public final class CommandImpl {
     public static int listMaps(CommandContext<CommandSourceStack> context) {
         CommandSourceStack src = context.getSource();
         if (SignMeUp.MANAGER.getAllMaps().size() != 0) {
-            src.sendSuccess(Component.translatable("sign_up.text.list_maps").append(": "), false);
+            src.sendSuccess(() -> Component.translatable("sign_up.text.list_maps").append(": "), false);
             for (GuideMap map : SignMeUp.MANAGER.getAllMaps()) {
-                src.sendSuccess(map.getTitle(), false);
+                src.sendSuccess(map::getTitle, false);
             }
             return Command.SINGLE_SUCCESS;
         } else {
@@ -109,7 +109,7 @@ public final class CommandImpl {
         double minDistanceSq = Double.MAX_VALUE;
 
         // We first check the dimension
-        if (src.getPlayerOrException().getLevel().dimension() == worldKey) {
+        if (src.getPlayerOrException().level().dimension() == worldKey) {
             // Then we look for the nearest in-range map
             for (GuideMap guideMap : SignMeUp.MANAGER.getAllMaps()) {
                 final double dx = src.getPosition().x() - guideMap.center.getX();
@@ -141,13 +141,13 @@ public final class CommandImpl {
         CommandSourceStack src = context.getSource();
         ServerPlayer player = src.getPlayerOrException();
         if (SignMeUp.MANAGER.getAllWaypoints().size() != 0) {
-            src.sendSuccess(Component.translatable("sign_up.text.list_points")
+            src.sendSuccess(() -> Component.translatable("sign_up.text.list_points")
                     .append(": ")
                     , false);
             for (Waypoint waypoint : SignMeUp.MANAGER.getAllWaypoints()) {
                 DecimalFormat df = new DecimalFormat("0.00");
                 df.setRoundingMode(RoundingMode.HALF_UP);
-                src.sendSuccess(Component.literal(" - ")
+                src.sendSuccess(() -> Component.literal(" - ")
                         .append(waypoint.getTitle()).append("\n   ")
                         .append(Component.translatable("sign_up.text.distance"))
                         .append(": " + df.format(Vec3.atLowerCornerOf(waypoint.getActualLocation()).distanceTo(src.getPosition())) + " ")
@@ -165,9 +165,9 @@ public final class CommandImpl {
     public static int listWaypointPos(CommandContext<CommandSourceStack> context) {
         CommandSourceStack src = context.getSource();
         if (SignMeUp.MANAGER.getAllWaypoints().size() != 0) {
-            src.sendSuccess(Component.translatable("sign_up.text.list_points"), false);
+            src.sendSuccess(() -> Component.translatable("sign_up.text.list_points"), false);
             for (Waypoint waypoint : SignMeUp.MANAGER.getAllWaypoints()) {
-                src.sendSuccess(Component.literal(" - ")
+                src.sendSuccess(() -> Component.literal(" - ")
                         .append(waypoint.getTitle())
                         .append("\n   ")
                         .append(Component.translatable("sign_up.text.render_location"))
@@ -192,7 +192,7 @@ public final class CommandImpl {
         final ResourceLocation id = context.getArgument("id", ResourceLocation.class);
         Waypoint waypoint = SignMeUp.MANAGER.findWaypoint(id);
         if (waypoint != null) {
-            src.sendSuccess(Component.literal(" - ")
+            src.sendSuccess(() -> Component.literal(" - ")
                             .append(waypoint.getTitle())
                             .append("\n   ")
                             .append(Component.translatable("sign_up.text.render_location"))

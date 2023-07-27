@@ -9,6 +9,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.Screen;
@@ -167,8 +168,8 @@ public final class GuideMapScreen extends Screen {
                         mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4,
                         58, 2, 0, MAP_ICONS, 128, 128, (btn) -> this.selectedWaypoint = wpId, wp.getTitle()) {
                     @Override
-                    public void renderWidget(PoseStack transforms, int mouseX, int mouseY, float partialTicks) {
-                        super.renderWidget(transforms, mouseX, mouseY, partialTicks);
+                    public void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+                        super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
                         if (this.isHovered()) {
                             double distance = Math.sqrt(wp.getActualLocation().distToCenterSqr(GuideMapScreen.this.playerLocation));
                             GuideMapScreen.this.queuedTips.offer(Pair.of(wp.getTitle(), GuideMapScreen.this.toDistanceText(distance)));
@@ -226,21 +227,21 @@ public final class GuideMapScreen extends Screen {
     }
 
     @Override
-    public void render(PoseStack transforms, int mouseX, int mouseY, float partialTicks) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         int x0 = (this.width - X_SIZE) / 2, y0 = (this.height - Y_SIZE) / 2, x1 = x0 + 206;
 
-        this.renderBackground(transforms);
-        this.renderBackgroundTexture(transforms, x0, y0, x1);
-        this.renderWaypointTexture(transforms, x0, y0, x1, partialTicks);
-        this.renderMapTexture(transforms, x0, y0, x1);
+        this.renderBackground(guiGraphics);
+        this.renderBackgroundTexture(guiGraphics, x0, y0, x1);
+        this.renderWaypointTexture(guiGraphics, x0, y0, x1, partialTick);
+        this.renderMapTexture(guiGraphics, x0, y0, x1);
 
-        super.render(transforms, mouseX, mouseY, partialTicks);
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        this.renderPlayerHeads(transforms, mouseX, mouseY, x0, y0, x1);
-        this.renderTextCollection(transforms, mouseX, mouseY, x0, y0, x1);
+        this.renderPlayerHeads(guiGraphics, mouseX, mouseY, x0, y0, x1);
+        this.renderTextCollection(guiGraphics, mouseX, mouseY, x0, y0, x1);
     }
 
-    private void renderTextCollection(PoseStack transforms, int mouseX, int mouseY, int x0, int y0, int x1) {
+    private void renderTextCollection(GuiGraphics guiGraphics, int mouseX, int mouseY, int x0, int y0, int x1) {
         // Display the subtitle/desc of the map if no waypoint is selected
         Component title = this.map.getTitle(), subtitle = this.map.getSubtitle(), desc = this.map.getDesc();
         if (this.selectedWaypoint != null) {
@@ -252,9 +253,9 @@ public final class GuideMapScreen extends Screen {
         }
         // Draw title and subtitle depending on whether a waypoint is selected
         final int xTitle = x0 + 142 - font.width(title) / 2;
-        font.draw(transforms, title, xTitle, y0 + 7F, 0x404040);
+        guiGraphics.drawString(font, title, xTitle, y0 + 7, 0x404040, false);
         final int xSubtitle = x1 + 56 - font.width(subtitle) / 2;
-        font.draw(transforms, subtitle, xSubtitle, y0 + 7F, 0x404040);
+        guiGraphics.drawString(font, subtitle, xSubtitle, y0 + 7, 0x404040, false);
         // I DISLIKE THIS METHOD BECAUSE IT FAILS TO HANDLE LINE BREAKING
         // A proper line breaking algorithm should comply with UAX #14, link below:
         // http://www.unicode.org/reports/tr14/
@@ -262,7 +263,7 @@ public final class GuideMapScreen extends Screen {
         List<FormattedCharSequence> displayedDescList = font.split(desc, 90);
         // Draw desc text
         for (int i = 0, size = Math.min(8, displayedDescList.size()); i < size; ++i) {
-            font.draw(transforms, displayedDescList.get(i), x1 + 10F, y0 + 81F + 9 * i, 0x404040);
+            guiGraphics.drawString(font, displayedDescList.get(i), x1 + 10, y0 + 81 + 9 * i, 0x404040, false);
         }
         List<Component> tooltipTexts = new ArrayList<>(this.queuedTips.size() * 2 + 1);
         for (Pair<Component, Component> pair = this.queuedTips.poll(); pair != null; pair = this.queuedTips.poll()) {
@@ -273,11 +274,11 @@ public final class GuideMapScreen extends Screen {
             tooltipTexts.add(pair.getSecond());
         }
         if (!tooltipTexts.isEmpty()) {
-            this.renderComponentTooltip(transforms, tooltipTexts, mouseX, mouseY);
+            guiGraphics.renderComponentTooltip(font, tooltipTexts, mouseX, mouseY);
         }
     }
 
-    private void renderPlayerHeads(PoseStack transforms, int mouseX, int mouseY, int x0, int y0, int x1) {
+    private void renderPlayerHeads(GuiGraphics guiGraphics, int mouseX, int mouseY, int x0, int y0, int x1) {
         Minecraft mc = Objects.requireNonNull(this.minecraft);
         List<? extends Player> players = mc.level == null ? List.of() : mc.level.players();
 
@@ -300,14 +301,14 @@ public final class GuideMapScreen extends Screen {
 
         // make sure that current player is rendered at last
         for (int i = currentIndex - 1; i >= 0; --i) {
-            this.renderPlayerHead(transforms, mouseX, mouseY, x0, y0, players.get(i), outputX[i], outputY[i]);
+            this.renderPlayerHead(guiGraphics, mouseX, mouseY, x0, y0, players.get(i), outputX[i], outputY[i]);
         }
         for (int i = size - 1; i >= currentIndex; --i) {
-            this.renderPlayerHead(transforms, mouseX, mouseY, x0, y0, players.get(i), outputX[i], outputY[i]);
+            this.renderPlayerHead(guiGraphics, mouseX, mouseY, x0, y0, players.get(i), outputX[i], outputY[i]);
         }
     }
 
-    private void renderPlayerHead(PoseStack transforms,
+    private void renderPlayerHead(GuiGraphics guiGraphics,
                                   int mouseX, int mouseY, int x0, int y0,
                                   Player player, double outputX, double outputY) {
         int wpX = Math.round((float) outputX / this.map.radius * 64) + 64;
@@ -315,11 +316,9 @@ public final class GuideMapScreen extends Screen {
         if (wpX >= 1 && wpX <= 127 && wpY >= 1 && wpY <= 127) {
             // could we have dinnerbone or grumm joined our server?
             if (LivingEntityRenderer.isEntityUpsideDown(player)) {
-                RenderSystem.setShaderTexture(0, DefaultPlayerSkin.getDefaultSkin(player.getUUID()));
-                blit(transforms, x0 + 76 + wpX, y0 + 21 + wpY, 4, 4, 8, 16, 8, -8, 64, 64);
+                guiGraphics.blit(DefaultPlayerSkin.getDefaultSkin(player.getUUID()), x0 + 76 + wpX, y0 + 21 + wpY, 4, 4, 8, 16, 8, -8, 64, 64);
             } else {
-                RenderSystem.setShaderTexture(0, DefaultPlayerSkin.getDefaultSkin(player.getUUID()));
-                blit(transforms, x0 + 76 + wpX, y0 + 21 + wpY, 4, 4, 8, 8, 8, 8, 64, 64);
+                guiGraphics.blit(DefaultPlayerSkin.getDefaultSkin(player.getUUID()), x0 + 76 + wpX, y0 + 21 + wpY, 4, 4, 8, 8, 8, 8, 64, 64);
             }
             if (mouseX >= x0 + 76 + wpX && mouseX < x0 + 80 + wpX) {
                 if (mouseY >= y0 + 21 + wpY && mouseY < y0 + 25 + wpY) {
@@ -330,17 +329,16 @@ public final class GuideMapScreen extends Screen {
         }
     }
 
-    private void renderMapTexture(PoseStack transforms, int x0, int y0, int x1) {
+    private void renderMapTexture(GuiGraphics guiGraphics, int x0, int y0, int x1) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         // corner of the in-game window
-        RenderSystem.setShaderTexture(0, this.map.texture);
         // Who said we have to use 128 * 128 texture?
-        blit(transforms, x0 + 78, y0 + 23, 0, 0, 128, 128, 128, 128);
+        guiGraphics.blit(this.map.texture, x0 + 78, y0 + 23, 0, 0, 128, 128, 128, 128);
     }
 
-    private void renderWaypointTexture(PoseStack transforms, int x0, int y0, int x1, float partialTicks) {
+    private void renderWaypointTexture(GuiGraphics guiGraphics, int x0, int y0, int x1, float partialTicks) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -368,27 +366,22 @@ public final class GuideMapScreen extends Screen {
         if (this.lastWaypointTextures.isEmpty()) {
             this.ticksAfterWaypointTextureChanged = 0;
         } else {
-            RenderSystem.setShaderTexture(0, head);
-            blit(transforms, x1 + 7, y0 + 20, 0, 0, 96, 54, 96, 54);
+            guiGraphics.blit(head, x1 + 7, y0 + 20, 0, 0, 96, 54, 96, 54);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
-            RenderSystem.setShaderTexture(0, GUIDE_MAP_RIGHT);
-            blit(transforms, x1 + 7, y0 + 20, 7, 20, 96, 54);
+            guiGraphics.blit(GUIDE_MAP_RIGHT, x1 + 7, y0 + 20, 7, 20, 96, 54);
             image = this.lastWaypointTextures.getFirst();
         }
         this.lastWaypointTextures.addFirst(head);
-        RenderSystem.setShaderTexture(0, image);
-        blit(transforms, x1 + 7, y0 + 20, 0, 0, 96, 54, 96, 54);
+        guiGraphics.blit(image, x1 + 7, y0 + 20, 0, 0, 96, 54, 96, 54);
     }
 
-    private void renderBackgroundTexture(PoseStack transforms, int x0, int y0, int x1) {
+    private void renderBackgroundTexture(GuiGraphics guiGraphics, int x0, int y0, int x1) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, GUIDE_MAP_LEFT);
-        blit(transforms, x0, y0, 0, 0, 211, 161);
-        blit(transforms, x0 + 6, y0 + 138, 66, 201, 66, 17);
-        RenderSystem.setShaderTexture(0, GUIDE_MAP_RIGHT);
-        blit(transforms, x1 + 5, y0, 5, 0, 174, 161);
+        guiGraphics.blit(GUIDE_MAP_LEFT, x0, y0, 0, 0, 211, 161);
+        guiGraphics.blit(GUIDE_MAP_LEFT, x0 + 6, y0 + 138, 66, 201, 66, 17);
+        guiGraphics.blit(GUIDE_MAP_RIGHT, x1 + 5, y0, 5, 0, 174, 161);
         if (!this.hasWaypointTrigger) {
-            blit(transforms, x1 + 108, y0 + 20, 181, 20, 64, 134);
+            guiGraphics.blit(GUIDE_MAP_RIGHT, x1 + 108, y0 + 20, 181, 20, 64, 134);
         }
     }
 
@@ -443,14 +436,14 @@ public final class GuideMapScreen extends Screen {
         }
 
         @Override
-        public void renderWidget(PoseStack transforms, int mouseX, int mouseY, float partialTicks) {
-            super.renderWidget(transforms, mouseX, mouseY, partialTicks);
+        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+            super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
             //final Font font = Minecraft.getInstance().font;
             final int stringWidth = font.width(this.trigger.getTitle());
             final int x0 = this.getX() + this.width / 2 - stringWidth / 2, y0 = this.getY() + (this.height - 8) / 2;
-            font.draw(transforms, this.trigger.getTitle(), x0, y0, this.trigger.disabled ? 0xFFFFFF : 0x404040);
+            guiGraphics.drawString(font, this.trigger.getTitle(), x0, y0, this.trigger.disabled ? 0xFFFFFF : 0x404040, false);
             if (this.isHovered) {
-                GuideMapScreen.this.renderTooltip(transforms, this.trigger.getDesc(), mouseX, mouseY);
+                guiGraphics.renderTooltip(font, this.trigger.getDesc(), mouseX, mouseY);
             }
         }
     }
