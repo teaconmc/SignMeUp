@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[45,)"
+loaderVersion="[47,)"
 license="BSD-3-Clause"
 
 [[mods]]
@@ -12,14 +12,13 @@ description="Sign up, sign in, in-game guide map and more."
 [[dependencies.sign_up]]
 modId="forge"
 mandatory=true
-versionRange="[45,)"
+versionRange="[47,)"
 ordering="NONE"
 side="BOTH"
 
 [[dependencies.sign_up]]
 modId="minecraft"
 mandatory=true
-versionRange="[1.19.4,)"
+versionRange="[1.20.1,)"
 ordering="NONE"
 side="BOTH"
-
