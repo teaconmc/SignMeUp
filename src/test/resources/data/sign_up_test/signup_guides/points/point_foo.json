@@ -1,0 +1,21 @@
+{
+    "type": "point",
+
+    "title": { "text": "Foo Point" },
+
+    "description": { "text": "Foo Bar" },
+
+    "selector": "@e[gamemode=adventure]",
+
+    "location": {
+        "actual": [42, 84, 0],
+        "render": [42, 84, 0]
+    },
+
+    "images": [
+        "sign_up_test:textures/point_1a"
+    ],
+
+    "triggers": [
+    ]
+}

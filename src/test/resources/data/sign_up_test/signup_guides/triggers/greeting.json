@@ -1,8 +1,0 @@
-{
-  "type": "trigger",
-  "title": "Greeting",
-  "description": "Send salutation to everyone",
-  "executes": [
-    "/me greets everyone"
-  ]
-}

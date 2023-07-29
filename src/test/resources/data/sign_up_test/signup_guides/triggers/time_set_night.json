@@ -1,9 +1,0 @@
-{
-  "type": "trigger",
-  "title": "Night",
-  "description": "Set time to night",
-  "executes": [
-    "/time set night",
-    "/signmeup map close"
-  ]
-}

@@ -1,9 +1,0 @@
-{
-  "type": "trigger",
-  "title": "Creative Mode",
-  "selector": "@e[gamemode=!creative]",
-  "description": "Set creative mode",
-  "executes": [
-    "/gamemode creative"
-  ]
-}
