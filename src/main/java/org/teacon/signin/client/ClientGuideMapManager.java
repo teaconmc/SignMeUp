@@ -4,9 +4,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 
-import org.teacon.signin.data.GuideMap;
-import org.teacon.signin.data.Trigger;
-import org.teacon.signin.data.Waypoint;
+import org.teacon.signin.data.entity.GuideMap;
+import org.teacon.signin.data.entity.Trigger;
+import org.teacon.signin.data.entity.Waypoint;
 import org.teacon.signin.network.MapScreenPacket;
 
 import java.util.*;

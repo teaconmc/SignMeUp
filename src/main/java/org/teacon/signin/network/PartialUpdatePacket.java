@@ -11,6 +11,8 @@ import net.minecraftforge.network.NetworkEvent;
 import org.teacon.signin.client.GuideMapScreen;
 import org.teacon.signin.client.SignMeUpClient;
 import org.teacon.signin.data.*;
+import org.teacon.signin.data.entity.Trigger;
+import org.teacon.signin.data.entity.Waypoint;
 
 import java.util.function.Supplier;
 

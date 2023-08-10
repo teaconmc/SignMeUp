@@ -27,7 +27,7 @@ import org.teacon.signin.client.SignMeUpClient;
 import org.teacon.signin.command.CommandImpl;
 import org.teacon.signin.data.DynamicLocationStorage;
 import org.teacon.signin.data.GuideMapManager;
-import org.teacon.signin.data.Trigger;
+import org.teacon.signin.data.entity.Trigger;
 import org.teacon.signin.network.*;
 
 @Mod("sign_up")

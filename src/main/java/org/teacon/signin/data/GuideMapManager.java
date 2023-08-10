@@ -23,6 +23,9 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
 import org.teacon.signin.SignMeUp;
+import org.teacon.signin.data.entity.GuideMap;
+import org.teacon.signin.data.entity.Trigger;
+import org.teacon.signin.data.entity.Waypoint;
 import org.teacon.signin.network.SyncGuideMapPacket;
 
 import java.util.*;

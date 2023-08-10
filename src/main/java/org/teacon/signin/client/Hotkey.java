@@ -8,7 +8,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.teacon.signin.data.GuideMap;
+import org.teacon.signin.data.entity.GuideMap;
 
 import java.util.Map;
 

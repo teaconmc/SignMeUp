@@ -16,8 +16,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkDirection;
 import org.teacon.signin.SignMeUp;
 import org.teacon.signin.data.DynamicLocationStorage;
-import org.teacon.signin.data.GuideMap;
-import org.teacon.signin.data.Waypoint;
+import org.teacon.signin.data.entity.GuideMap;
+import org.teacon.signin.data.entity.Waypoint;
 import org.teacon.signin.network.MapScreenPacket;
 
 import java.math.RoundingMode;

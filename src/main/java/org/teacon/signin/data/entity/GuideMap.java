@@ -1,4 +1,4 @@
-package org.teacon.signin.data;
+package org.teacon.signin.data.entity;
 
 import com.google.gson.*;
 import net.minecraft.core.Vec3i;
@@ -19,7 +19,7 @@ public final class GuideMap {
     public static final ResourceLocation DEFAULT_IMAGE = new ResourceLocation("sign_up:textures/map_default.png");
 
     Component title;
-    Component subtitle;
+//    Component subtitle;
     Component desc;
 
     public Vec3i center;
@@ -29,7 +29,7 @@ public final class GuideMap {
     // TODO Actually ensure the missing texture exists
     public ResourceLocation texture = new ResourceLocation("minecraft", "missing");
 
-    private List<ResourceLocation> imageIds = Collections.emptyList();
+//    private List<ResourceLocation> imageIds = Collections.emptyList();
 
     private int displayingImageIndex;
 
@@ -40,27 +40,27 @@ public final class GuideMap {
         return this.title != null ? this.title : Component.translatable("sign_up.map.unnamed");
     }
 
-    public Component getSubtitle() {
-        return this.subtitle != null ? this.subtitle : this.getTitle();
-    }
+//    public Component getSubtitle() {
+//        return this.subtitle != null ? this.subtitle : this.getTitle();
+//    }
 
     public Component getDesc() {
         return this.desc != null ? this.desc : Component.empty();
     }
 
-    public boolean hasMoreThanOneImage() {
-        return this.imageIds.size() > 1;
-    }
-
-    public void modifyDisplayingImageIndex(int diff) {
-        if (!this.imageIds.isEmpty()) {
-            this.displayingImageIndex = Math.floorMod(this.displayingImageIndex + diff, this.imageIds.size());
-        }
-    }
-
-    public ResourceLocation getDisplayingImageId() {
-        return this.imageIds.isEmpty() ? DEFAULT_IMAGE : this.imageIds.get(this.displayingImageIndex);
-    }
+//    public boolean hasMoreThanOneImage() {
+//        return this.imageIds.size() > 1;
+//    }
+//
+//    public void modifyDisplayingImageIndex(int diff) {
+//        if (!this.imageIds.isEmpty()) {
+//            this.displayingImageIndex = Math.floorMod(this.displayingImageIndex + diff, this.imageIds.size());
+//        }
+//    }
+//
+//    public ResourceLocation getDisplayingImageId() {
+//        return this.imageIds.isEmpty() ? DEFAULT_IMAGE : this.imageIds.get(this.displayingImageIndex);
+//    }
 
     public List<ResourceLocation> getWaypointIds() {
         return Collections.unmodifiableList(this.waypointIds);
@@ -85,9 +85,9 @@ public final class GuideMap {
             if (json.has("title")) {
                 map.title = context.deserialize(json.get("title"), Component.class);
             }
-            if (json.has("subtitle")) {
-                map.subtitle = context.deserialize(json.get("subtitle"), Component.class);
-            }
+//            if (json.has("subtitle")) {
+//                map.subtitle = context.deserialize(json.get("subtitle"), Component.class);
+//            }
             if (json.has("description")) {
                 map.desc = context.deserialize(json.get("description"), Component.class);
             }
@@ -124,12 +124,12 @@ public final class GuideMap {
                         .map(ResourceLocation::new)
                         .collect(Collectors.toList());
             }
-            if (json.has("images")) {
-                map.imageIds = StreamSupport.stream(json.getAsJsonArray("images").spliterator(), false)
-                        .map(JsonElement::getAsString)
-                        .map(ResourceLocation::new)
-                        .collect(Collectors.toList());
-            }
+//            if (json.has("images")) {
+//                map.imageIds = StreamSupport.stream(json.getAsJsonArray("images").spliterator(), false)
+//                        .map(JsonElement::getAsString)
+//                        .map(ResourceLocation::new)
+//                        .collect(Collectors.toList());
+//            }
             return map;
         }
 
@@ -139,9 +139,9 @@ public final class GuideMap {
             if (src.title != null) {
                 json.add("title", context.serialize(src.title));
             }
-            if (src.subtitle != null) {
-                json.add("subtitle", context.serialize(src.subtitle));
-            }
+//            if (src.subtitle != null) {
+//                json.add("subtitle", context.serialize(src.subtitle));
+//            }
             if (src.desc != null) {
                 json.add("description", context.serialize(src.desc));
             }
@@ -165,11 +165,11 @@ public final class GuideMap {
                         .map(ResourceLocation::toString)
                         .collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
             }
-            if (!src.imageIds.isEmpty()) {
-                json.add("images", src.imageIds.stream()
-                        .map(ResourceLocation::toString)
-                        .collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
-            }
+//            if (!src.imageIds.isEmpty()) {
+//                json.add("images", src.imageIds.stream()
+//                        .map(ResourceLocation::toString)
+//                        .collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
+//            }
             return json;
         }
     }
