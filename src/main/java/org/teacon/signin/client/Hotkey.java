@@ -8,6 +8,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.teacon.signin.client.gui.MapScreen;
 import org.teacon.signin.data.entity.GuideMap;
 
 import java.util.Map;
@@ -23,7 +24,7 @@ public final class Hotkey {
                 final Vec3 position = mc.player.position();
                 final Map.Entry<ResourceLocation, GuideMap> entry = SignMeUpClient.MANAGER.nearestTo(position);
                 if (entry != null) {
-                    mc.setScreen(new GuideMapScreen(entry.getKey(), entry.getValue(), position));
+                    mc.setScreen(new MapScreen(entry.getKey(), entry.getValue(), position));
                 } else {
                     mc.player.displayClientMessage(Component.translatable("sign_up.status.no_map_available"), true);
                 }
