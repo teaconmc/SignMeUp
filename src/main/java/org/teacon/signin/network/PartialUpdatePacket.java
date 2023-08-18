@@ -8,9 +8,11 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkEvent;
-import org.teacon.signin.client.GuideMapScreen;
 import org.teacon.signin.client.SignMeUpClient;
+import org.teacon.signin.client.gui.MapScreen;
 import org.teacon.signin.data.*;
+import org.teacon.signin.data.entity.Trigger;
+import org.teacon.signin.data.entity.Waypoint;
 
 import java.util.function.Supplier;
 
@@ -101,8 +103,8 @@ public final class PartialUpdatePacket {
                     break;
             }
             final Minecraft mc = Minecraft.getInstance();
-            if (mc.screen instanceof GuideMapScreen) {
-                ((GuideMapScreen) mc.screen).refresh();
+            if (mc.screen instanceof MapScreen screen) {
+                screen.refresh();
             }
         });
         contextGetter.get().setPacketHandled(true);

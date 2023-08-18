@@ -4,7 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkEvent;
 import org.teacon.signin.SignMeUp;
-import org.teacon.signin.data.GuideMap;
+import org.teacon.signin.data.entity.GuideMap;
 
 import java.util.function.Supplier;
 

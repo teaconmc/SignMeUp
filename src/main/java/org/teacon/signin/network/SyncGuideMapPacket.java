@@ -10,7 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkEvent;
 import org.teacon.signin.client.SignMeUpClient;
-import org.teacon.signin.data.GuideMap;
+import org.teacon.signin.data.entity.GuideMap;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;

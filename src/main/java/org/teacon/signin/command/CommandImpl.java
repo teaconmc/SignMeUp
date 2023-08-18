@@ -16,8 +16,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkDirection;
 import org.teacon.signin.SignMeUp;
 import org.teacon.signin.data.DynamicLocationStorage;
-import org.teacon.signin.data.GuideMap;
-import org.teacon.signin.data.Waypoint;
+import org.teacon.signin.data.entity.GuideMap;
+import org.teacon.signin.data.entity.Waypoint;
 import org.teacon.signin.network.MapScreenPacket;
 
 import java.math.RoundingMode;
@@ -114,7 +114,7 @@ public final class CommandImpl {
             for (GuideMap guideMap : SignMeUp.MANAGER.getAllMaps()) {
                 final double dx = src.getPosition().x() - guideMap.center.getX();
                 final double dz = src.getPosition().z() - guideMap.center.getZ();
-                if (Math.min(Math.abs(dx), Math.abs(dz)) <= guideMap.radius) {
+                if (Math.min(Math.abs(dx), Math.abs(dz)) <= guideMap.range) {
                     final double distanceSq = dx * dx + dz * dz;
                     if (distanceSq < minDistanceSq) {
                         minDistanceSq = distanceSq;

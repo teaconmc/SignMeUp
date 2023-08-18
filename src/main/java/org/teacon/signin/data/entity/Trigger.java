@@ -1,4 +1,4 @@
-package org.teacon.signin.data;
+package org.teacon.signin.data.entity;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.*;
@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.teacon.signin.data.PlayerTracker;
 import org.teacon.signin.network.PartialUpdatePacket;
 
 import java.lang.reflect.Type;
