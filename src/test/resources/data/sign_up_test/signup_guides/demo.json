@@ -1,36 +1,30 @@
 {
   "type": "map",
-  "title": { "text": "Example Map" },
-  "subtitle": { "text": "A demo guide map"},
+
+  "title": { "text": "Example TeaCon Map" },
+
   "description": "If you see this, it means that you have successfully created a guide map. Refer to documents for more tricks on how to customize this. Notice that this part also supports mouse scrolling! Try scrolling up and down to see the effect on its long text handling.",
+
   "range": 64,
+
+  "zoom": {
+    "default": 1.0,
+    "larger": 2.0,
+    "magnifier": 4.0,
+    "microscope": 16.0
+  },
+
   "center": [ 0, 0 ],
+
   "world": "minecraft:overworld",
+
   "texture": "sign_up_test:textures/map.png",
-  "images": [
-    "sign_up:textures/map_default.png",
-    "sign_up_test:textures/map_image.png"
-  ],
+
   "points": [
-    "sign_up_test:points/point_1",
-    "sign_up_test:points/point_2",
-    "sign_up_test:points/point_3",
-    "sign_up_test:points/point_4"
+    "sign_up_test:points/point_foo"
   ],
+
   "triggers": [
-    "sign_up_test:triggers/time_set_day",
-    "sign_up_test:triggers/time_set_night",
-    "sign_up_test:triggers/greeting",
-    "sign_up_test:triggers/greeting_disabled",
-    "sign_up_test:triggers/greeting",
-    "sign_up_test:triggers/greeting_disabled",
-    "sign_up_test:triggers/creative",
-    "sign_up_test:triggers/survival",
-    "sign_up_test:triggers/greeting_disabled",
-    "sign_up_test:triggers/greeting",
-    "sign_up_test:triggers/greeting_disabled",
-    "sign_up_test:triggers/greeting",
-    "sign_up_test:triggers/time_set_day",
-    "sign_up_test:triggers/time_set_night"
+    "sign_up_test:triggers/teleport"
   ]
 }

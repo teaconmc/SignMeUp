@@ -1,9 +1,16 @@
 {
-  "type": "trigger",
-  "title": "Teleport",
-  "description": "Teleport to location",
-  "executes": [
-    "/teleport @s ~ ~ ~",
-    "/signmeup map close"
-  ]
+    "type": "trigger",
+
+    "title": { "text": "Test Trigger" },
+
+    "description": { "text": "Foo Bar" },
+
+    "disabled": false,
+
+    "selector": "@e[gamemode=creative]",
+
+    "executes": [
+        "/teleport ~ ~ ~",
+        "/signmeup map close"
+    ]
 }

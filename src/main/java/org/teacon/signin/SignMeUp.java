@@ -27,16 +27,18 @@ import org.teacon.signin.client.SignMeUpClient;
 import org.teacon.signin.command.CommandImpl;
 import org.teacon.signin.data.DynamicLocationStorage;
 import org.teacon.signin.data.GuideMapManager;
-import org.teacon.signin.data.Trigger;
+import org.teacon.signin.data.entity.Trigger;
 import org.teacon.signin.network.*;
 
-@Mod("sign_up")
-@Mod.EventBusSubscriber(modid = "sign_up", bus = Mod.EventBusSubscriber.Bus.FORGE)
+@Mod(SignMeUp.MODID)
+@Mod.EventBusSubscriber(modid = SignMeUp.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class SignMeUp {
+
+    public static final String MODID = "sign_up";
 
     public static final GuideMapManager MANAGER = new GuideMapManager();
 
-    public static SimpleChannel channel = NetworkRegistry.ChannelBuilder.named(new ResourceLocation("sign_up", "data"))
+    public static SimpleChannel channel = NetworkRegistry.ChannelBuilder.named(new ResourceLocation(SignMeUp.MODID, "data"))
             .networkProtocolVersion(() -> "0.0")
             .clientAcceptedVersions("0.0"::equals)
             .serverAcceptedVersions("0.0"::equals)

@@ -30,6 +30,7 @@ bin/
 eclipse/
 run_client/
 run_server/
+run_test/
 logs/
 remappedSrc/
 

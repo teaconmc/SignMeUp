@@ -1,9 +1,0 @@
-{
-  "type": "trigger",
-  "title": "Survival Mode",
-  "selector": "@e[gamemode=!survival]",
-  "description": "Set survival mode",
-  "executes": [
-    "/gamemode survival"
-  ]
-}

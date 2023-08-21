@@ -1,7 +1,0 @@
-{
-  "type": "point",
-  "title": "Test Point 5",
-  "location": {
-    "actual": [ 50, 0, 0 ]
-  }
-}
