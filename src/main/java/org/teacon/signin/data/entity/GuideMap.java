@@ -1,7 +1,5 @@
 package org.teacon.signin.data.entity;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.gson.*;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
@@ -13,49 +11,55 @@ import org.apache.logging.log4j.MarkerManager;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public final class GuideMap {
     public static final ResourceLocation DEFAULT_IMAGE = new ResourceLocation("sign_up:textures/map_default.png");
-    public static final ResourceLocation MISSING_TEXTURE = new ResourceLocation("minecraft", "missing");
 
     Component title;
+    Component subtitle;
     Component desc;
 
     public Vec3i center;
-    public float range = 128F;
+    public float radius = 128F;
     public ResourceLocation dim = null;
 
     // TODO Actually ensure the missing texture exists
-    private final BiMap<String, Double> zooms = HashBiMap.create(new HashMap<>());
-    private final Map<String, ResourceLocation> textures = new HashMap<>();
+    public ResourceLocation texture = new ResourceLocation("minecraft", "missing");
 
-    private List<ResourceLocation> waypointIds = Collections.emptyList();
-    private List<ResourceLocation> triggerIds = Collections.emptyList();
+    private List<ResourceLocation> imageIds = Collections.emptyList();
+
+    private int displayingImageIndex;
+
+    List<ResourceLocation> waypointIds = Collections.emptyList();
+    List<ResourceLocation> triggerIds = Collections.emptyList();
 
     public Component getTitle() {
         return this.title != null ? this.title : Component.translatable("sign_up.map.unnamed");
+    }
+
+    public Component getSubtitle() {
+        return this.subtitle != null ? this.subtitle : this.getTitle();
     }
 
     public Component getDesc() {
         return this.desc != null ? this.desc : Component.empty();
     }
 
-    public BiMap<String, Double> getZooms() {
-        return zooms;
+    public boolean hasMoreThanOneImage() {
+        return this.imageIds.size() > 1;
     }
 
-    public Map<String, ResourceLocation> getTextures() {
-        return textures;
+    public void modifyDisplayingImageIndex(int diff) {
+        if (!this.imageIds.isEmpty()) {
+            this.displayingImageIndex = Math.floorMod(this.displayingImageIndex + diff, this.imageIds.size());
+        }
     }
 
-    public ResourceLocation getTexture(double zoom) {
-        var name = zooms.inverse().get(zoom);
-        return textures.getOrDefault(name, MISSING_TEXTURE);
+    public ResourceLocation getDisplayingImageId() {
+        return this.imageIds.isEmpty() ? DEFAULT_IMAGE : this.imageIds.get(this.displayingImageIndex);
     }
 
     public List<ResourceLocation> getWaypointIds() {
@@ -81,6 +85,9 @@ public final class GuideMap {
             if (json.has("title")) {
                 map.title = context.deserialize(json.get("title"), Component.class);
             }
+            if (json.has("subtitle")) {
+                map.subtitle = context.deserialize(json.get("subtitle"), Component.class);
+            }
             if (json.has("description")) {
                 map.desc = context.deserialize(json.get("description"), Component.class);
             }
@@ -92,7 +99,7 @@ public final class GuideMap {
             if (json.has("range")) {
                 final float range = json.get("range").getAsFloat();
                 if (range > 0) {
-                    map.range = range / 2F;
+                    map.radius = range / 2F;
                 } else {
                     LOGGER.warn(MARKER, "Positive range missing, falling back to 256 (blocks)");
                 }
@@ -102,29 +109,9 @@ public final class GuideMap {
             if (json.has("world")) {
                 map.dim = new ResourceLocation(json.get("world").getAsString());
             }
-
             if (json.has("texture")) {
-                var texture = json.get("texture");
-                if (texture instanceof JsonObject jsonObject) {
-                    jsonObject.asMap().forEach((k, v) -> map.textures.put(k, new ResourceLocation(v.getAsString())));
-                } else {
-                    map.textures.put("default", new ResourceLocation(texture.getAsString()));
-                }
-            } else {
-                map.textures.put("default", MISSING_TEXTURE);
+                map.texture = new ResourceLocation(json.get("texture").getAsString());
             }
-
-            if (json.has("zoom")) {
-                var zoom = json.get("zoom");
-                if (zoom instanceof JsonObject jsonObject) {
-                    jsonObject.asMap().forEach((k, v) -> map.zooms.put(k, v.getAsDouble()));
-                } else {
-                    map.zooms.put("default", 1.0);
-                }
-            } else {
-                map.zooms.put("default", 1.0);
-            }
-
             if (json.has("points")) {
                 map.waypointIds = StreamSupport.stream(json.getAsJsonArray("points").spliterator(), false)
                         .map(JsonElement::getAsString)
@@ -133,6 +120,12 @@ public final class GuideMap {
             }
             if (json.has("triggers")) {
                 map.triggerIds = StreamSupport.stream(json.getAsJsonArray("triggers").spliterator(), false)
+                        .map(JsonElement::getAsString)
+                        .map(ResourceLocation::new)
+                        .collect(Collectors.toList());
+            }
+            if (json.has("images")) {
+                map.imageIds = StreamSupport.stream(json.getAsJsonArray("images").spliterator(), false)
                         .map(JsonElement::getAsString)
                         .map(ResourceLocation::new)
                         .collect(Collectors.toList());
@@ -146,38 +139,22 @@ public final class GuideMap {
             if (src.title != null) {
                 json.add("title", context.serialize(src.title));
             }
+            if (src.subtitle != null) {
+                json.add("subtitle", context.serialize(src.subtitle));
+            }
             if (src.desc != null) {
                 json.add("description", context.serialize(src.desc));
             }
             if (src.center != null) {
                 json.add("center", context.serialize(src.center));
             }
-            json.add("range", new JsonPrimitive(src.range * 2));
+            json.add("range", new JsonPrimitive(src.radius * 2));
             if (src.dim != null) {
                 json.add("world", new JsonPrimitive(src.dim.toString()));
             }
-
-            if (!src.textures.isEmpty()) {
-                if (src.textures.size() != 1) {
-                    var jsonObject = new JsonObject();
-                    for (var texture : src.textures.entrySet()) {
-                       jsonObject.add(texture.getKey(), new JsonPrimitive(texture.getValue().toString()));
-                    }
-                    json.add("texture", jsonObject);
-                } else {
-                    var jsonPrimitive = new JsonPrimitive(src.textures.get("default").toString());
-                    json.add("texture", jsonPrimitive);
-                }
+            if (src.texture != null) {
+                json.add("texture", new JsonPrimitive(src.texture.toString()));
             }
-
-            if (!src.zooms.isEmpty()) {
-                var jsonObject = new JsonObject();
-                for (var zoom : src.zooms.entrySet()) {
-                    jsonObject.add(zoom.getKey(), new JsonPrimitive(zoom.getValue().toString()));
-                }
-                json.add("zoom", jsonObject);
-            }
-
             if (src.waypointIds != null && !src.waypointIds.isEmpty()) {
                 json.add("points", src.waypointIds.stream()
                         .map(ResourceLocation::toString)
@@ -185,6 +162,11 @@ public final class GuideMap {
             }
             if (src.triggerIds != null && !src.triggerIds.isEmpty()) {
                 json.add("triggers", src.triggerIds.stream()
+                        .map(ResourceLocation::toString)
+                        .collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
+            }
+            if (!src.imageIds.isEmpty()) {
+                json.add("images", src.imageIds.stream()
                         .map(ResourceLocation::toString)
                         .collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
             }

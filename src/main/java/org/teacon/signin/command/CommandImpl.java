@@ -114,7 +114,7 @@ public final class CommandImpl {
             for (GuideMap guideMap : SignMeUp.MANAGER.getAllMaps()) {
                 final double dx = src.getPosition().x() - guideMap.center.getX();
                 final double dz = src.getPosition().z() - guideMap.center.getZ();
-                if (Math.min(Math.abs(dx), Math.abs(dz)) <= guideMap.range) {
+                if (Math.min(Math.abs(dx), Math.abs(dz)) <= guideMap.radius) {
                     final double distanceSq = dx * dx + dz * dz;
                     if (distanceSq < minDistanceSq) {
                         minDistanceSq = distanceSq;
