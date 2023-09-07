@@ -86,8 +86,15 @@ gradle.afterProject { Project current ->
                 property 'forge.enabledGameTestNamespaces', modId
                 mods {
                     // noinspection GroovyAssignabilityCheck
-                    create(modId) { it.source sourceSets.main }
+                    create(modId) {
+                        it.source sourceSets.main
+                    }
+                    create(modId + "_test") {
+                        it.source sourceSets.test
+                    }
+
                 }
+                
                 // noinspection GroovyAssignabilityCheck
                 runtimeLazyTokens.each { k, v -> lazyToken(k, v) }
             }
