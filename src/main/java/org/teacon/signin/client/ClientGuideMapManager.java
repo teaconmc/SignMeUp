@@ -46,7 +46,7 @@ public final class ClientGuideMapManager {
             final GuideMap guideMap = entry.getValue();
             final double dx = pos.x() - guideMap.center.getX();
             final double dz = pos.z() - guideMap.center.getZ();
-            if (Math.min(Math.abs(dx), Math.abs(dz)) <= guideMap.range) {
+            if (Math.min(Math.abs(dx), Math.abs(dz)) <= guideMap.radius) {
                 final double distanceSq = dx * dx + dz * dz;
                 if (distanceSq < minDistanceSq) {
                     minDistanceSq = distanceSq;
