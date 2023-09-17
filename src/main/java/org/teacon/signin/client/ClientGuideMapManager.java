@@ -33,8 +33,8 @@ public final class ClientGuideMapManager {
         });
     }
 
-    public synchronized void acceptUpdateFromServer(SortedMap<ResourceLocation, GuideMap> maps) {
-        this.availableMaps = maps;
+    public void acceptUpdateFromServer(SortedMap<ResourceLocation, GuideMap> maps) {
+        Minecraft.getInstance().submit(() -> this.availableMaps = maps);
     }
 
     public Map.Entry<ResourceLocation, GuideMap> nearestTo(Vec3 pos) {
@@ -73,23 +73,19 @@ public final class ClientGuideMapManager {
         return this.availableMaps.get(mapId);
     }
 
-    public Collection<GuideMap> getAllMaps() {
-        return this.availableMaps.values();
-    }
-
-    public synchronized void addWaypoint(ResourceLocation waypointId, Waypoint waypoint) {
+    public void addWaypoint(ResourceLocation waypointId, Waypoint waypoint) {
         this.availableWaypoints.put(waypointId, waypoint);
     }
 
-    public synchronized void removeWaypoint(ResourceLocation waypointId) {
+    public void removeWaypoint(ResourceLocation waypointId) {
         this.availableWaypoints.remove(waypointId);
     }
 
-    public synchronized void addTrigger(ResourceLocation triggerId, Trigger trigger) {
+    public void addTrigger(ResourceLocation triggerId, Trigger trigger) {
         this.availableTriggers.put(triggerId, trigger);
     }
 
-    public synchronized void removeTrigger(ResourceLocation triggerId) {
+    public void removeTrigger(ResourceLocation triggerId) {
         this.availableTriggers.remove(triggerId);
     }
 }

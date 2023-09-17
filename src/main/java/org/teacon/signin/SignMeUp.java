@@ -21,6 +21,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import org.teacon.signin.client.SignMeUpClient;
@@ -29,6 +30,8 @@ import org.teacon.signin.data.DynamicLocationStorage;
 import org.teacon.signin.data.GuideMapManager;
 import org.teacon.signin.data.entity.Trigger;
 import org.teacon.signin.network.*;
+
+import java.util.Optional;
 
 @Mod(SignMeUp.MODID)
 @Mod.EventBusSubscriber(modid = SignMeUp.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -51,11 +54,36 @@ public final class SignMeUp {
 
     public static void setup(FMLCommonSetupEvent event) {
         //CapabilityManager.INSTANCE.register(DynamicLocationStorage.class, new DynamicLocationStorage.Serializer(), DynamicLocationStorage::new);
-        channel.registerMessage(0, SyncGuideMapPacket.class, SyncGuideMapPacket::write, SyncGuideMapPacket::new, SyncGuideMapPacket::handle);
-        channel.registerMessage(1, PartialUpdatePacket.class, PartialUpdatePacket::write, PartialUpdatePacket::new, PartialUpdatePacket::handle);
-        channel.registerMessage(2, MapScreenPacket.class, MapScreenPacket::write, MapScreenPacket::new, MapScreenPacket::handle);
-        channel.registerMessage(3, TriggerFromMapPacket.class, TriggerFromMapPacket::write, TriggerFromMapPacket::new, TriggerFromMapPacket::handle);
-        channel.registerMessage(4, TriggerFromWaypointPacket.class, TriggerFromWaypointPacket::write, TriggerFromWaypointPacket::new, TriggerFromWaypointPacket::handle);
+        channel.registerMessage(0,
+                SyncGuideMapPacket.class,
+                SyncGuideMapPacket::write,
+                SyncGuideMapPacket::new,
+                SyncGuideMapPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        channel.registerMessage(1,
+                PartialUpdatePacket.class,
+                PartialUpdatePacket::write,
+                PartialUpdatePacket::new,
+                PartialUpdatePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        channel.registerMessage(2,
+                MapScreenPacket.class,
+                MapScreenPacket::write,
+                MapScreenPacket::new,
+                MapScreenPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        channel.registerMessage(3,
+                TriggerFromMapPacket.class,
+                TriggerFromMapPacket::write,
+                TriggerFromMapPacket::new,
+                TriggerFromMapPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        channel.registerMessage(4,
+                TriggerFromWaypointPacket.class,
+                TriggerFromWaypointPacket::write,
+                TriggerFromWaypointPacket::new,
+                TriggerFromWaypointPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
     @SubscribeEvent

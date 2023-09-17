@@ -30,7 +30,7 @@ public final class PartialUpdatePacket {
             .registerTypeHierarchyAdapter(Component.class, new Component.Serializer())
             .create();
 
-    private Mode mode;
+    private final Mode mode;
     private ResourceLocation waypointId;
     private Waypoint waypoint;
     private ResourceLocation triggerId;
@@ -38,19 +38,16 @@ public final class PartialUpdatePacket {
 
     public PartialUpdatePacket(FriendlyByteBuf buf) {
         switch (this.mode = buf.readEnum(Mode.class)) {
-            case ADD_WAYPOINT:
+            case ADD_WAYPOINT -> {
                 this.waypointId = buf.readResourceLocation();
                 this.waypoint = GSON.fromJson(buf.readUtf(Short.MAX_VALUE), Waypoint.class);
-                break;
-            case REMOVE_WAYPOINT:
-                this.waypointId = buf.readResourceLocation();
-                break;
-            case ADD_TRIGGER:
+            }
+            case REMOVE_WAYPOINT -> this.waypointId = buf.readResourceLocation();
+            case ADD_TRIGGER -> {
                 this.triggerId = buf.readResourceLocation();
                 this.trigger = GSON.fromJson(buf.readUtf(Short.MAX_VALUE), Trigger.class);
-                break;
-            case REMOVE_TRIGGER:
-                this.triggerId = buf.readResourceLocation();
+            }
+            case REMOVE_TRIGGER -> this.triggerId = buf.readResourceLocation();
         }
     }
 
@@ -69,38 +66,20 @@ public final class PartialUpdatePacket {
     public void write(FriendlyByteBuf buf) {
         buf.writeEnum(this.mode);
         switch (this.mode) {
-            case REMOVE_WAYPOINT:
-                buf.writeResourceLocation(this.waypointId);
-                break;
-            case ADD_WAYPOINT:
-                buf.writeResourceLocation(this.waypointId);
-                buf.writeUtf(GSON.toJson(this.waypoint));
-                break;
-            case REMOVE_TRIGGER:
-                buf.writeResourceLocation(this.triggerId);
-                break;
-            case ADD_TRIGGER:
-                buf.writeResourceLocation(this.triggerId);
-                buf.writeUtf(GSON.toJson(this.trigger));
-                break;
+            case REMOVE_WAYPOINT -> buf.writeResourceLocation(this.waypointId);
+            case ADD_WAYPOINT -> buf.writeResourceLocation(this.waypointId).writeUtf(GSON.toJson(this.waypoint));
+            case REMOVE_TRIGGER -> buf.writeResourceLocation(this.triggerId);
+            case ADD_TRIGGER -> buf.writeResourceLocation(this.triggerId).writeUtf(GSON.toJson(this.trigger));
         }
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextGetter) {
         contextGetter.get().enqueueWork(() -> {
             switch (this.mode) {
-                case ADD_WAYPOINT:
-                    SignMeUpClient.MANAGER.addWaypoint(this.waypointId, this.waypoint);
-                    break;
-                case REMOVE_WAYPOINT:
-                    SignMeUpClient.MANAGER.removeWaypoint(this.waypointId);
-                    break;
-                case ADD_TRIGGER:
-                    SignMeUpClient.MANAGER.addTrigger(this.triggerId, this.trigger);
-                    break;
-                case REMOVE_TRIGGER:
-                    SignMeUpClient.MANAGER.removeTrigger(this.triggerId);
-                    break;
+                case ADD_WAYPOINT -> SignMeUpClient.MANAGER.addWaypoint(this.waypointId, this.waypoint);
+                case REMOVE_WAYPOINT -> SignMeUpClient.MANAGER.removeWaypoint(this.waypointId);
+                case ADD_TRIGGER -> SignMeUpClient.MANAGER.addTrigger(this.triggerId, this.trigger);
+                case REMOVE_TRIGGER -> SignMeUpClient.MANAGER.removeTrigger(this.triggerId);
             }
             final Minecraft mc = Minecraft.getInstance();
             if (mc.screen instanceof MapScreen screen) {
