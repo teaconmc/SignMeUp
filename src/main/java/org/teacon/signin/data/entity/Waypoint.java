@@ -85,8 +85,6 @@ public final class Waypoint implements PlayerTracker {
 
     private List<ResourceLocation> imageIds = Collections.emptyList();
 
-    private int displayingImageIndex;
-
     transient Set<ServerPlayer> visiblePlayers = Collections.newSetFromMap(new WeakHashMap<>());
 
     public Component getTitle() {
@@ -113,18 +111,8 @@ public final class Waypoint implements PlayerTracker {
         return this.triggerIds;
     }
 
-    public boolean hasMoreThanOneImage() {
-        return this.imageIds.size() > 1;
-    }
-
-    public void modifyDisplayingImageIndex(int diff) {
-        if (!this.imageIds.isEmpty()) {
-            this.displayingImageIndex = Math.floorMod(this.displayingImageIndex + diff, this.imageIds.size());
-        }
-    }
-
-    public ResourceLocation getDisplayingImageId() {
-        return this.imageIds.isEmpty() ? GuideMap.DEFAULT_IMAGE : this.imageIds.get(this.displayingImageIndex);
+    public List<ResourceLocation> getImageIds() {
+        return this.imageIds;
     }
 
     @Override

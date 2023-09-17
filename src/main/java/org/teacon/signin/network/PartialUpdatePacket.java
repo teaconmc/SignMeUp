@@ -8,9 +8,9 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkEvent;
+import org.teacon.signin.client.GuideMapScreen;
 import org.teacon.signin.client.SignMeUpClient;
-import org.teacon.signin.client.gui.MapScreen;
-import org.teacon.signin.data.*;
+import org.teacon.signin.data.Vector3iAdapter;
 import org.teacon.signin.data.entity.Trigger;
 import org.teacon.signin.data.entity.Waypoint;
 
@@ -82,7 +82,7 @@ public final class PartialUpdatePacket {
                 case REMOVE_TRIGGER -> SignMeUpClient.MANAGER.removeTrigger(this.triggerId);
             }
             final Minecraft mc = Minecraft.getInstance();
-            if (mc.screen instanceof MapScreen screen) {
+            if (mc.screen instanceof GuideMapScreen screen) {
                 screen.refresh();
             }
         });

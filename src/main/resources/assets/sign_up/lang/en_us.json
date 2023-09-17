@@ -11,6 +11,8 @@
 
   "sign_up.text.list_maps": "List of guide maps",
   "sign_up.text.list_points": "List of waypoints",
+  "sign_up.text.switch_to_map": "Switch to the map",
+  "sign_up.text.switch_to_point": "Switch to the waypoint",
   "sign_up.text.error": "Error",
   "sign_up.text.no_map_exists": "no map exists",
   "sign_up.text.no_waypoint_exists": "no waypoint exists",

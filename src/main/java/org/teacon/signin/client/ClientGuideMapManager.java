@@ -3,8 +3,6 @@ package org.teacon.signin.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-
-import org.teacon.signin.client.gui.MapScreen;
 import org.teacon.signin.data.entity.GuideMap;
 import org.teacon.signin.data.entity.Trigger;
 import org.teacon.signin.data.entity.Waypoint;
@@ -24,9 +22,9 @@ public final class ClientGuideMapManager {
             if (action == MapScreenPacket.Action.OPEN_SPECIFIC) {
                 Objects.requireNonNull(mapId);
                 GuideMap map = SignMeUpClient.MANAGER.findMap(mapId);
-                mc.setScreen(new MapScreen(mapId, map, position));
-            } else if (mc.screen instanceof MapScreen screen) {
-                if (action != MapScreenPacket.Action.CLOSE_SPECIFIC || screen.getMapId().equals(mapId)) {
+                mc.setScreen(new GuideMapScreen(mapId, map, position));
+            } else if (mc.screen instanceof GuideMapScreen screen) {
+                if (action != MapScreenPacket.Action.CLOSE_SPECIFIC || screen.mapId.equals(mapId)) {
                     mc.setScreen(null);
                 }
             }

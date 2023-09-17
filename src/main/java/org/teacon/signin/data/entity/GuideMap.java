@@ -16,11 +16,9 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public final class GuideMap {
-    public static final ResourceLocation DEFAULT_IMAGE = new ResourceLocation("sign_up:textures/map_default.png");
-
-    Component title;
-    Component subtitle;
-    Component desc;
+    private Component title;
+    private Component subtitle;
+    private Component desc;
 
     public Vec3i center;
     public float radius = 128F;
@@ -29,12 +27,8 @@ public final class GuideMap {
     // TODO Actually ensure the missing texture exists
     public ResourceLocation texture = new ResourceLocation("minecraft", "missing");
 
-    private List<ResourceLocation> imageIds = Collections.emptyList();
-
-    private int displayingImageIndex;
-
-    List<ResourceLocation> waypointIds = Collections.emptyList();
-    List<ResourceLocation> triggerIds = Collections.emptyList();
+    private List<ResourceLocation> triggerIds = Collections.emptyList();
+    private List<ResourceLocation> waypointIds = Collections.emptyList();
 
     public Component getTitle() {
         return this.title != null ? this.title : Component.translatable("sign_up.map.unnamed");
@@ -46,20 +40,6 @@ public final class GuideMap {
 
     public Component getDesc() {
         return this.desc != null ? this.desc : Component.empty();
-    }
-
-    public boolean hasMoreThanOneImage() {
-        return this.imageIds.size() > 1;
-    }
-
-    public void modifyDisplayingImageIndex(int diff) {
-        if (!this.imageIds.isEmpty()) {
-            this.displayingImageIndex = Math.floorMod(this.displayingImageIndex + diff, this.imageIds.size());
-        }
-    }
-
-    public ResourceLocation getDisplayingImageId() {
-        return this.imageIds.isEmpty() ? DEFAULT_IMAGE : this.imageIds.get(this.displayingImageIndex);
     }
 
     public List<ResourceLocation> getWaypointIds() {
@@ -124,12 +104,6 @@ public final class GuideMap {
                         .map(ResourceLocation::new)
                         .collect(Collectors.toList());
             }
-            if (json.has("images")) {
-                map.imageIds = StreamSupport.stream(json.getAsJsonArray("images").spliterator(), false)
-                        .map(JsonElement::getAsString)
-                        .map(ResourceLocation::new)
-                        .collect(Collectors.toList());
-            }
             return map;
         }
 
@@ -162,11 +136,6 @@ public final class GuideMap {
             }
             if (src.triggerIds != null && !src.triggerIds.isEmpty()) {
                 json.add("triggers", src.triggerIds.stream()
-                        .map(ResourceLocation::toString)
-                        .collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
-            }
-            if (!src.imageIds.isEmpty()) {
-                json.add("images", src.imageIds.stream()
                         .map(ResourceLocation::toString)
                         .collect(JsonArray::new, JsonArray::add, JsonArray::addAll));
             }
