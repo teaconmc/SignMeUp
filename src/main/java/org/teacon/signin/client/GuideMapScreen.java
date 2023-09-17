@@ -31,6 +31,7 @@ import org.teacon.signin.data.entity.GuideMap;
 import org.teacon.signin.data.entity.Trigger;
 import org.teacon.signin.data.entity.Waypoint;
 import org.teacon.signin.network.TriggerFromMapPacket;
+import org.teacon.signin.network.TriggerFromWaypointPacket;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -194,7 +195,7 @@ public final class GuideMapScreen extends Screen {
                     if (trigger != null) {
                         this.waypointTriggers.put(wpId, this.addRenderableWidget(Util.make(new TriggerButton(
                                 x0 + 23, y0 + 102 + (j++ % 7) * 21, 78, 16, 212, 304, 16, GUIDE_MAP_TEXTURE, 768, 384, trigger,
-                                b -> SignMeUp.channel.sendToServer(new TriggerFromMapPacket(this.mapId, triggerId))), b -> {
+                                b -> SignMeUp.channel.sendToServer(new TriggerFromWaypointPacket(wpId, triggerId))), b -> {
                             b.active = !trigger.disabled;
                             b.visible = false;
                         })));
