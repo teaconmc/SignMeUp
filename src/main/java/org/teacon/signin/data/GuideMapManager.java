@@ -5,10 +5,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -17,7 +19,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
@@ -26,6 +28,7 @@ import org.teacon.signin.SignMeUp;
 import org.teacon.signin.data.entity.GuideMap;
 import org.teacon.signin.data.entity.Trigger;
 import org.teacon.signin.data.entity.Waypoint;
+import org.teacon.signin.network.PartialUpdatePacket;
 import org.teacon.signin.network.SyncGuideMapPacket;
 
 import java.util.*;
@@ -44,16 +47,24 @@ public final class GuideMapManager extends SimpleJsonResourceReloadListener {
             .registerTypeAdapter(Vec3i.class, new Vector3iAdapter())
             .create();
 
-    private static <T> void setDiff(Set<T> a, Set<T> b, Set<T> aMinusB, Set<T> bMinusA) {
-        aMinusB.addAll(a);
-        aMinusB.removeAll(b);
-        bMinusA.addAll(b);
-        bMinusA.removeAll(a);
+    private static <T> void setDiff(Set<T> old, Set<T> now, Set<T> removal, Set<T> update) {
+        update.addAll(now);
+        removal.addAll(old);
+        update.removeAll(removal);
+        removal.removeAll(now);
+    }
+
+    private static <S, T> void mapDiff(Map<S, T> old, Map<S, T> now, Map<S, T> removal, Map<S, T> update) {
+        update.putAll(now);
+        removal.putAll(old);
+        update.entrySet().removeAll(removal.entrySet());
+        removal.keySet().removeAll(now.keySet());
     }
 
     private final SortedMap<ResourceLocation, GuideMap> maps = new TreeMap<>();
     private final Map<ResourceLocation, Waypoint> points = new HashMap<>();
     private final Map<ResourceLocation, Trigger> triggers = new HashMap<>();
+    private final Map<ServerPlayer, GlobalPos> positions = new WeakHashMap<>();
 
     public GuideMapManager() {
         // We are looking for any json files under `signup_guides` folder.
@@ -70,9 +81,11 @@ public final class GuideMapManager extends SimpleJsonResourceReloadListener {
     public void sync(EntityJoinLevelEvent event) {
         // Being a ServerPlayerEntity implies a logical server, thus no isRemote check.
         if (event.getEntity() instanceof ServerPlayer p) {
-            final SortedMap<ResourceLocation, GuideMap> mapsToSend = new TreeMap<>();
+            SortedMap<ResourceLocation, GuideMap> mapsToSend = new TreeMap<>();
+            // noinspection resource
+            ServerLevel level = p.serverLevel();
             this.maps.forEach((id, map) -> {
-                if (p.level().dimension().location().equals(map.dim)) {
+                if (level.dimension().location().equals(map.dim)) {
                     mapsToSend.put(id, map);
                 }
             });
@@ -83,7 +96,7 @@ public final class GuideMapManager extends SimpleJsonResourceReloadListener {
     @SubscribeEvent
     public void tick(TickEvent.ServerTickEvent event) {
         if (event.side.isServer() && event.phase == TickEvent.Phase.START) {
-            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+            MinecraftServer server = event.getServer();
             for (Map.Entry<ResourceLocation, Waypoint> entry : this.points.entrySet()) {
                 ResourceLocation key = entry.getKey();
                 Waypoint wp = entry.getValue();
@@ -94,6 +107,24 @@ public final class GuideMapManager extends SimpleJsonResourceReloadListener {
                 Trigger trigger = entry.getValue();
                 tickOne(id, trigger, server);
             }
+            Map<ServerPlayer, GlobalPos> currentPositions = new HashMap<>(server.getPlayerCount());
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                // noinspection resource
+                currentPositions.put(player, GlobalPos.of(player.level().dimension(), player.blockPosition()));
+            }
+            Map<ServerPlayer, GlobalPos> update = new HashMap<>();
+            Map<ServerPlayer, GlobalPos> removal = new HashMap<>();
+            mapDiff(this.positions, currentPositions, removal, update);
+            for (Map.Entry<ServerPlayer, GlobalPos> entry : update.entrySet()) {
+                SignMeUp.channel.send(PacketDistributor.ALL.noArg(), new PartialUpdatePacket(
+                        PartialUpdatePacket.Mode.UPDATE_POSITION, entry.getKey().getGameProfile(), entry.getValue()));
+            }
+            for (Map.Entry<ServerPlayer, GlobalPos> entry : removal.entrySet()) {
+                SignMeUp.channel.send(PacketDistributor.ALL.noArg(), new PartialUpdatePacket(
+                        PartialUpdatePacket.Mode.REMOVE_POSITION, entry.getKey().getGameProfile(), entry.getValue()));
+            }
+            this.positions.clear();
+            this.positions.putAll(currentPositions);
         }
     }
 

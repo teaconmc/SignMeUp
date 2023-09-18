@@ -1,6 +1,7 @@
 package org.teacon.signin.client;
 
 import com.google.common.collect.*;
+import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -10,14 +11,15 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.resources.DefaultPlayerSkin;
+import net.minecraft.client.resources.SkinManager;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -210,9 +212,9 @@ public final class GuideMapScreen extends Screen {
 
         var sideMin = this.sideState.getSideMin();
         var sideMax = this.sideState.getSideMax();
-        var hasWaypointTrigger = this.sideState.getWaypointId() != null;
+        var wpCurrentId = this.sideState.getWaypointId();
 
-        this.leftFlip.visible = this.rightFlip.visible = hasWaypointTrigger;
+        this.leftFlip.visible = this.rightFlip.visible = wpCurrentId != null;
         this.leftFlip.active = this.rightFlip.active = this.sideState.isWaypointTextureMoreThanOne();
 
         this.sideNext.active = !this.sideState.isLast();
@@ -222,17 +224,17 @@ public final class GuideMapScreen extends Screen {
         this.switchToWaypoint.active = this.sideState.isLastWaypointAvailable();
 
         for (var waypointButton : this.waypoints.values()) {
-            waypointButton.visible = !hasWaypointTrigger;
+            waypointButton.visible = wpCurrentId == null;
         }
 
         for (int i = 0, size = this.mapTriggers.size(); i < size; ++i) {
-            this.mapTriggers.get(i).visible = !hasWaypointTrigger && i >= sideMin && i <= sideMax;
+            this.mapTriggers.get(i).visible = wpCurrentId == null && i >= sideMin && i <= sideMax;
         }
 
         for (var wpId : this.waypointTriggers.keySet()) {
             var triggerButtons = this.waypointTriggers.get(wpId);
             for (int i = 0, size = triggerButtons.size(); i < size; ++i) {
-                triggerButtons.get(i).visible = hasWaypointTrigger && i >= sideMin && i <= sideMax;
+                triggerButtons.get(i).visible = wpCurrentId == wpId && i >= sideMin && i <= sideMax;
             }
         }
     }
@@ -342,55 +344,60 @@ public final class GuideMapScreen extends Screen {
 
     private void renderPlayerHeads(GuiGraphics guiGraphics, int mouseX, int mouseY, int x0, int y0) {
         Minecraft mc = this.getMinecraft();
-        List<? extends Player> players = mc.level == null ? List.of() : mc.level.players();
+        Map<GameProfile, GlobalPos> players = SignMeUpClient.MANAGER.getAllPositions();
 
         int size = players.size();
         double[] inputX = new double[size], inputY = new double[size];
         double[] outputX = new double[size], outputY = new double[size];
+        List<Map.Entry<GameProfile, GlobalPos>> chosenPlayers = new ArrayList<>(players.size());
 
+        int index = 0;
         int currentIndex = size;
         Vec3i center = this.map.center;
         UUID current = mc.player == null ? null : mc.player.getUUID();
-        for (int i = 0; i < size; ++i) {
-            Player player = players.get(i);
-            if (player.getUUID().equals(current)) {
-                currentIndex = i;
+        ResourceKey<Level> dimension = mc.level == null ? null : mc.level.dimension();
+        for (Map.Entry<GameProfile, GlobalPos> entry : players.entrySet()) {
+            var playerPos = entry.getValue();
+            if (playerPos.dimension().equals(dimension)) {
+                UUID playerId = entry.getKey().getId();
+                if (playerId != null && playerId.equals(current)) {
+                    currentIndex = index;
+                }
+                inputX[index] = playerPos.pos().getX() + 0.5 - center.getX();
+                inputY[index] = playerPos.pos().getZ() + 0.5 - center.getY();
+                chosenPlayers.add(entry);
+                index += 1;
             }
-            inputX[i] = player.getX() - center.getX();
-            inputY[i] = player.getZ() - center.getY();
         }
         this.mapping.interpolate(inputX, inputY, outputX, outputY);
 
         // make sure that current player is rendered at last
         for (int i = currentIndex - 1; i >= 0; --i) {
-            this.renderPlayerHead(guiGraphics, mouseX, mouseY, x0, y0, players.get(i), outputX[i], outputY[i]);
+            this.renderPlayerHead(guiGraphics, mouseX, mouseY, x0, y0, chosenPlayers.get(i), outputX[i], outputY[i]);
         }
         for (int i = size - 1; i >= currentIndex; --i) {
-            this.renderPlayerHead(guiGraphics, mouseX, mouseY, x0, y0, players.get(i), outputX[i], outputY[i]);
+            this.renderPlayerHead(guiGraphics, mouseX, mouseY, x0, y0, chosenPlayers.get(i), outputX[i], outputY[i]);
         }
     }
 
     private void renderPlayerHead(GuiGraphics guiGraphics,
                                   int mouseX, int mouseY, int x0, int y0,
-                                  Player player, double outputX, double outputY) {
+                                  Map.Entry<GameProfile, GlobalPos> entry, double outputX, double outputY) {
+        SkinManager skinManager = this.getMinecraft().getSkinManager();
         int wpX = Math.round((float) outputX / this.map.radius * 128) + 128;
         int wpY = Math.round((float) outputY / this.map.radius * 128) + 128;
-        if (wpX >= 1 && wpX <= 127 && wpY >= 1 && wpY <= 127) {
+        if (wpX >= 1 && wpX <= 255 && wpY >= 1 && wpY <= 255) {
             int mapCanvasX = x0 + 109, mapCanvasY = y0 + 18;
-            // could we have dinnerbone or grumm joined our server?
-            if (LivingEntityRenderer.isEntityUpsideDown(player)) {
-                guiGraphics.blit(
-                        DefaultPlayerSkin.getDefaultSkin(player.getUUID()),
-                        mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4, 8, 16, 8, -8, 64, 64);
-            } else {
-                guiGraphics.blit(
-                        DefaultPlayerSkin.getDefaultSkin(player.getUUID()),
-                        mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4, 8, 8, 8, 8, 64, 64);
-            }
-            if (mouseX >= x0 + 109 + wpX && mouseX < x0 + 113 + wpX) {
-                if (mouseY >= y0 + 18 + wpY && mouseY < y0 + 22 + wpY) {
-                    double distance = player.position().distanceTo(this.playerLocation);
-                    this.queuedTips.offer(Pair.of(player.getDisplayName(), this.toDistanceText(distance)));
+            guiGraphics.blit(skinManager.getInsecureSkinLocation(entry.getKey()),
+                    mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4, 8, 8, 8, 8, 64, 64);
+            if (mouseX >= x0 + 107 + wpX && mouseX < x0 + 111 + wpX) {
+                if (mouseY >= y0 + 16 + wpY && mouseY < y0 + 20 + wpY) {
+                    Vec3 blockCenter = Vec3.atCenterOf(entry.getValue().pos());
+                    double blockDiffX = Math.max(0.0, Math.abs(blockCenter.x - this.playerLocation.x) - 0.5);
+                    double blockDiffY = Math.max(0.0, Math.abs(blockCenter.y - this.playerLocation.y) - 0.5);
+                    double blockDiffZ = Math.max(0.0, Math.abs(blockCenter.z - this.playerLocation.z) - 0.5);
+                    double d = Math.sqrt(blockDiffX * blockDiffX + blockDiffY * blockDiffY + blockDiffZ * blockDiffZ);
+                    this.queuedTips.offer(Pair.of(Component.literal(entry.getKey().getName()), this.toDistanceText(d)));
                 }
             }
         }

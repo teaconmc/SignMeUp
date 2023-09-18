@@ -1,6 +1,8 @@
 package org.teacon.signin.client;
 
+import com.mojang.authlib.GameProfile;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.teacon.signin.data.entity.GuideMap;
@@ -15,6 +17,7 @@ public final class ClientGuideMapManager {
     private SortedMap<ResourceLocation, GuideMap> availableMaps = Collections.emptySortedMap();
     private final Map<ResourceLocation, Waypoint> availableWaypoints = new HashMap<>();
     private final Map<ResourceLocation, Trigger> availableTriggers = new HashMap<>();
+    private final Map<GameProfile, GlobalPos> availablePositions = new HashMap<>();
 
     public void openMapByPacket(MapScreenPacket.Action action, ResourceLocation mapId, Vec3 position) {
         Minecraft mc = Minecraft.getInstance();
@@ -85,5 +88,17 @@ public final class ClientGuideMapManager {
 
     public void removeTrigger(ResourceLocation triggerId) {
         this.availableTriggers.remove(triggerId);
+    }
+
+    public void updatePosition(GameProfile uniqueId, GlobalPos pos) {
+        this.availablePositions.put(uniqueId, pos);
+    }
+
+    public void removePosition(GameProfile uniqueId) {
+        this.availablePositions.remove(uniqueId);
+    }
+
+    public Map<GameProfile, GlobalPos> getAllPositions() {
+        return Collections.unmodifiableMap(this.availablePositions);
     }
 }
