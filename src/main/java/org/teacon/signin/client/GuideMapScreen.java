@@ -1,9 +1,6 @@
 package org.teacon.signin.client;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Queues;
+import com.google.common.collect.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -48,7 +45,6 @@ public final class GuideMapScreen extends Screen {
     private static final int Y_SIZE = 288;
 
     private static final ResourceLocation GUIDE_MAP_TEXTURE = new ResourceLocation("sign_up", "textures/gui/texture.png");
-    private static final ResourceLocation MAP_ICONS = new ResourceLocation("minecraft", "textures/map/map_icons.png");
 
     public final ResourceLocation mapId;
 
@@ -63,8 +59,8 @@ public final class GuideMapScreen extends Screen {
     private ImageButton leftFlip, rightFlip;
     private ImageButton sidePrevious, sideNext;
     private ImageButton switchToWaypoint, switchToMap;
-    private final List<ImageButton> waypoints = Lists.newArrayList();
     private final List<TriggerButton> mapTriggers = Lists.newArrayList();
+    private final Map<ResourceLocation, ImageButton> waypoints = Maps.newLinkedHashMap();
     private final ListMultimap<ResourceLocation, TriggerButton> waypointTriggers = ArrayListMultimap.create();
 
     private final Queue<Pair<Component, Component>> queuedTips = Queues.newArrayDeque();
@@ -176,14 +172,14 @@ public final class GuideMapScreen extends Screen {
             int wpY = Math.round((float) outputY[i] / this.map.radius * 128) + 128;
             if (wpX >= 1 && wpX <= 255 && wpY >= 1 && wpY <= 255) {
                 // Setup Waypoints as ImageButtons
-                this.waypoints.add(this.addRenderableWidget(Util.make(new ImageButton(
-                        mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4, 58, 2, 0, MAP_ICONS, 128, 128,
+                this.waypoints.put(wpId, this.addRenderableWidget(Util.make(new ImageButton(
+                        mapCanvasX + wpX - 3, mapCanvasY + wpY - 3, 6, 6, 293, 304, 6, GUIDE_MAP_TEXTURE, 768, 384,
                         b -> this.sideState.switchToWaypoint(wpTriggerIds.size(), wpId, wp.getImageIds()), wp.getTitle()) {
                     @Override
                     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
                         super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
                         if (this.isHovered()) {
-                            double distance = Math.sqrt(wp.getActualLocation().distToCenterSqr(GuideMapScreen.this.playerLocation));
+                            var distance = Math.sqrt(wp.getActualLocation().distToCenterSqr(GuideMapScreen.this.playerLocation));
                             GuideMapScreen.this.queuedTips.offer(Pair.of(wp.getTitle(), GuideMapScreen.this.toDistanceText(distance)));
                         }
                     }
@@ -225,7 +221,7 @@ public final class GuideMapScreen extends Screen {
         this.switchToMap.active = true;
         this.switchToWaypoint.active = this.sideState.isLastWaypointAvailable();
 
-        for (var waypointButton : this.waypoints) {
+        for (var waypointButton : this.waypoints.values()) {
             waypointButton.visible = !hasWaypointTrigger;
         }
 
@@ -262,6 +258,7 @@ public final class GuideMapScreen extends Screen {
         if (waypointId == null) {
             this.renderPlayerHeads(guiGraphics, mouseX, mouseY, x0, y0);
             this.renderTitle(guiGraphics, mouseX, mouseY, x0, y0);
+            this.renderWaypointDebugText(guiGraphics);
         } else {
             this.renderTitle(guiGraphics, mouseX, mouseY, x0, y0);
             this.renderTextCollection(guiGraphics, mouseX, mouseY, x0, y0);
@@ -275,6 +272,25 @@ public final class GuideMapScreen extends Screen {
             if (mouseY >= y0 + 19 && mouseY < y0 + 37) {
                 this.queuedTips.offer(Pair.of(this.map.getTitle(), this.map.getSubtitle()));
             }
+        }
+    }
+
+    private void renderWaypointDebugText(GuiGraphics guiGraphics) {
+        // Draw title at the left of waypoints
+        if (this.getMinecraft().options.renderDebug) {
+            guiGraphics.pose().pushPose();
+            var source = guiGraphics.bufferSource();
+            var pose = guiGraphics.pose().last().pose().scale(0.5F);
+            for (var entry : this.waypoints.entrySet()) {
+                var wp = SignMeUpClient.MANAGER.findWaypoint(entry.getKey());
+                if (wp != null) {
+                    var y1 = entry.getValue().getY() * 2.0F + 2.0F;
+                    var wpTitle = wp.getTitle().getVisualOrderText();
+                    var x1 = entry.getValue().getX() * 2.0F - this.font.width(wpTitle) + 2.0F;
+                    this.font.drawInBatch8xOutline(wpTitle, x1, y1, 0xD6CCBE, 0x3C352A, pose, source, 0xF000F0);
+                }
+            }
+            guiGraphics.pose().popPose();
         }
     }
 
@@ -360,15 +376,16 @@ public final class GuideMapScreen extends Screen {
         int wpX = Math.round((float) outputX / this.map.radius * 128) + 128;
         int wpY = Math.round((float) outputY / this.map.radius * 128) + 128;
         if (wpX >= 1 && wpX <= 127 && wpY >= 1 && wpY <= 127) {
+            int mapCanvasX = x0 + 109, mapCanvasY = y0 + 18;
             // could we have dinnerbone or grumm joined our server?
             if (LivingEntityRenderer.isEntityUpsideDown(player)) {
                 guiGraphics.blit(
                         DefaultPlayerSkin.getDefaultSkin(player.getUUID()),
-                        x0 + 109 + wpX, y0 + 18 + wpY, 4, 4, 8, 16, 8, -8, 64, 64);
+                        mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4, 8, 16, 8, -8, 64, 64);
             } else {
                 guiGraphics.blit(
                         DefaultPlayerSkin.getDefaultSkin(player.getUUID()),
-                        x0 + 109 + wpX, y0 + 18 + wpY, 4, 4, 8, 8, 8, 8, 64, 64);
+                        mapCanvasX + wpX - 2, mapCanvasY + wpY - 2, 4, 4, 8, 8, 8, 8, 64, 64);
             }
             if (mouseX >= x0 + 109 + wpX && mouseX < x0 + 113 + wpX) {
                 if (mouseY >= y0 + 18 + wpY && mouseY < y0 + 22 + wpY) {
