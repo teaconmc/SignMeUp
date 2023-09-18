@@ -364,7 +364,7 @@ public final class GuideMapScreen extends Screen {
                     currentIndex = index;
                 }
                 inputX[index] = playerPos.pos().getX() + 0.5 - center.getX();
-                inputY[index] = playerPos.pos().getZ() + 0.5 - center.getY();
+                inputY[index] = playerPos.pos().getZ() + 0.5 - center.getZ();
                 chosenPlayers.add(entry);
                 index += 1;
             }
