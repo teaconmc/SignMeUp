@@ -74,6 +74,12 @@ public final class ClientGuideMapManager {
         return this.availableMaps.get(mapId);
     }
 
+    public void refreshScreen() {
+        if (Minecraft.getInstance().screen instanceof GuideMapScreen screen) {
+            screen.refresh();
+        }
+    }
+
     public void addWaypoint(ResourceLocation waypointId, Waypoint waypoint) {
         this.availableWaypoints.put(waypointId, waypoint);
     }

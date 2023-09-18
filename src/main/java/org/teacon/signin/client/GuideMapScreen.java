@@ -126,7 +126,7 @@ public final class GuideMapScreen extends Screen {
                 })));
             }
         }
-        this.sideState.switchToMap(this.mapTriggers.size());
+        this.sideState.adjustMapTriggerSize(this.mapTriggers.size());
 
         // Collect Waypoints
         int mapCanvasX = x0 + 109, mapCanvasY = y0 + 18;
@@ -461,7 +461,7 @@ public final class GuideMapScreen extends Screen {
     }
 
     private static final class SideState {
-        private int sidePageIndex;
+        private int sidePage;
         private int sideMapCount;
         private int sideWaypointCount;
         private boolean showTheWaypoint;
@@ -469,11 +469,11 @@ public final class GuideMapScreen extends Screen {
         private final List<ResourceLocation> waypointTextures = new ArrayList<>();
 
         public boolean isFirst() {
-            return this.sidePageIndex <= 0;
+            return this.sidePage <= 0;
         }
 
         public boolean isLast() {
-            return this.sidePageIndex >= this.getSideMaxPage() - 1;
+            return this.sidePage >= this.getSideMaxPage() - 1;
         }
 
         public boolean isLastWaypointAvailable() {
@@ -485,19 +485,24 @@ public final class GuideMapScreen extends Screen {
         }
 
         public void next() {
-            this.sidePageIndex = Mth.clamp(this.sidePageIndex + 1, 0, this.getSideMaxPage() - 1);
+            this.sidePage = Mth.clamp(this.sidePage + 1, 0, this.getSideMaxPage() - 1);
         }
 
         public void prev() {
-            this.sidePageIndex = Mth.clamp(this.sidePageIndex - 1, 0, this.getSideMaxPage() - 1);
+            this.sidePage = Mth.clamp(this.sidePage - 1, 0, this.getSideMaxPage() - 1);
         }
 
         public void rotateWaypointTexture(int offset) {
             Collections.rotate(this.waypointTextures, -offset);
         }
 
+        public void adjustMapTriggerSize(int mapTriggerCount) {
+            this.sidePage = this.showTheWaypoint ? this.sidePage : Math.min(this.sidePage, mapTriggerCount);
+            this.sideMapCount = mapTriggerCount;
+        }
+
         public void switchToMap(int mapTriggerCount) {
-            this.sidePageIndex = 0;
+            this.sidePage = 0;
             this.sideMapCount = mapTriggerCount;
             this.showTheWaypoint = false;
         }
@@ -505,7 +510,7 @@ public final class GuideMapScreen extends Screen {
         public void switchToWaypoint(int waypointTriggerCount,
                                      ResourceLocation waypointId,
                                      List<ResourceLocation> waypointTextures) {
-            this.sidePageIndex = 0;
+            this.sidePage = 0;
             this.sideWaypointCount = waypointTriggerCount;
             this.showTheWaypoint = true;
             this.waypointId = waypointId;
@@ -514,16 +519,16 @@ public final class GuideMapScreen extends Screen {
         }
 
         public void switchToLastWaypointIfExists() {
-            this.sidePageIndex = 0;
+            this.sidePage = 0;
             this.showTheWaypoint = this.waypointId != null;
         }
 
         public int getSideMin() {
-            return this.sidePageIndex * 7;
+            return this.sidePage * 7;
         }
 
         public int getSideMax() {
-            return this.sidePageIndex * 7 + 6;
+            return this.sidePage * 7 + 6;
         }
 
         public int getSideMaxPage() {

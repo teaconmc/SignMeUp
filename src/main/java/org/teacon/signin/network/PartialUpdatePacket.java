@@ -98,16 +98,24 @@ public final class PartialUpdatePacket {
     public void handle(Supplier<NetworkEvent.Context> contextGetter) {
         contextGetter.get().enqueueWork(() -> {
             switch (this.mode) {
-                case ADD_WAYPOINT -> SignMeUpClient.MANAGER.addWaypoint(this.waypointId, this.waypoint);
-                case REMOVE_WAYPOINT -> SignMeUpClient.MANAGER.removeWaypoint(this.waypointId);
-                case ADD_TRIGGER -> SignMeUpClient.MANAGER.addTrigger(this.triggerId, this.trigger);
-                case REMOVE_TRIGGER -> SignMeUpClient.MANAGER.removeTrigger(this.triggerId);
+                case ADD_WAYPOINT -> {
+                    SignMeUpClient.MANAGER.addWaypoint(this.waypointId, this.waypoint);
+                    SignMeUpClient.MANAGER.refreshScreen();
+                }
+                case REMOVE_WAYPOINT -> {
+                    SignMeUpClient.MANAGER.removeWaypoint(this.waypointId);
+                    SignMeUpClient.MANAGER.refreshScreen();
+                }
+                case ADD_TRIGGER -> {
+                    SignMeUpClient.MANAGER.addTrigger(this.triggerId, this.trigger);
+                    SignMeUpClient.MANAGER.refreshScreen();
+                }
+                case REMOVE_TRIGGER -> {
+                    SignMeUpClient.MANAGER.removeTrigger(this.triggerId);
+                    SignMeUpClient.MANAGER.refreshScreen();
+                }
                 case UPDATE_POSITION -> SignMeUpClient.MANAGER.updatePosition(this.playerUniqueId, this.playerPos);
                 case REMOVE_POSITION -> SignMeUpClient.MANAGER.removePosition(this.playerUniqueId);
-            }
-            final Minecraft mc = Minecraft.getInstance();
-            if (mc.screen instanceof GuideMapScreen screen) {
-                screen.refresh();
             }
         });
         contextGetter.get().setPacketHandled(true);
