@@ -148,8 +148,10 @@ public final class SignMeUp {
             if (server != null) {
                 final Vec3 pos3d = Vec3.atLowerCornerOf(pos);
                 final CommandSourceStack source = isCommand
-                        ? player.createCommandSourceStack().withPosition(pos3d).withPermission(2)
-                        : player.createCommandSourceStack().withPosition(pos3d).withSuppressedOutput().withMaximumPermission(2);
+                        ? player.getServer().createCommandSourceStack()
+                        .withEntity(player).withPosition(pos3d).withPermission(2)
+                        : player.getServer().createCommandSourceStack()
+                        .withEntity(player).withPosition(pos3d).withSuppressedOutput().withMaximumPermission(2);
                 for (String command : trigger.executes) {
                     server.getCommands().performPrefixedCommand(source, command);
                 }
