@@ -17,7 +17,7 @@ public final class Hotkey {
 
     @SubscribeEvent
     public static void keyTyped(InputEvent.Key event) {
-        if (SignMeUpClient.keyOpenMap != null && SignMeUpClient.keyOpenMap.isDown()) {
+        if (SignMeUpClient.keyOpenMap != null && SignMeUpClient.keyOpenMap.consumeClick()) {
             Minecraft mc = Minecraft.getInstance();
             if (mc.player != null) {
                 final Vec3 position = mc.player.position();
