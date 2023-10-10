@@ -118,7 +118,7 @@ public final class PolynomialMapping {
             Complex currentValue = current.sub(this.inputParameters.get(0)), resultValue = currentOutputFactor;
 
             for (int j = 1; j < degree; ++j) {
-                Complex inputFactor = current.sub(this.inputParameters.get(i));
+                Complex inputFactor = current.sub(this.inputParameters.get(j));
                 currentOutputFactor = currentOutput.next();
 
                 resultDerivative = resultDerivative.add(currentDerivative.mul(currentOutputFactor));
