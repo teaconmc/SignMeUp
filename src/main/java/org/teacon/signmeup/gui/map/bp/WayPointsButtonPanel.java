@@ -9,6 +9,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.teacon.signmeup.SignMeUp;
 import org.teacon.signmeup.config.Waypoints;
@@ -65,7 +66,11 @@ public class WayPointsButtonPanel extends ButtonPanelBase {
             var button = new THoverSensitiveImageButtonImpl(
                     wayPoint.name,
                     b -> {
-                        NetworkHelper.sendToServer(new TeleportToWayPointPacket(wayPoint.name));
+                        Minecraft mc = Minecraft.getInstance();
+                        if (mc.level != null && mc.level.dimension() == Level.OVERWORLD) {
+                            NetworkHelper.sendToServer(new TeleportToWayPointPacket(wayPoint.name));
+                        }
+
                         getTopParentScreenOptional().ifPresent(tScreen -> tScreen.onClose(false));
                     },
                     SignMeUp.id("textures/gui/button_panel_button.png"),

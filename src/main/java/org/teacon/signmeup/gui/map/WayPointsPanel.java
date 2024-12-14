@@ -9,9 +9,11 @@ import cn.ussshenzhou.t88.gui.widegt.TPanel;
 import cn.ussshenzhou.t88.network.NetworkHelper;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import org.joml.Vector2i;
 import org.teacon.signmeup.SignMeUp;
 import org.teacon.signmeup.config.Waypoints;
@@ -117,7 +119,11 @@ public class WayPointsPanel extends TPanel {
                 long time = System.currentTimeMillis();
                 if (time - lastClickedTime <= 200) {
                     lastClickedTime = 0;
-                    NetworkHelper.sendToServer(new TeleportToWayPointPacket(logicWaypoints.inverse().get(this).name));
+                    Minecraft mc = Minecraft.getInstance();
+                    if (mc.level != null && mc.level.dimension() == Level.OVERWORLD) {
+                        NetworkHelper.sendToServer(new TeleportToWayPointPacket(logicWaypoints.inverse().get(this).name));
+                    }
+
                     getTopParentScreenOptional().ifPresent(tScreen -> tScreen.onClose(false));
                     return true;
                 } else {

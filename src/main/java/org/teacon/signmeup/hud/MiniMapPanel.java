@@ -6,12 +6,11 @@ import cn.ussshenzhou.t88.gui.widegt.TImage;
 import cn.ussshenzhou.t88.gui.widegt.TPanel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.level.Level;
 import org.joml.Quaternionf;
 import org.teacon.signmeup.SignMeUp;
 import org.teacon.signmeup.config.MiniMap;
 import org.teacon.signmeup.gui.map.MapScreen;
-
-import java.util.Set;
 
 import static net.minecraft.util.Mth.PI;
 
@@ -49,8 +48,10 @@ public class MiniMapPanel extends TPanel {
     public void tickT() {
         super.tickT();
         Minecraft mc = Minecraft.getInstance();
+
         var visible = !mc.getDebugOverlay().showDebugScreen()
                 && !mc.options.hideGui
+                && (mc.level != null && mc.level.dimension() == Level.OVERWORLD)
                 && MiniMapAPI.INSTANCE.visible()
                 && !(mc.screen instanceof MapScreen);
         children.forEach(childTComponent -> childTComponent.setVisibleT(visible));

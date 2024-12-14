@@ -3,6 +3,7 @@ package org.teacon.signmeup.input;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -20,7 +21,8 @@ public class ModKeyInput {
     public static final KeyMapping OPEN_MAP = new KeyMapping(
             "key.sign_up.open_map", KeyConflictContext.IN_GAME, KeyModifier.NONE,
             InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_M, "key.categories.sign_up"
-    );    public static final KeyMapping OPEN_NEW_MAP = new KeyMapping(
+    );
+    public static final KeyMapping OPEN_NEW_MAP = new KeyMapping(
             "key.sign_up.open_new_map", KeyConflictContext.IN_GAME, KeyModifier.NONE,
             InputConstants.Type.KEYSYM, -1, "key.categories.sign_up"
     );
@@ -28,15 +30,18 @@ public class ModKeyInput {
 
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
-        MapScreen screen;
-        if (OPEN_NEW_MAP.consumeClick()) {
-            screen = MapScreen.getNewInstance();
-        } else if (OPEN_MAP.consumeClick()) {
-            screen = MapScreen.getInstance();
-        } else {
-            return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level != null && mc.level.dimension() == Level.OVERWORLD) {
+            MapScreen screen;
+            if (OPEN_NEW_MAP.consumeClick()) {
+                screen = MapScreen.getNewInstance();
+            } else if (OPEN_MAP.consumeClick()) {
+                screen = MapScreen.getInstance();
+            } else {
+                return;
+            }
+            mc.setScreen(screen);
+            screen.layout();
         }
-        Minecraft.getInstance().setScreen(screen);
-        screen.layout();
     }
 }
