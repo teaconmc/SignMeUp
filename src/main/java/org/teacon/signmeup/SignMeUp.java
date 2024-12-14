@@ -30,8 +30,6 @@ public class SignMeUp {
         ConfigHelper.loadConfig(new Map());
         ConfigHelper.loadConfig(new Waypoints());
         ConfigHelper.loadConfig(new MiniMap());
-
-        Minecraft.getInstance().execute(() -> Thread.currentThread().setPriority((Thread.MAX_PRIORITY + Thread.NORM_PRIORITY) / 2));
     }
 
     public static ResourceLocation id(String path) {
