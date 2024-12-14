@@ -7,6 +7,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
+import org.teacon.signmeup.command.argument.ModCommandArgumentRegistry;
 import org.teacon.signmeup.config.Map;
 import org.teacon.signmeup.config.MiniMap;
 import org.teacon.signmeup.config.PlayerCommands;
@@ -23,6 +24,8 @@ public class SignMeUp {
     public static final boolean IRIS_INSTALLED = ModList.get().isLoaded("iris");
 
     public SignMeUp(IEventBus bus, ModContainer mod) {
+        ModCommandArgumentRegistry.register(bus);
+
         ConfigHelper.loadConfig(new PlayerCommands());
         ConfigHelper.loadConfig(new Map());
         ConfigHelper.loadConfig(new Waypoints());

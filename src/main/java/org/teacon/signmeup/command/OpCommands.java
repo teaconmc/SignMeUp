@@ -16,6 +16,7 @@ import net.minecraft.commands.arguments.coordinates.WorldCoordinates;
 import net.minecraft.core.Rotations;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import org.teacon.signmeup.command.argument.SpaceBreakStringArgumentType;
 import org.teacon.signmeup.config.Waypoints;
 import org.teacon.signmeup.network.RemoveWaypointPacket;
 import org.teacon.signmeup.network.SetWaypointPacket;
@@ -34,7 +35,7 @@ public class OpCommands {
                         .then(Commands.literal("set")
                                 .then(Commands.argument("pos", Vec3Argument.vec3(false))
                                         .then(Commands.argument("rotation", RotationArgument.rotation())
-                                                .then(Commands.argument("name", StringArgumentType.string())
+                                                .then(Commands.argument("name", SpaceBreakStringArgumentType.string())
                                                         .then(Commands.argument("description", StringArgumentType.greedyString())
                                                                 .executes(OpCommands::setWaypoint)
                                                         )
@@ -43,7 +44,7 @@ public class OpCommands {
                                 )
                         )
                         .then(Commands.literal("remove")
-                                .then(Commands.argument("name", StringArgumentType.string())
+                                .then(Commands.argument("name", SpaceBreakStringArgumentType.string())
                                         .suggests((context, builder) -> SharedSuggestionProvider.suggest(
                                                 ConfigHelper.getConfigRead(Waypoints.class).waypoints.stream().map(wayPoint -> wayPoint.name), builder))
                                         .executes(OpCommands::removeWaypoint)
