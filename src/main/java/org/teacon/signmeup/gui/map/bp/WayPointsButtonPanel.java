@@ -1,6 +1,5 @@
 package org.teacon.signmeup.gui.map.bp;
 
-import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.gui.advanced.THoverSensitiveImageButton;
 import cn.ussshenzhou.t88.gui.widegt.TWidget;
 import cn.ussshenzhou.t88.network.NetworkHelper;
@@ -12,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.teacon.signmeup.SignMeUp;
-import org.teacon.signmeup.config.Waypoints;
+import org.teacon.signmeup.config.waypoints.Waypoint;
 import org.teacon.signmeup.gui.map.ButtonPanelBase;
 import org.teacon.signmeup.network.TeleportToWayPointPacket;
 
@@ -41,11 +40,11 @@ public class WayPointsButtonPanel extends ButtonPanelBase {
 
     public WayPointsButtonPanel() {
         super(true);
-        Waypoints.WayPoint[] waypoints = ConfigHelper.getConfigRead(Waypoints.class).waypoints.toArray(Waypoints.WayPoint[]::new);
+        Waypoint[] waypoints = Waypoint.INSTANCES.values().toArray(Waypoint[]::new);
 
         int staticWP = 0;
         for (int i = 0; i < waypoints.length; i++) {
-            Waypoints.WayPoint item = waypoints[i];
+            Waypoint item = waypoints[i];
             if (item.name.startsWith("#")) {
                 waypoints[i] = waypoints[staticWP];
                 waypoints[staticWP] = item;
@@ -57,12 +56,12 @@ public class WayPointsButtonPanel extends ButtonPanelBase {
         Random random = new Random(uuid.getLeastSignificantBits() ^ uuid.getMostSignificantBits());
         for (int i = waypoints.length; i > staticWP + 1; --i) {
             int k1 = random.nextInt(i - staticWP) + staticWP, k2 = i - 1;
-            Waypoints.WayPoint t = waypoints[k2];
+            Waypoint t = waypoints[k2];
             waypoints[k2] = waypoints[k1];
             waypoints[k1] = t;
         }
 
-        for (Waypoints.WayPoint wayPoint : waypoints) {
+        for (Waypoint wayPoint : waypoints) {
             var button = new THoverSensitiveImageButtonImpl(
                     wayPoint.name,
                     b -> {
@@ -82,7 +81,7 @@ public class WayPointsButtonPanel extends ButtonPanelBase {
         }
     }
 
-    public void highlight(List<Waypoints.WayPoint> highlightWaypoints) {
+    public void highlight(List<Waypoint> highlightWaypoints) {
         if (highlightWaypoints.isEmpty()) {
             for (TWidget child : this.buttons.getChildren()) {
                 if (child instanceof THoverSensitiveImageButton btn) {

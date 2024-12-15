@@ -1,6 +1,5 @@
 package org.teacon.signmeup.gui.map;
 
-import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.gui.util.HorizontalAlignment;
 import cn.ussshenzhou.t88.gui.util.LayoutHelper;
 import cn.ussshenzhou.t88.gui.widegt.TImage;
@@ -16,7 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import org.joml.Vector2i;
 import org.teacon.signmeup.SignMeUp;
-import org.teacon.signmeup.config.Waypoints;
+import org.teacon.signmeup.config.waypoints.Waypoint;
 import org.teacon.signmeup.network.TeleportToWayPointPacket;
 
 import java.util.*;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
  * @author USS_Shenzhou
  */
 public class WayPointsPanel extends TPanel {
-    private final BiMap<Waypoints.WayPoint, WayPointDot> logicWaypoints = HashBiMap.create(ConfigHelper.getConfigRead(Waypoints.class).waypoints.size());
+    private final BiMap<Waypoint, WayPointDot> logicWaypoints = HashBiMap.create(Waypoint.INSTANCES.size());
     private final ArrayList<WayPointDot> visualWayPoints = new ArrayList<>();
     private static final int DOT_SIZE = 18;
 
@@ -38,7 +37,7 @@ public class WayPointsPanel extends TPanel {
         return (int) (DOT_SIZE * 0.75);
     }
 
-    public List<Waypoints.WayPoint> getHighlightWaypoints(double mouseX, double mouseY) {
+    public List<Waypoint> getHighlightWaypoints(double mouseX, double mouseY) {
         for (WayPointDot dot : visualWayPoints) {
             if (dot.isVisibleT() && dot.isInRange(mouseX, mouseY)) {
                 return dot.getLogicWaypoints();
@@ -50,8 +49,8 @@ public class WayPointsPanel extends TPanel {
 
     public Vector2i lookupWaypoint(String waypoint) {
         for (WayPointDot dot : visualWayPoints) {
-            List<Waypoints.WayPoint> ps = dot.getLogicWaypoints();
-            for (Waypoints.WayPoint p : ps) {
+            List<Waypoint> ps = dot.getLogicWaypoints();
+            for (Waypoint p : ps) {
                 if (p.name.equals(waypoint)) {
                     return new Vector2i(dot.getXT() + dot.getWidth() / 2, dot.getYT() + dot.getHeight() / 2);
                 }
@@ -62,13 +61,11 @@ public class WayPointsPanel extends TPanel {
 
     protected void update() {
         if (logicWaypoints.isEmpty()) {
-            ConfigHelper.getConfigRead(Waypoints.class).waypoints.forEach(
-                    wayPoint -> {
-                        WayPointDot dot = new WayPointDot(SignMeUp.id("textures/gui/waypoint.png"));
-                        dot.setTooltip(Tooltip.create(Component.translatable("gui.sign_up.map.teleport", wayPoint.name)));
-                        logicWaypoints.put(wayPoint, dot);
-                    }
-            );
+            Waypoint.INSTANCES.values().forEach(wayPoint -> {
+                WayPointDot dot = new WayPointDot(SignMeUp.id("textures/gui/waypoint.png"));
+                dot.setTooltip(Tooltip.create(Component.translatable("gui.sign_up.map.teleport", wayPoint.name)));
+                logicWaypoints.put(wayPoint, dot);
+            });
         }
         logicWaypoints.forEach((wayPoint, wayPointDot) -> {
             var pos = WayPointsPanel.this.getParentInstanceOf(MapPanel.class).map.worldToGui(wayPoint.x, wayPoint.z);
@@ -107,7 +104,7 @@ public class WayPointsPanel extends TPanel {
             super(imageLocation);
         }
 
-        public List<Waypoints.WayPoint> getLogicWaypoints() {
+        public List<Waypoint> getLogicWaypoints() {
             return List.of(logicWaypoints.inverse().get(this));
         }
 
@@ -136,7 +133,7 @@ public class WayPointsPanel extends TPanel {
     }
 
     public class WayPointMultiDot extends WayPointDot {
-        private final ArrayList<Waypoints.WayPoint> containedWaypoints = new ArrayList<>();
+        private final ArrayList<Waypoint> containedWaypoints = new ArrayList<>();
         private final TLabel number = new TLabel();
 
         public WayPointMultiDot(ResourceLocation imageLocation) {
@@ -148,7 +145,7 @@ public class WayPointsPanel extends TPanel {
         }
 
         @Override
-        public List<Waypoints.WayPoint> getLogicWaypoints() {
+        public List<Waypoint> getLogicWaypoints() {
             return Collections.unmodifiableList(containedWaypoints);
         }
 
@@ -158,19 +155,19 @@ public class WayPointsPanel extends TPanel {
             super.layout();
         }
 
-        private void joinAll(Collection<Waypoints.WayPoint> wayPoints) {
-            containedWaypoints.addAll(wayPoints);
-            var x = wayPoints.stream()
+        private void joinAll(Collection<Waypoint> waypoints) {
+            containedWaypoints.addAll(waypoints);
+            var x = waypoints.stream()
                     .mapToInt(waypoint -> waypoint.x)
-                    .sum() / wayPoints.size();
-            var z = wayPoints.stream()
+                    .sum() / waypoints.size();
+            var z = waypoints.stream()
                     .mapToInt(waypoint -> waypoint.z)
-                    .sum() / wayPoints.size();
+                    .sum() / waypoints.size();
             var pos = WayPointsPanel.this.getParentInstanceOf(MapPanel.class).map.worldToGui(x, z);
             this.setAbsBounds(pos.x - DOT_SIZE / 2, pos.y - DOT_SIZE / 2, DOT_SIZE, DOT_SIZE);
-            number.setText(Component.literal(String.valueOf(wayPoints.size())));
+            number.setText(Component.literal(String.valueOf(waypoints.size())));
 
-            setTooltip(Tooltip.create(Component.literal(wayPoints.stream().map(p -> p.name).collect(Collectors.joining("\n")))));
+            setTooltip(Tooltip.create(Component.literal(waypoints.stream().map(p -> p.name).collect(Collectors.joining("\n")))));
         }
     }
 }

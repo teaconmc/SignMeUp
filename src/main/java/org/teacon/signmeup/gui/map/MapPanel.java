@@ -15,7 +15,7 @@ import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.teacon.signmeup.SignMeUp;
 import org.teacon.signmeup.config.Map;
-import org.teacon.signmeup.config.Waypoints;
+import org.teacon.signmeup.config.waypoints.Waypoint;
 
 import java.util.List;
 
@@ -179,7 +179,7 @@ public class MapPanel extends TVerticalAndHorizontalScrollContainer {
         return SCROLLER_VERTICAL;
     }
 
-    public List<Waypoints.WayPoint> getHighlightWaypoints(double pMouseX, double pMouseY) {
+    public List<Waypoint> getHighlightWaypoints(double pMouseX, double pMouseY) {
         return wayPointsPanel.getHighlightWaypoints(pMouseX + scrollAmountX, pMouseY + scrollAmountY);
     }
 

@@ -1,7 +1,6 @@
 package org.teacon.signmeup;
 
 import cn.ussshenzhou.t88.config.ConfigHelper;
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -11,7 +10,6 @@ import org.teacon.signmeup.command.argument.ModCommandArgumentRegistry;
 import org.teacon.signmeup.config.Map;
 import org.teacon.signmeup.config.MiniMap;
 import org.teacon.signmeup.config.PlayerCommands;
-import org.teacon.signmeup.config.Waypoints;
 
 /**
  * @author USS_Shenzhou
@@ -28,7 +26,6 @@ public class SignMeUp {
 
         ConfigHelper.loadConfig(new PlayerCommands());
         ConfigHelper.loadConfig(new Map());
-        ConfigHelper.loadConfig(new Waypoints());
         ConfigHelper.loadConfig(new MiniMap());
     }
 
