@@ -36,7 +36,7 @@ public record TeleportToWayPointPacket(String name) {
 
             Waypoint waypoint = Waypoint.INSTANCES.get(name);
             if (waypoint != null) {
-                player.teleportTo(level, waypoint.x, waypoint.y, waypoint.z, Set.of(), waypoint.rx, waypoint.ry);
+                player.teleportTo(level, waypoint.x(), waypoint.y(), waypoint.z(), Set.of(), waypoint.rx(), waypoint.ry());
             } else {
                 player.sendSystemMessage(Component.literal("Open a new SMU map! The waypoint data is out of date."));
             }

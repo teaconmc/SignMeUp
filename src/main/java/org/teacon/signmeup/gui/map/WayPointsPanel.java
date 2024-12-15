@@ -51,7 +51,7 @@ public class WayPointsPanel extends TPanel {
         for (WayPointDot dot : visualWayPoints) {
             List<Waypoint> ps = dot.getLogicWaypoints();
             for (Waypoint p : ps) {
-                if (p.name.equals(waypoint)) {
+                if (p.name().equals(waypoint)) {
                     return new Vector2i(dot.getXT() + dot.getWidth() / 2, dot.getYT() + dot.getHeight() / 2);
                 }
             }
@@ -63,12 +63,12 @@ public class WayPointsPanel extends TPanel {
         if (logicWaypoints.isEmpty()) {
             Waypoint.INSTANCES.values().forEach(wayPoint -> {
                 WayPointDot dot = new WayPointDot(SignMeUp.id("textures/gui/waypoint.png"));
-                dot.setTooltip(Tooltip.create(Component.translatable("gui.sign_up.map.teleport", wayPoint.name)));
+                dot.setTooltip(Tooltip.create(Component.translatable("gui.sign_up.map.teleport", wayPoint.name())));
                 logicWaypoints.put(wayPoint, dot);
             });
         }
         logicWaypoints.forEach((wayPoint, wayPointDot) -> {
-            var pos = WayPointsPanel.this.getParentInstanceOf(MapPanel.class).map.worldToGui(wayPoint.x, wayPoint.z);
+            var pos = WayPointsPanel.this.getParentInstanceOf(MapPanel.class).map.worldToGui(wayPoint.x(), wayPoint.z());
             wayPointDot.setAbsBounds(pos.x - DOT_SIZE / 2, pos.y - DOT_SIZE / 2, DOT_SIZE, DOT_SIZE);
         });
         visualWayPoints.forEach(this::remove);
@@ -118,7 +118,7 @@ public class WayPointsPanel extends TPanel {
                     lastClickedTime = 0;
                     Minecraft mc = Minecraft.getInstance();
                     if (mc.level != null && mc.level.dimension() == Level.OVERWORLD) {
-                        NetworkHelper.sendToServer(new TeleportToWayPointPacket(logicWaypoints.inverse().get(this).name));
+                        NetworkHelper.sendToServer(new TeleportToWayPointPacket(logicWaypoints.inverse().get(this).name()));
                     }
 
                     getTopParentScreenOptional().ifPresent(tScreen -> tScreen.onClose(false));
@@ -158,16 +158,16 @@ public class WayPointsPanel extends TPanel {
         private void joinAll(Collection<Waypoint> waypoints) {
             containedWaypoints.addAll(waypoints);
             var x = waypoints.stream()
-                    .mapToInt(waypoint -> waypoint.x)
+                    .mapToInt(waypoint -> waypoint.x())
                     .sum() / waypoints.size();
             var z = waypoints.stream()
-                    .mapToInt(waypoint -> waypoint.z)
+                    .mapToInt(waypoint -> waypoint.z())
                     .sum() / waypoints.size();
             var pos = WayPointsPanel.this.getParentInstanceOf(MapPanel.class).map.worldToGui(x, z);
             this.setAbsBounds(pos.x - DOT_SIZE / 2, pos.y - DOT_SIZE / 2, DOT_SIZE, DOT_SIZE);
             number.setText(Component.literal(String.valueOf(waypoints.size())));
 
-            setTooltip(Tooltip.create(Component.literal(waypoints.stream().map(p -> p.name).collect(Collectors.joining("\n")))));
+            setTooltip(Tooltip.create(Component.literal(waypoints.stream().map(p -> p.name()).collect(Collectors.joining("\n")))));
         }
     }
 }

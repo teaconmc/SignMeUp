@@ -9,7 +9,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.server.ServerLifecycleEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.teacon.signmeup.SignMeUp;
 import org.teacon.signmeup.network.SyncWaypointPacket;

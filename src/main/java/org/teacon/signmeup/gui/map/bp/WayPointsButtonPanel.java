@@ -45,7 +45,7 @@ public class WayPointsButtonPanel extends ButtonPanelBase {
         int staticWP = 0;
         for (int i = 0; i < waypoints.length; i++) {
             Waypoint item = waypoints[i];
-            if (item.name.startsWith("#")) {
+            if (item.name().startsWith("#")) {
                 waypoints[i] = waypoints[staticWP];
                 waypoints[staticWP] = item;
                 staticWP++;
@@ -63,11 +63,11 @@ public class WayPointsButtonPanel extends ButtonPanelBase {
 
         for (Waypoint wayPoint : waypoints) {
             var button = new THoverSensitiveImageButtonImpl(
-                    wayPoint.name,
+                    wayPoint.name(),
                     b -> {
                         Minecraft mc = Minecraft.getInstance();
                         if (mc.level != null && mc.level.dimension() == Level.OVERWORLD) {
-                            NetworkHelper.sendToServer(new TeleportToWayPointPacket(wayPoint.name));
+                            NetworkHelper.sendToServer(new TeleportToWayPointPacket(wayPoint.name()));
                         }
 
                         getTopParentScreenOptional().ifPresent(tScreen -> tScreen.onClose(false));
@@ -76,7 +76,7 @@ public class WayPointsButtonPanel extends ButtonPanelBase {
                     SignMeUp.id("textures/gui/button_panel_button_hovered.png")
             );
             button.setPadding(0);
-            button.setTooltip(Tooltip.create(Component.literal(wayPoint.description)));
+            button.setTooltip(Tooltip.create(Component.literal(wayPoint.description())));
             this.buttons.add(button);
         }
     }
@@ -91,7 +91,7 @@ public class WayPointsButtonPanel extends ButtonPanelBase {
             return;
         }
 
-        Set<String> lookup = highlightWaypoints.stream().map(w -> w.name).collect(Collectors.toSet());
+        Set<String> lookup = highlightWaypoints.stream().map(w -> w.name()).collect(Collectors.toSet());
         for (TWidget child : this.buttons.getChildren()) {
             if (!(child instanceof THoverSensitiveImageButtonImpl btn)) {
                 continue;

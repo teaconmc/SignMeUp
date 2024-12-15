@@ -1,12 +1,10 @@
 package org.teacon.signmeup.config.waypoints;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,17 +47,13 @@ public class WaypointSavedData extends SavedData {
     }
 
     private static @Nullable WaypointSavedData getInstance() {
-        MinecraftServer server = switch (FMLEnvironment.dist) {
-            case CLIENT -> Minecraft.getInstance().getSingleplayerServer();
-            case DEDICATED_SERVER -> ServerLifecycleHooks.getCurrentServer();
-        };
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) {
             return null;
         }
 
-        WaypointSavedData data = Objects.requireNonNull(server.getLevel(Level.OVERWORLD), "Level 'overworld' should exist.").getDataStorage()
+        return Objects.requireNonNull(server.getLevel(Level.OVERWORLD), "Level 'overworld' should exist.").getDataStorage()
                 .computeIfAbsent(WaypointSavedData.FACTORY, SignMeUp.MODID + "_waypoints");
-        return data;
     }
 
     @Override
@@ -67,16 +61,16 @@ public class WaypointSavedData extends SavedData {
         for (Waypoint waypoint : Waypoint.INSTANCES.values()) {
             CompoundTag point = new CompoundTag();
             {
-                point.putString("description", waypoint.description);
-                point.putIntArray("pos", new int[]{waypoint.x, waypoint.y, waypoint.z});
+                point.putString("description", waypoint.description());
+                point.putIntArray("pos", new int[]{waypoint.x(), waypoint.y(), waypoint.z()});
                 CompoundTag rotation = new CompoundTag();
                 {
-                    rotation.putFloat("x", waypoint.rx);
-                    rotation.putFloat("y", waypoint.ry);
+                    rotation.putFloat("x", waypoint.rx());
+                    rotation.putFloat("y", waypoint.ry());
                 }
                 point.put("rotation", rotation);
             }
-            tag.put(waypoint.name, point);
+            tag.put(waypoint.name(), point);
         }
 
         return tag;
