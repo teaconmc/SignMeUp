@@ -4,8 +4,6 @@ import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.network.NetworkHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Rotations;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -13,8 +11,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import org.teacon.signmeup.SignMeUp;
-import org.teacon.signmeup.network.SetWaypointPacket;
+import org.teacon.signmeup.network.SyncWaypointPacket;
 
+import java.util.List;
 import java.util.Objects;
 
 @EventBusSubscriber(value = Dist.DEDICATED_SERVER, modid = SignMeUp.MODID, bus = EventBusSubscriber.Bus.GAME)
@@ -29,11 +28,9 @@ public class WaypointSyncHandle {
                 }
             }
 
-            player.server.execute(() -> {
-                for (Waypoints.WayPoint waypoint : ConfigHelper.getConfigRead(Waypoints.class).waypoints) {
-                    NetworkHelper.sendToPlayer(player, new SetWaypointPacket(waypoint.name, waypoint.description, new BlockPos(waypoint.x, waypoint.y, waypoint.z), new Rotations(waypoint.rx, 0, waypoint.ry)));
-                }
-            });
+            player.server.execute(() -> NetworkHelper.sendToPlayer(player, new SyncWaypointPacket(
+                    List.copyOf(ConfigHelper.getConfigRead(Waypoints.class).waypoints)
+            )));
         }
     }
 }
