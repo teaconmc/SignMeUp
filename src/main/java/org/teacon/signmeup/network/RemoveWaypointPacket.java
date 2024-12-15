@@ -28,6 +28,6 @@ public record RemoveWaypointPacket(String name) {
     @ClientHandler
     public void clientHandler(IPayloadContext context) {
         ConfigHelper.getConfigWrite(Waypoints.class, waypoints -> waypoints.waypoints.remove(Waypoints.WayPoint.dumbWayPoint(name)));
-        context.enqueueWork(MapScreen::newInstance);
+        context.enqueueWork(MapScreen::refreshInstance);
     }
 }

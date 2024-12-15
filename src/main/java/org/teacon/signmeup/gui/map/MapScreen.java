@@ -28,7 +28,7 @@ public class MapScreen extends TScreen {
     private final CommandsButtonPanel commandsButtonPanel = new CommandsButtonPanel();
     private final WayPointsButtonPanel wayPointsButtonPanel = new WayPointsButtonPanel();
 
-    public static void newInstance() {
+    public static void refreshInstance() {
         Screen screen = Minecraft.getInstance().screen;
         if (screen instanceof MapScreen || screen instanceof SettingsScreen) {
             ((TScreen) screen).onClose(false);

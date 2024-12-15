@@ -5,8 +5,6 @@ import cn.ussshenzhou.t88.network.annotation.ClientHandler;
 import cn.ussshenzhou.t88.network.annotation.Codec;
 import cn.ussshenzhou.t88.network.annotation.NetPacket;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Rotations;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -15,7 +13,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.teacon.signmeup.SignMeUp;
 import org.teacon.signmeup.config.Waypoints;
 import org.teacon.signmeup.gui.map.MapScreen;
-import org.teacon.signmeup.gui.settings.SettingsScreen;
 
 /**
  * @author USS_Shenzhou
@@ -39,7 +36,10 @@ public record SetWaypointPacket(String name, String description, BlockPos pos, R
     @ClientHandler
     public void clientHandler(IPayloadContext context) {
         var waypoint = new Waypoints.WayPoint(name, description, pos.getX(), pos.getY(), pos.getZ(), rotation.getX(), rotation.getZ());
-        ConfigHelper.getConfigWrite(Waypoints.class, waypoints -> waypoints.waypoints.add(waypoint));
-        context.enqueueWork(MapScreen::newInstance);
+        context.enqueueWork(() -> {
+            ConfigHelper.getConfigWrite(Waypoints.class, waypoints -> waypoints.waypoints.add(waypoint));
+
+            MapScreen.refreshInstance();
+        });
     }
 }
