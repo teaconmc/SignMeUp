@@ -47,7 +47,7 @@ public class InnerMiniMapPanel extends TPanel {
     private static final Matrix4f PROJECTION_MATRIX = new Matrix4f();
     private static final Quaternionf QUATERNION = new Quaternionf();
     private static final float PI = (float) Math.PI;
-    public static boolean rendering = false;
+    public static boolean rendering = false, renderingTranslucent = false;
     private static boolean shouldDraw = true;
 
     static {
@@ -216,7 +216,9 @@ public class InnerMiniMapPanel extends TPanel {
                     renderer.setupTerrain(camera, viewport, minecraft.player.isSpectator(), FlawlessFrames.isActive());
                     renderSectionManager.renderLayer(matrices, DefaultTerrainRenderPasses.SOLID, pos2.x, pos2.y, pos2.z);
                     renderSectionManager.renderLayer(matrices, DefaultTerrainRenderPasses.CUTOUT, pos2.x, pos2.y, pos2.z);
+                    renderingTranslucent = true;
                     renderSectionManager.renderLayer(matrices, DefaultTerrainRenderPasses.TRANSLUCENT, pos2.x, pos2.y, pos2.z);
+                    renderingTranslucent = false;
                 } finally {
                     rendering = false;
 

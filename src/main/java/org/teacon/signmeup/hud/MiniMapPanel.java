@@ -74,4 +74,14 @@ public class MiniMapPanel extends TPanel {
                 16,
                 16);
     }
+
+    @Override
+    public void render(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
+    }
+
+    @Override
+    public void renderTop(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
+        super.render(graphics, pMouseX, pMouseY, pPartialTick);
+        super.renderTop(graphics, pMouseX, pMouseY, pPartialTick);
+    }
 }

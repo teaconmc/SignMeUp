@@ -7,9 +7,12 @@
   "mixins": [
   ],
   "client": [
+    "IrisCustomUniformsMixin",
     "IrisGlFramebufferMixin",
+    "IrisSodiumShaderMixin",
+    "IrisVectorCachedUniformAccessor",
     "SodiumRenderSectionManagerMixin",
-    "IrisSodiumShaderMixin"
+    "IrisSampleBindingMixin"
   ],
   "injectors": {
     "defaultRequire": 1
