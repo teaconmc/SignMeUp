@@ -11,6 +11,7 @@ import org.joml.Quaternionf;
 import org.teacon.signmeup.SignMeUp;
 import org.teacon.signmeup.config.MiniMap;
 import org.teacon.signmeup.gui.map.MapScreen;
+import org.teacon.signmeup.gui.settings.SettingsScreen;
 
 import static net.minecraft.util.Mth.PI;
 
@@ -53,8 +54,11 @@ public class MiniMapPanel extends TPanel {
                 && !mc.options.hideGui
                 && (mc.level != null && mc.level.dimension() == Level.OVERWORLD)
                 && MiniMapAPI.INSTANCE.visible()
-                && !(mc.screen instanceof MapScreen);
-        children.forEach(childTComponent -> childTComponent.setVisibleT(visible));
+                && !(mc.screen instanceof MapScreen)
+                && !(mc.screen instanceof SettingsScreen);
+        if (!children.isEmpty() && (children.getFirst().isVisibleT() != visible)) {
+            children.forEach(childTComponent -> childTComponent.setVisibleT(visible));
+        }
     }
 
     @Override
@@ -73,15 +77,5 @@ public class MiniMapPanel extends TPanel {
                 (int) (innerMiniMap.y1() + InnerMiniMapPanel.getMinimapSize() / 2f - 8),
                 16,
                 16);
-    }
-
-    @Override
-    public void render(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-    }
-
-    @Override
-    public void renderTop(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        super.render(graphics, pMouseX, pMouseY, pPartialTick);
-        super.renderTop(graphics, pMouseX, pMouseY, pPartialTick);
     }
 }
