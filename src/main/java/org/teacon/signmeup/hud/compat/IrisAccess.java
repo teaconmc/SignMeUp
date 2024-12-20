@@ -1,13 +1,23 @@
 package org.teacon.signmeup.hud.compat;
 
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.uniforms.CapturedRenderingState;
+import net.irisshaders.iris.uniforms.custom.cached.CachedUniform;
+import net.irisshaders.iris.uniforms.custom.cached.Float3VectorCachedUniform;
+import net.irisshaders.iris.uniforms.custom.cached.Float4MatrixCachedUniform;
 import org.joml.Math;
+import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
+import org.joml.Vector3f;
+import org.lwjgl.opengl.GL21;
 import org.teacon.signmeup.SignMeUp;
+import org.teacon.signmeup.mixin.IrisVectorCachedUniformAccessor;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 public class IrisAccess {
@@ -32,6 +42,7 @@ public class IrisAccess {
     public static void setGBufferModelView(Matrix4fc matrix4fc) {
         CapturedRenderingState.INSTANCE.setGbufferModelView(matrix4fc);
     }
+
 
     private static final Map<String, Pair<boolean[], boolean[]>> RESET_SHADERS_MAP = Map.of(
             "bsl", Pair.of(new int[]{1}, new int[]{5}),
@@ -94,5 +105,32 @@ public class IrisAccess {
         public static boolean isActive(boolean[] value, int index) {
             return index < value.length && value[index];
         }
+    }
+
+    public static final Map<String, BiConsumer<Object2IntMap<CachedUniform>, CachedUniform>> SMU_RESET_UNIFORMS = new HashMap<>();
+
+    static {
+        Matrix4f matrix4f = new Matrix4f();
+
+        // ----------BSL----------
+        SMU_RESET_UNIFORMS.put("cameraPosition", (map, cachedUniform) -> {
+            if (cachedUniform instanceof Float3VectorCachedUniform float3VectorCachedUniform) {
+                var vec3 = (Vector3f) ((IrisVectorCachedUniformAccessor) float3VectorCachedUniform).getCached();
+                GL21.glUniform3f(map.getInt(cachedUniform), vec3.x, vec3.y + 320, vec3.z);
+            }
+        });
+        // player rot
+        SMU_RESET_UNIFORMS.put("gbufferModelViewInverse", (map, cachedUniform) -> {
+            if (cachedUniform instanceof Float4MatrixCachedUniform) {
+                matrix4f.identity().rotateXYZ(-90, 0, 0);
+                GL21.glUniformMatrix4fv(map.getInt(cachedUniform), false, matrix4f.get(new float[16]));
+            }
+        });
+        SMU_RESET_UNIFORMS.put("gbufferModelView", (map, cachedUniform) -> {
+            if (cachedUniform instanceof Float4MatrixCachedUniform) {
+                matrix4f.identity().rotateXYZ(90, 0, 0);
+                GL21.glUniformMatrix4fv(map.getInt(cachedUniform), false, matrix4f.get(new float[16]));
+            }
+        });
     }
 }

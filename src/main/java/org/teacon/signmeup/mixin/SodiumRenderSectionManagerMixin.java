@@ -23,7 +23,7 @@ public abstract class SodiumRenderSectionManagerMixin {
     @Shadow protected abstract void submitSectionTasks(ChunkJobCollector collector, ChunkUpdateType type, boolean ignoreEffortCategory);
 
     @Redirect(method = "createTerrainRenderList", at = @At(value = "INVOKE", target = "Lnet/caffeinemc/mods/sodium/client/render/chunk/RenderSectionManager;getSearchDistance()F"), require = 0)
-    private float smuDisableDistanceLimitWhenRenderingMiniMap(RenderSectionManager instance) {
+    private float disableDistanceLimitWhenRenderingMiniMap(RenderSectionManager instance) {
         if (InnerMiniMapPanel.rendering) {
             return 1000;
         }
@@ -31,7 +31,7 @@ public abstract class SodiumRenderSectionManagerMixin {
     }
 
     @Inject(method = "submitSectionTasks(Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/executor/ChunkJobCollector;Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/executor/ChunkJobCollector;Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/executor/ChunkJobCollector;)V", at = @At("HEAD"), cancellable = true)
-    private void smuSubmitSectionTasks(ChunkJobCollector importantCollector, ChunkJobCollector semiImportantCollector, ChunkJobCollector deferredCollector, CallbackInfo ci) {
+    private void takeOverSectionTasksWhenRenderingMiniMap(ChunkJobCollector importantCollector, ChunkJobCollector semiImportantCollector, ChunkJobCollector deferredCollector, CallbackInfo ci) {
         if (InnerMiniMapPanel.rendering) {
             //this.submitSectionTasks(importantCollector, ChunkUpdateType.IMPORTANT_SORT, true);
             this.submitSectionTasks(semiImportantCollector, ChunkUpdateType.IMPORTANT_REBUILD, true);

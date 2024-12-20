@@ -26,7 +26,7 @@ public class IrisSampleBindingMixin {
     private int textureUnit;
 
     @Inject(method = "updateSampler", at = @At("RETURN"))
-    private void smuRestShadow(CallbackInfo ci) {
+    private void restShadowWhenRenderingMinimap(CallbackInfo ci) {
         if (smu$blankTexture == 0) {
             smu$blankTexture = glGenTextures();
             glBindTexture(GL_TEXTURE_2D, smu$blankTexture);

@@ -129,19 +129,18 @@ public class MapPanel extends TVerticalAndHorizontalScrollContainer {
         super.layout();
     }
 
-    private void zoom(float delta) {
-        delta *= 0.275f;
-        float newSize = Mth.clamp(size + delta, 0.75f, 10);
-        float centerX = (float) (scrollAmountX + getUsableWidth() / 2f) / map.getWidth();
-        float centerY = (float) (scrollAmountY + getUsableHeight() / 2f) / map.getHeight();
-        float prevCenterX = (float) (prevScrollAmountX + getUsableWidth() / 2f) / map.getWidth();
-        float prevCenterY = (float) (prevScrollAmountY + getUsableHeight() / 2f) / map.getHeight();
+    private void zoom(double pMouseX, double pMouseY, float delta) {
+        float newSize = Mth.clamp(size + delta * 0.275f, 0.75f, 10);
+        double centerX = (scrollAmountX + pMouseX) / map.getWidth();
+        double centerY = (scrollAmountY + pMouseY) / map.getHeight();
+        double prevCenterX = (prevScrollAmountX + pMouseX) / map.getWidth();
+        double prevCenterY = (prevScrollAmountY + pMouseY) / map.getHeight();
         size = newSize;
         this.layout();
-        float newScrollX = centerX * map.getWidth() - getUsableWidth() / 2f;
-        float newScrollY = centerY * map.getHeight() - getUsableHeight() / 2f;
-        float prevNewScrollX = prevCenterX * map.getWidth() - getUsableWidth() / 2f;
-        float prevNewScrollY = prevCenterY * map.getHeight() - getUsableHeight() / 2f;
+        double newScrollX = centerX * map.getWidth() - pMouseX;
+        double newScrollY = centerY * map.getHeight() - pMouseY;
+        double prevNewScrollX = prevCenterX * map.getWidth() - pMouseX;
+        double prevNewScrollY = prevCenterY * map.getHeight() - pMouseY;
         initPos();
 
         if (isScrollBarVisibleHorizontal()) {
@@ -162,7 +161,7 @@ public class MapPanel extends TVerticalAndHorizontalScrollContainer {
     @Override
     public boolean mouseScrolled(double pMouseX, double pMouseY, double deltaX, double deltaY) {
         if (this.isInRange(pMouseX, pMouseY)) {
-            zoom((float) deltaY);
+            zoom(pMouseX, pMouseY, (float) deltaY);
             return true;
         } else {
             return false;

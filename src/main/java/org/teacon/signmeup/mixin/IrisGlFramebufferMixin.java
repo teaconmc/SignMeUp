@@ -15,7 +15,7 @@ import org.teacon.signmeup.hud.InnerMiniMapPanel;
 public class IrisGlFramebufferMixin {
 
     @Inject(method = "bind", at = @At("HEAD"), cancellable = true)
-    private void smuCancelBindWhenRenderingMiniMap(CallbackInfo ci) {
+    private void cancelBindWhenRenderingMiniMap(CallbackInfo ci) {
         if (InnerMiniMapPanel.rendering) {
             ci.cancel();
         }

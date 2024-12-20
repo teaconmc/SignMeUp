@@ -14,7 +14,7 @@ import org.teacon.signmeup.hud.InnerMiniMapPanel;
 public class IrisSodiumShaderMixin {
 
     @Redirect(method = "resetState", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/pipeline/RenderTarget;bindWrite(Z)V"))
-    private void smuCancelBindWhenRenderingMiniMap(RenderTarget instance, boolean setViewport) {
+    private void cancelBindWhenRenderingMiniMap(RenderTarget instance, boolean setViewport) {
         if (!InnerMiniMapPanel.rendering) {
             instance.bindWrite(setViewport);
         }

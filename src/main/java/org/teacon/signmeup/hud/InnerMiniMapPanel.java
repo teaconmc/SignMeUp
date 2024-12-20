@@ -217,8 +217,11 @@ public class InnerMiniMapPanel extends TPanel {
                     renderSectionManager.renderLayer(matrices, DefaultTerrainRenderPasses.SOLID, pos2.x, pos2.y, pos2.z);
                     renderSectionManager.renderLayer(matrices, DefaultTerrainRenderPasses.CUTOUT, pos2.x, pos2.y, pos2.z);
                     renderingTranslucent = true;
-                    renderSectionManager.renderLayer(matrices, DefaultTerrainRenderPasses.TRANSLUCENT, pos2.x, pos2.y, pos2.z);
-                    renderingTranslucent = false;
+                    try {
+                        renderSectionManager.renderLayer(matrices, DefaultTerrainRenderPasses.TRANSLUCENT, pos2.x, pos2.y, pos2.z);
+                    } finally {
+                        renderingTranslucent = false;
+                    }
                 } finally {
                     rendering = false;
 
