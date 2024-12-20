@@ -49,11 +49,11 @@ public class IrisAccess {
             return null;
         }
 
-        if (unit == null || unit.name.equals(name)) {
+        if (unit == null || !unit.name.equals(name)) {
             return unit = buildUnit(name);
+        } else {
+            return unit;
         }
-
-        return unit;
     }
 
     private static ShaderPackTextureUnit buildUnit(String name) {
