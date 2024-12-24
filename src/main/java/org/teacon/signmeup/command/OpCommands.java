@@ -14,10 +14,17 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.commands.arguments.coordinates.WorldCoordinates;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.teacon.signmeup.command.argument.SpaceBreakStringArgumentType;
 import org.teacon.signmeup.config.waypoints.Waypoint;
 import org.teacon.signmeup.network.RemoveWaypointPacket;
 import org.teacon.signmeup.network.SetWaypointPacket;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author USS_Shenzhou
@@ -42,7 +49,10 @@ public class OpCommands {
                         .then(Commands.literal("remove")
                                 .then(Commands.argument("name", SpaceBreakStringArgumentType.string())
                                         .suggests((context, builder) -> SharedSuggestionProvider.suggest(
-                                                Waypoint.INSTANCES.keySet(), builder
+                                                Stream.concat(
+                                                        Waypoint.INSTANCES.values().stream().map(Waypoint::name),
+                                                        Waypoint.INSTANCES.keySet().stream().map(UUID::toString)
+                                                ), builder
                                         )).executes(OpCommands::removeWaypoint)
                                 )
                         )
@@ -50,42 +60,61 @@ public class OpCommands {
     }
 
     private static int setWaypoint(CommandContext<CommandSourceStack> context) {
-        var pos = context.getArgument("pos", WorldCoordinates.class).getBlockPos(context.getSource());
+        var pos = context.getArgument("pos", WorldCoordinates.class).getPosition(context.getSource());
         var name = context.getArgument("name", String.class);
         var description = context.getArgument("description", String.class);
         var rotation = context.getArgument("rotation", WorldCoordinates.class).getRotation(context.getSource());
-        var waypoint = new Waypoint(name, description, pos.getX(), pos.getY(), pos.getZ(), rotation.y, rotation.x);
+        boolean major = name.startsWith("#");
+        var waypoint = new Waypoint(
+                UUID.randomUUID(), major ? name.substring(1) : name, description,
+                new Vector3f((float) pos.x, (float) pos.y, (float) pos.z), new Vector2f(rotation.y, rotation.x),
+                new Waypoint.State(major)
+        );
 
-        Waypoint previous = Waypoint.INSTANCES.get(name);
-        if (previous != null) {
-            context.getSource().sendSuccess(() -> Component.literal(previous + " already exists. Remove it first if you want to replace it."), true);
-        } else {
-            Waypoint.INSTANCES.put(name, waypoint);
-            NetworkHelper.sendToAllPlayers(new SetWaypointPacket(waypoint));
+        Waypoint.INSTANCES.put(waypoint.uuid(), waypoint);
+        NetworkHelper.sendToAllPlayers(new SetWaypointPacket(waypoint));
 
-            context.getSource().sendSuccess(() -> Component.literal(waypoint + " has been added."), true);
-            if (description.startsWith("\"") && description.endsWith("\"")) {
-                context.getSource().sendSuccess(() -> Component.literal("The waypoint description is quoted with '\"'. This is a greedy string where '\"' is unnecessary.").setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)), true);
-            }
+        context.getSource().sendSuccess(() -> Component.literal(waypoint + " has been added."), true);
+        if (description.startsWith("\"") && description.endsWith("\"")) {
+            context.getSource().sendSuccess(() -> Component.literal("The waypoint description is quoted with '\"'. This is a greedy string where '\"' is unnecessary.").setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)), true);
         }
-
         Waypoint.save();
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static int removeWaypoint(CommandContext<CommandSourceStack> context) {
-        var name = context.getArgument("name", String.class);
-        Waypoint waypoint = Waypoint.INSTANCES.remove(name);
+        String name = context.getArgument("name", String.class);
+        try {
+            UUID uuid = UUID.fromString(name);
+            Waypoint waypoint = Waypoint.INSTANCES.remove(uuid);
+            if (waypoint != null) {
+                context.getSource().sendSuccess(() -> Component.literal(waypoint + " has been removed."), true);
+                NetworkHelper.sendToAllPlayers(new RemoveWaypointPacket(uuid));
 
-        if (waypoint != null) {
-            context.getSource().sendSuccess(() -> Component.literal(waypoint + " has been removed."), true);
-            NetworkHelper.sendToAllPlayers(new RemoveWaypointPacket(name));
-        } else {
-            context.getSource().sendFailure(Component.literal("No waypoint called " + name));
+                Waypoint.save();
+            } else {
+                context.getSource().sendFailure(Component.literal("No waypoint with uuid: " + name));
+            }
+        } catch (IllegalArgumentException e) {
+            List<Waypoint> waypoints = Waypoint.INSTANCES.values().stream().filter(w -> w.name().equals(name)).toList();
+            switch (waypoints.size()) {
+                case 0 -> context.getSource().sendFailure(Component.literal("No waypoint with called: " + name));
+                case 1 -> {
+                    Waypoint waypoint = waypoints.getFirst();
+
+                    Waypoint.INSTANCES.remove(waypoint.uuid());
+                    Waypoint.save();
+                    context.getSource().sendSuccess(() -> Component.literal(waypoint + " has been removed."), true);
+                    NetworkHelper.sendToAllPlayers(new RemoveWaypointPacket(waypoint.uuid()));
+                }
+                default ->
+                        context.getSource().sendFailure(Component.literal("Multiple candidates found: " + waypoints.stream()
+                                .map(Waypoint::toString).collect(Collectors.joining(", ", "[", "]"))
+                        ));
+            }
         }
 
-        Waypoint.save();
         return Command.SINGLE_SUCCESS;
     }
 }

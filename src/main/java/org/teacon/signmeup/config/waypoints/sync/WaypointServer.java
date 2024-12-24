@@ -1,4 +1,4 @@
-package org.teacon.signmeup.config.waypoints;
+package org.teacon.signmeup.config.waypoints.sync;
 
 import cn.ussshenzhou.t88.network.NetworkHelper;
 import net.minecraft.client.Minecraft;
@@ -11,13 +11,14 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.teacon.signmeup.SignMeUp;
+import org.teacon.signmeup.config.waypoints.Waypoint;
 import org.teacon.signmeup.network.SyncWaypointPacket;
 
 import java.util.List;
 import java.util.Objects;
 
 @EventBusSubscriber(modid = SignMeUp.MODID, bus = EventBusSubscriber.Bus.GAME)
-public class WaypointServerEvents {
+public class WaypointServer {
     @SubscribeEvent
     public static void onServerLaunch(ServerStartedEvent event) {
         Waypoint.load();

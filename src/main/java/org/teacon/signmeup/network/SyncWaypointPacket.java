@@ -29,7 +29,7 @@ public record SyncWaypointPacket(List<Waypoint> waypoints) {
             if (ServerLifecycleHooks.getCurrentServer() == null) {
                 Waypoint.INSTANCES.clear();
                 for (Waypoint waypoint : waypoints) {
-                    Waypoint.INSTANCES.put(waypoint.name(), waypoint);
+                    Waypoint.INSTANCES.put(waypoint.uuid(), waypoint);
                 }
             }
 

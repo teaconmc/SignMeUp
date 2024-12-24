@@ -28,7 +28,7 @@ public record SetWaypointPacket(Waypoint waypoint) {
     public void clientHandler(IPayloadContext context) {
         context.enqueueWork(() -> {
             if (ServerLifecycleHooks.getCurrentServer() == null) {
-                Waypoint.INSTANCES.put(waypoint.name(), waypoint);
+                Waypoint.INSTANCES.put(waypoint.uuid(), waypoint);
             }
 
             MapScreen.refreshInstance();

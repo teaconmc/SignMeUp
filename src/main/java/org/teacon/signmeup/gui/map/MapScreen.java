@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.client.ClientHooks;
 import org.teacon.signmeup.SignMeUp;
+import org.teacon.signmeup.config.waypoints.Waypoint;
 import org.teacon.signmeup.gui.map.bp.CommandsButtonPanel;
 import org.teacon.signmeup.gui.map.bp.WayPointsButtonPanel;
 import org.teacon.signmeup.gui.settings.SettingsScreen;
@@ -59,7 +60,7 @@ public class MapScreen extends TScreen {
     public void render(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
         super.render(graphics, pMouseX, pMouseY, pPartialTick);
 
-        wayPointsButtonPanel.highlight(mapPanel.getHighlightWaypoints(pMouseX, pMouseY));
+        wayPointsButtonPanel.highlight(mapPanel.getHoveredWaypoints(pMouseX, pMouseY));
 
         String hider = MiniMapAPI.INSTANCE.getHiderString();
         if (hider != null) {
@@ -71,7 +72,7 @@ public class MapScreen extends TScreen {
         }
     }
 
-    public String getHighlightWaypoints() {
+    public Waypoint getHighlightWaypoints() {
         return wayPointsButtonPanel.getHighlightWaypoints();
     }
 

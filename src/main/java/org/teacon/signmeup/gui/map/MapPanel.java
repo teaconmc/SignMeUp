@@ -17,7 +17,7 @@ import org.teacon.signmeup.SignMeUp;
 import org.teacon.signmeup.config.Map;
 import org.teacon.signmeup.config.waypoints.Waypoint;
 
-import java.util.List;
+import java.util.Set;
 
 import static net.minecraft.util.Mth.PI;
 
@@ -77,11 +77,11 @@ public class MapPanel extends TVerticalAndHorizontalScrollContainer {
             return;
         }
 
-        String waypoint = s.getHighlightWaypoints();
+        Waypoint waypoint = s.getHighlightWaypoints();
         if (waypoint == null) {
             return;
         }
-        Vector2i v = wayPointsPanel.lookupWaypoint(waypoint);
+        Vector2i v = wayPointsPanel.getWaypointCuiPos(waypoint);
         int px = (int) (v.x - scrollAmountX), py = (int) (v.y - scrollAmountY);
         int gw = guigraphics.guiWidth(), gh = guigraphics.guiHeight();
         if (px >= 0 && px < gw && py >= 0 && py < gh) {
@@ -125,7 +125,7 @@ public class MapPanel extends TVerticalAndHorizontalScrollContainer {
                 mapSize, mapSize);
         LayoutHelper.BSameAsA(wayPointsPanel, map);
         locateMe();
-        wayPointsPanel.update();
+        wayPointsPanel.update(this.map);
         super.layout();
     }
 
@@ -178,8 +178,8 @@ public class MapPanel extends TVerticalAndHorizontalScrollContainer {
         return SCROLLER_VERTICAL;
     }
 
-    public List<Waypoint> getHighlightWaypoints(double pMouseX, double pMouseY) {
-        return wayPointsPanel.getHighlightWaypoints(pMouseX + scrollAmountX, pMouseY + scrollAmountY);
+    public Set<Waypoint> getHoveredWaypoints(double pMouseX, double pMouseY) {
+        return wayPointsPanel.getHoveredWaypoints(pMouseX + scrollAmountX, pMouseY + scrollAmountY);
     }
 
     public static class InnerMapPanel extends TImage {

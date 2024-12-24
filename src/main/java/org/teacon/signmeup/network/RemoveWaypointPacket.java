@@ -14,16 +14,18 @@ import org.teacon.signmeup.SignMeUp;
 import org.teacon.signmeup.config.waypoints.Waypoint;
 import org.teacon.signmeup.gui.map.MapScreen;
 
+import java.util.UUID;
+
 /**
  * @author USS_Shenzhou
  */
 @NetPacket(modid = SignMeUp.MODID)
-public record RemoveWaypointPacket(String name) {
+public record RemoveWaypointPacket(UUID uuid) {
 
     @Codec
     public static final StreamCodec<ByteBuf, RemoveWaypointPacket> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.STRING_UTF8,
-            RemoveWaypointPacket::name,
+            Waypoint.UUID_CODEC,
+            RemoveWaypointPacket::uuid,
             RemoveWaypointPacket::new
     );
 
@@ -31,7 +33,7 @@ public record RemoveWaypointPacket(String name) {
     public void clientHandler(IPayloadContext context) {
         context.enqueueWork(() -> {
             if (ServerLifecycleHooks.getCurrentServer() == null) {
-                Waypoint.INSTANCES.remove(name);
+                Waypoint.INSTANCES.remove(uuid);
             }
 
             MapScreen.refreshInstance();

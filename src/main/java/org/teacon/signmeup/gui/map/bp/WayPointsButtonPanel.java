@@ -1,6 +1,7 @@
 package org.teacon.signmeup.gui.map.bp;
 
 import cn.ussshenzhou.t88.gui.advanced.THoverSensitiveImageButton;
+import cn.ussshenzhou.t88.gui.screen.TScreen;
 import cn.ussshenzhou.t88.gui.widegt.TWidget;
 import cn.ussshenzhou.t88.network.NetworkHelper;
 import net.minecraft.client.Minecraft;
@@ -15,73 +16,75 @@ import org.teacon.signmeup.config.waypoints.Waypoint;
 import org.teacon.signmeup.gui.map.ButtonPanelBase;
 import org.teacon.signmeup.network.TeleportToWayPointPacket;
 
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * @author USS_Shenzhou
  */
 public class WayPointsButtonPanel extends ButtonPanelBase {
-    private static final class THoverSensitiveImageButtonImpl extends THoverSensitiveImageButton {
-        private final String waypointName;
-
-        public THoverSensitiveImageButtonImpl(String waypointName, Button.OnPress onPress, @Nullable ResourceLocation backgroundImageLocation, @Nullable ResourceLocation backgroundImageLocationHovered) {
-            super(
-                    Component.literal(waypointName.startsWith("#") ? waypointName.substring(1) : waypointName),
-                    onPress, backgroundImageLocation, backgroundImageLocationHovered
-            );
-            this.waypointName = waypointName;
-        }
-    }
-
-
-    public WayPointsButtonPanel() {
-        super(true);
+    private static Waypoint[] computeShuffledWaypoints() {
         Waypoint[] waypoints = Waypoint.INSTANCES.values().toArray(Waypoint[]::new);
 
-        int staticWP = 0;
+        int majors = 0;
         for (int i = 0; i < waypoints.length; i++) {
             Waypoint item = waypoints[i];
-            if (item.name().startsWith("#")) {
-                waypoints[i] = waypoints[staticWP];
-                waypoints[staticWP] = item;
-                staticWP++;
+            if (item.state().major()) {
+                waypoints[i] = waypoints[majors];
+                waypoints[majors] = item;
+                majors++;
             }
         }
 
         UUID uuid = Minecraft.getInstance().getUser().getProfileId();
         Random random = new Random(uuid.getLeastSignificantBits() ^ uuid.getMostSignificantBits());
-        for (int i = waypoints.length; i > staticWP + 1; --i) {
-            int k1 = random.nextInt(i - staticWP) + staticWP, k2 = i - 1;
+        for (int i = waypoints.length; i > majors + 1; --i) {
+            int k1 = random.nextInt(i - majors) + majors, k2 = i - 1;
             Waypoint t = waypoints[k2];
             waypoints[k2] = waypoints[k1];
             waypoints[k1] = t;
         }
 
-        for (Waypoint wayPoint : waypoints) {
-            var button = new THoverSensitiveImageButtonImpl(
-                    wayPoint.name(),
+        return waypoints;
+    }
+
+    private static final class WaypointButton extends THoverSensitiveImageButton {
+        private final Waypoint waypoint;
+
+        public WaypointButton(Waypoint waypoint, Runnable closer) {
+            super(
+                    Component.literal(waypoint.name()),
                     b -> {
                         Minecraft mc = Minecraft.getInstance();
                         if (mc.level != null && mc.level.dimension() == Level.OVERWORLD) {
-                            NetworkHelper.sendToServer(new TeleportToWayPointPacket(wayPoint.name()));
+                            NetworkHelper.sendToServer(new TeleportToWayPointPacket(waypoint.uuid()));
                         }
 
-                        getTopParentScreenOptional().ifPresent(tScreen -> tScreen.onClose(false));
+                        closer.run();
                     },
                     SignMeUp.id("textures/gui/button_panel_button.png"),
                     SignMeUp.id("textures/gui/button_panel_button_hovered.png")
             );
-            button.setPadding(0);
-            button.setTooltip(Tooltip.create(Component.literal(wayPoint.description())));
-            this.buttons.add(button);
+            this.waypoint = waypoint;
+
+            setPadding(0);
+            setTooltip(Tooltip.create(Component.literal(waypoint.description())));
         }
     }
 
-    public void highlight(List<Waypoint> highlightWaypoints) {
+    public WayPointsButtonPanel() {
+        super(true);
+
+        for (Waypoint waypoint : computeShuffledWaypoints()) {
+            this.buttons.add(new WaypointButton(waypoint, () -> {
+                TScreen screen = this.getTopParentScreen();
+                if (screen != null) {
+                    screen.onClose(false);
+                }
+            }));
+        }
+    }
+
+    public void highlight(Set<Waypoint> highlightWaypoints) {
         if (highlightWaypoints.isEmpty()) {
             for (TWidget child : this.buttons.getChildren()) {
                 if (child instanceof THoverSensitiveImageButton btn) {
@@ -91,20 +94,19 @@ public class WayPointsButtonPanel extends ButtonPanelBase {
             return;
         }
 
-        Set<String> lookup = highlightWaypoints.stream().map(w -> w.name()).collect(Collectors.toSet());
         for (TWidget child : this.buttons.getChildren()) {
-            if (!(child instanceof THoverSensitiveImageButtonImpl btn)) {
+            if (!(child instanceof WaypointButton btn)) {
                 continue;
             }
-            btn.getButton().setFocused(lookup.contains(btn.getText().getText().getString()));
+            btn.getButton().setFocused(highlightWaypoints.contains(btn.waypoint));
         }
     }
 
-    public String getHighlightWaypoints() {
+    public Waypoint getHighlightWaypoints() {
         for (TWidget child : this.buttons.getChildren()) {
-            if (child instanceof THoverSensitiveImageButtonImpl btn) {
+            if (child instanceof WaypointButton btn) {
                 if (btn.getButton().isHovered()) {
-                    return btn.waypointName;
+                    return btn.waypoint;
                 }
             }
         }
