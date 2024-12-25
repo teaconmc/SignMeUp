@@ -2,6 +2,6 @@
   "coverRange": 101,
   "followPlayerRotation": false,
   "ssaaRatio": 1.5,
-  "visible": true,
+  "visible": false,
   "refreshRate": "EVERY_FRAME"
 }

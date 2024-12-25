@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 /**
  * @author USS_Shenzhou
  */
-@Mixin(value = VectorCachedUniform.class,remap = false)
+@Mixin(value = VectorCachedUniform.class, remap = false)
 public interface IrisVectorCachedUniformAccessor {
     @Accessor
     Object getCached();
