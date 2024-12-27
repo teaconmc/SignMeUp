@@ -5,20 +5,20 @@ import cn.ussshenzhou.t88.gui.widegt.TImage;
 import cn.ussshenzhou.t88.gui.widegt.TLabel;
 import cn.ussshenzhou.t88.gui.widegt.TPanel;
 import cn.ussshenzhou.t88.network.NetworkHelper;
+import com.mojang.brigadier.tree.CommandNode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
+import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.teacon.signmeup.SignMeUp;
 import org.teacon.signmeup.config.waypoints.Waypoint;
 import org.teacon.signmeup.network.TeleportToWayPointPacket;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -84,6 +84,40 @@ public class WayPointsPanel extends TPanel {
         }
     }
 
+    private long lastClickedTime = 0;
+
+    @Override
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        if (super.mouseClicked(pMouseX, pMouseY, pButton)) {
+            return true;
+        }
+
+        if (this.isInRange(pMouseX, pMouseY)) {
+            long time = System.currentTimeMillis();
+            if (time - lastClickedTime <= 200) {
+                lastClickedTime = 0;
+
+                Minecraft mc = Minecraft.getInstance();
+                if (mc.player != null) {
+                    CommandNode<SharedSuggestionProvider> node = mc.player.connection.commands.findNode(List.of("smu", "tp"));
+                    if (node != null) {
+                        MapPanel map = getParentInstanceOf(MapPanel.class);
+                        if (map != null) {
+                            Vector2f pos = map.map.guiToWorld((int) pMouseX, (int) pMouseY);
+                            mc.player.connection.sendCommand(String.format("smu tp %f %f", pos.x, pos.y));
+                            getTopParentScreenOptional().ifPresent(tScreen -> tScreen.onClose(false));
+                            return true;
+                        }
+                    }
+                }
+            } else {
+                lastClickedTime = time;
+            }
+        }
+
+        return false;
+    }
+
     private int distance2(Waypoint left, Waypoint right, MapPanel.InnerMapPanel map) {
         return (int) map.worldToGui(right.pos().x, right.pos().z).distanceSquared(map.worldToGui(left.pos().x, left.pos().z));
     }
@@ -108,7 +142,7 @@ public class WayPointsPanel extends TPanel {
             this.waypoint = waypoint;
             this.waypoints = Set.of(waypoint);
 
-            setTooltip(Tooltip.create(Component.translatable("gui.sign_up.map.teleport", waypoint.name())));
+            setTooltip(Tooltip.create(Component.translatable("gui.sign_up.map.teleport", waypoint.name(), waypoint.description())));
 
             Vector2i pos = map.worldToGui(waypoint.pos().x(), waypoint.pos().z());
             setAbsBounds(pos.x - DOT_SIZE / 2, pos.y - DOT_SIZE / 2, DOT_SIZE, DOT_SIZE);
@@ -120,6 +154,11 @@ public class WayPointsPanel extends TPanel {
         }
 
         private long lastClickedTime = 0;
+
+        @Override
+        public void mouseMoved(double mouseX, double mouseY) {
+            super.mouseMoved(mouseX, mouseY);
+        }
 
         @Override
         public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {

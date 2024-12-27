@@ -5,9 +5,9 @@ import cn.ussshenzhou.t88.network.annotation.NetPacket;
 import cn.ussshenzhou.t88.network.annotation.ServerHandler;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.teacon.signmeup.SignMeUp;
 import org.teacon.signmeup.config.waypoints.Waypoint;
@@ -31,7 +31,7 @@ public record TeleportToWayPointPacket(UUID id) {
     public void serverHandler(IPayloadContext context) {
         context.enqueueWork(() -> {
             var player = context.player();
-            if (!(player.level() instanceof ServerLevel level)) {
+            if (!(player.level() instanceof ServerLevel level) || level.dimension() != Level .OVERWORLD) {
                 return;
             }
 

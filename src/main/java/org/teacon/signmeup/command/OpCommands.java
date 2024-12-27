@@ -1,5 +1,6 @@
 package org.teacon.signmeup.command;
 
+import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.network.NetworkHelper;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -10,18 +11,28 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.coordinates.RotationArgument;
+import net.minecraft.commands.arguments.coordinates.Vec2Argument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.commands.arguments.coordinates.WorldCoordinates;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.teacon.signmeup.command.argument.SpaceBreakStringArgumentType;
+import org.teacon.signmeup.config.Map;
 import org.teacon.signmeup.config.waypoints.Waypoint;
 import org.teacon.signmeup.network.RemoveWaypointPacket;
 import org.teacon.signmeup.network.SetWaypointPacket;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,7 +67,32 @@ public class OpCommands {
                                         )).executes(OpCommands::removeWaypoint)
                                 )
                         )
+                        .then(Commands.literal("tp")
+                                .then(Commands.argument("location", Vec2Argument.vec2())
+                                        .executes(OpCommands::teleport)))
         );
+    }
+
+    private static int teleport(CommandContext<CommandSourceStack> context) {
+        Vec3 location = context.getArgument("location", WorldCoordinates.class).getPosition(context.getSource());
+
+        if (context.getSource().getEntity() instanceof ServerPlayer player) {
+            Map map = ConfigHelper.getConfigRead(Map.class);
+            double x = location.x, z = location.z;
+            if (!(x >= map.centerWorldX - map.worldSize - 1024) || !(x <= map.centerWorldX + map.worldSize + 1024) ||
+                    !(z >= map.centerWorldZ - map.worldSize - 1024) || !(z <= map.centerWorldZ + map.worldSize + 1024)) {
+                context.getSource().sendFailure(Component.literal("Cannot teleport to somewhere outside world boundary."));
+            }
+
+            ServerLevel level = Objects.requireNonNull(Objects.requireNonNull(ServerLifecycleHooks.getCurrentServer()).getLevel(Level.OVERWORLD));
+            player.teleportTo(
+                    level,
+                    location.x, level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, (int) x, (int) z), location.z, Set.of(),
+                    player.getYRot(), player.getXRot()
+            );
+        }
+
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int setWaypoint(CommandContext<CommandSourceStack> context) {

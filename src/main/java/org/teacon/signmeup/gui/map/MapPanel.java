@@ -29,7 +29,7 @@ public class MapPanel extends TVerticalAndHorizontalScrollContainer {
     private static final ResourceLocation SCROLLER_HORIZONTAL = SignMeUp.id("scrollbar_hori");
     private static final Quaternionf QUATERNION = new Quaternionf();
 
-    final InnerMapPanel map = new InnerMapPanel();
+    public final InnerMapPanel map = new InnerMapPanel();
 
     private final TImage me = new TImage(SignMeUp.id("textures/gui/me_map.png")) {
         @Override
@@ -187,20 +187,22 @@ public class MapPanel extends TVerticalAndHorizontalScrollContainer {
             super(SignMeUp.id("textures/gui/map.png"));
         }
 
+        public Vector2f guiToWorld(int x, int z) {
+            Map world = ConfigHelper.getConfigRead(Map.class);
+
+            return new Vector2f(
+                    (float) ((((double) x - this.getXT()) / this.getWidth() - 0.5) * world.worldSize + world.centerWorldX),
+                    (float) ((((double) z - this.getYT()) / this.getWidth() - 0.5) * world.worldSize + world.centerWorldZ)
+            );
+        }
+
         public Vector2i worldToGui(double x, double z) {
-            var mapCfg = ConfigHelper.getConfigRead(Map.class);
-            //world center
-            var pos = new Vector2f(mapCfg.centerWorldX, mapCfg.centerWorldZ);
-            //world top left
-            pos.add(-mapCfg.worldSize / 2f, -mapCfg.worldSize / 2f);
-            //world top left delta
-            pos.mul(-1).add((float) x, (float) z);
-            //world top left delta relative
-            pos.mul(1f / mapCfg.worldSize);
-            //gui top left delta
-            pos.mul(this.getWidth());
-            pos.add(this.getXT(), this.getYT());
-            return new Vector2i((int) pos.x, (int) pos.y);
+            Map world = ConfigHelper.getConfigRead(Map.class);
+
+            return new Vector2i(
+                    (int) (((x - world.centerWorldX) / world.worldSize + 0.5) * this.getWidth() + this.getXT()),
+                    (int) (((z - world.centerWorldZ) / world.worldSize + 0.5) * this.getWidth() + this.getYT())
+            );
         }
     }
 }

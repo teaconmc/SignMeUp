@@ -15,7 +15,7 @@
   "gui.sign_up.minimap.refresh.another": "Every 2 Frames",
   "gui.sign_up.minimap.refresh.tick": "Every Tick",
   "gui.sign_up.minimap.refresh.tick20": "Every 20 Ticks",
-  "gui.sign_up.map.teleport": "%s\n[Double click to teleport]",
+  "gui.sign_up.map.teleport": "%s\n%s\n[Double click to teleport]",
 
   "hud.sign_up.minimap.hide": "Minimap is hided by: %s"
 }

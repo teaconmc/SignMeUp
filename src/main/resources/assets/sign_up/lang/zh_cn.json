@@ -15,7 +15,7 @@
   "gui.sign_up.minimap.refresh.another": "每2帧",
   "gui.sign_up.minimap.refresh.tick": "每刻",
   "gui.sign_up.minimap.refresh.tick20": "每20刻",
-  "gui.sign_up.map.teleport": "%s\n[双击来传送]",
+  "gui.sign_up.map.teleport": "%s\n%s\n[双击来传送]",
 
   "hud.sign_up.minimap.hide": "小地图被以下模组隐藏：%s"
 }
