@@ -14,6 +14,7 @@ import net.minecraft.commands.arguments.coordinates.RotationArgument;
 import net.minecraft.commands.arguments.coordinates.Vec2Argument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.commands.arguments.coordinates.WorldCoordinates;
+import net.minecraft.core.SectionPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerLevel;
@@ -87,7 +88,10 @@ public class OpCommands {
             ServerLevel level = Objects.requireNonNull(Objects.requireNonNull(ServerLifecycleHooks.getCurrentServer()).getLevel(Level.OVERWORLD));
             player.teleportTo(
                     level,
-                    location.x, level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, (int) x, (int) z), location.z, Set.of(),
+                    location.x, level.getChunk(
+                            SectionPos.blockToSectionCoord((int) x),
+                            SectionPos.blockToSectionCoord((int) z)
+                    ).getHeight(Heightmap.Types.WORLD_SURFACE_WG, (int) x, (int) z), location.z, Set.of(),
                     player.getYRot(), player.getXRot()
             );
         }
