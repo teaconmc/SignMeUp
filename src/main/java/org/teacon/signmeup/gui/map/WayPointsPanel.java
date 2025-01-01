@@ -1,8 +1,6 @@
 package org.teacon.signmeup.gui.map;
 
-import cn.ussshenzhou.t88.gui.util.HorizontalAlignment;
 import cn.ussshenzhou.t88.gui.widegt.TImage;
-import cn.ussshenzhou.t88.gui.widegt.TLabel;
 import cn.ussshenzhou.t88.gui.widegt.TPanel;
 import cn.ussshenzhou.t88.network.NetworkHelper;
 import com.mojang.brigadier.tree.CommandNode;
@@ -190,24 +188,6 @@ public class WayPointsPanel extends TPanel {
         public MultiVisualWaypoint(MapPanel.InnerMapPanel map, Set<Waypoint> waypoints) {
             super(IMAGE);
             this.waypoints = waypoints;
-
-            int count = waypoints.size();
-            double x = 0D, z = 0D;
-            for (Waypoint waypoint : waypoints) {
-                x += waypoint.pos().x;
-                z += waypoint.pos().z;
-            }
-            Vector2i pos = map.worldToGui(x / count, z / count);
-            pos.sub(DOT_SIZE / 2, DOT_SIZE / 2);
-
-            TLabel number = new TLabel();
-            number.setAbsBounds(pos.x, pos.y, DOT_SIZE, DOT_SIZE);
-            number.setHorizontalAlignment(HorizontalAlignment.CENTER);
-            number.setFontSize(TLabel.STD_FONT_SIZE * 0.75f);
-            number.setText(Component.literal(String.valueOf(count)));
-            add(number);
-
-            setAbsBounds(pos.x, pos.y, DOT_SIZE, DOT_SIZE);
             setTooltip(Tooltip.create(Component.literal(waypoints.stream().map(Waypoint::name).collect(Collectors.joining("\n")))));
         }
 
