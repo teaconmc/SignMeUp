@@ -188,6 +188,15 @@ public class WayPointsPanel extends TPanel {
         public MultiVisualWaypoint(MapPanel.InnerMapPanel map, Set<Waypoint> waypoints) {
             super(IMAGE);
             this.waypoints = waypoints;
+            int count = waypoints.size();
+            double x = 0D, z = 0D;
+            for (Waypoint waypoint : waypoints) {
+                x += waypoint.pos().x;
+                z += waypoint.pos().z;
+            }
+            Vector2i pos = map.worldToGui(x / count, z / count);
+            pos.sub(DOT_SIZE / 2, DOT_SIZE / 2);
+            setAbsBounds(pos.x, pos.y, DOT_SIZE, DOT_SIZE);
             setTooltip(Tooltip.create(Component.literal(waypoints.stream().map(Waypoint::name).collect(Collectors.joining("\n")))));
         }
 
