@@ -14,13 +14,13 @@ import org.teacon.exhibition_portal.components.Exhibition;
 import java.util.List;
 
 @EventBusSubscriber(modid = ExhibitionPortal.MODID)
-public record ExhibitionsPacket(List<Exhibition> galleries) implements CustomPacketPayload {
-    public static final StreamCodec<FriendlyByteBuf, ExhibitionsPacket> STREAM_CODEC = StreamCodec.composite(
-            Exhibition.STREAM_CODEC.apply(ByteBufCodecs.list()), ExhibitionsPacket::galleries,
-            ExhibitionsPacket::new
+public record UpdateExhibitionPacket(List<Exhibition> galleries) implements CustomPacketPayload {
+    public static final StreamCodec<FriendlyByteBuf, UpdateExhibitionPacket> STREAM_CODEC = StreamCodec.composite(
+            Exhibition.STREAM_CODEC.apply(ByteBufCodecs.list()), UpdateExhibitionPacket::galleries,
+            UpdateExhibitionPacket::new
     );
 
-    public static Type<ExhibitionsPacket> TYPE = new Type<>(ExhibitionPortal.id("s2c/sync_exhibitions"));
+    public static Type<UpdateExhibitionPacket> TYPE = new Type<>(ExhibitionPortal.id("s2c/sync_exhibitions"));
 
     @Override
     @NotNull

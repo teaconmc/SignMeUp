@@ -18,7 +18,7 @@ import org.teacon.exhibition_portal.ExhibitionPortal;
 import org.teacon.exhibition_portal.client.framework.binding.LayoutParameter;
 import org.teacon.exhibition_portal.client.screens.map.MapScreen;
 import org.teacon.exhibition_portal.components.Exhibition;
-import org.teacon.exhibition_portal.network.ExhibitionsPacket;
+import org.teacon.exhibition_portal.network.UpdateExhibitionPacket;
 
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +53,7 @@ public class EPClient {
 
     @SubscribeEvent
     private static void on(RegisterClientPayloadHandlersEvent event) {
-        event.register(ExhibitionsPacket.TYPE, HandlerThread.NETWORK, (payload, context) -> {
+        event.register(UpdateExhibitionPacket.TYPE, HandlerThread.NETWORK, (payload, context) -> {
             List<UUID> galleries = payload.galleries().stream().map(Exhibition::uuid).toList();
             Map<UUID, Exhibition> lookup = ExhibitionPortal.collectByID(HashMap::new, payload.galleries(), Exhibition::uuid);
 

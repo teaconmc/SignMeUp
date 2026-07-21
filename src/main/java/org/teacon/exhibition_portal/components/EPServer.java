@@ -13,7 +13,7 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.teacon.exhibition_portal.ExhibitionPortal;
-import org.teacon.exhibition_portal.network.ExhibitionsPacket;
+import org.teacon.exhibition_portal.network.UpdateExhibitionPacket;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -96,6 +96,17 @@ public final class EPServer {
     @SubscribeEvent
     private static void on(PlayerEvent.PlayerLoggedInEvent event) {
         sendExhibitionData((ServerPlayer) event.getEntity());
+    }
+
+    public static void replaceMetadata(List<ExhibitionMetadata> metadatas) {
+        GALLERY_METADATA.clear();
+        for (ExhibitionMetadata metadata : metadatas) {
+            GALLERY_METADATA.put(metadata.uuid(), metadata);
+        }
+        GALLERY_METADATA_STORAGE.setDirty();
+        for (ServerPlayer player : Objects.requireNonNull(ServerLifecycleHooks.getCurrentServer()).getPlayerList().getPlayers()) {
+            EPServer.sendExhibitionData(player);
+        }
     }
 
     @Nullable
@@ -187,6 +198,6 @@ public final class EPServer {
             }
         }
 
-        player.connection.send(new ExhibitionsPacket(galleries));
+        player.connection.send(new UpdateExhibitionPacket(galleries));
     }
 }
