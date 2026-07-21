@@ -1,0 +1,26 @@
+{
+  "block.exhibition_portal.stamping_counter": "盖章台",
+
+  "exhibition_portal.list.header": "--- 你的展馆 ---",
+  "exhibition_portal.list.view": "[\uD83D\uDD27查看]",
+  "exhibition_portal.detail.header": "--- 展馆 %1$s ---",
+  "exhibition_portal.detail.tweak": "[\uD83D\uDD27调整]",
+  "exhibition_portal.detail.key.name": "名称",
+  "exhibition_portal.detail.key.description": "描述",
+  "exhibition_portal.detail.key.introduction": "详细介绍",
+  "exhibition_portal.detail.key.waypoint": "路径点",
+  "exhibition_portal.detail.key.evt": "预计参观时间",
+  "exhibition_portal.request_stamp_table": "[\uD83D\uDD27获取盖章台]",
+
+  "exhibition_portal.detail.evt": "%1$s - %2$s 分钟",
+  "exhibition_portal.detail.teleport": "开始参观",
+  "exhibition_portal.detail.vote": "投票",
+  "exhibition_portal.detail.voted": "已投票",
+  "exhibition_portal.detail.mark": "标记为 ...",
+
+  "exhibition_portal.visited": "(已看过)",
+  "exhibition_portal.detail_hint": "双击以开始参观，点击按钮来进行更多操作",
+
+  "exhibition_portal.title": "TeaCon 2026",
+  "exhibition_portal.layout_failure": "布局失败"
+}

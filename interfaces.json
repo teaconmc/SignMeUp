@@ -1,0 +1,5 @@
+{
+  "net/minecraft/client/gui/GuiGraphicsExtractor": [
+    "org/teacon/exhibition_portal/client/framework/render/IGuiGraphicsExtension"
+  ]
+}

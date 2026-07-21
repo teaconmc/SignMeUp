@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.teacon.exhibition_portal.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "refmap": "exhibition_portal.refmap.json",
+  "mixins": [
+    "ServerGamePacketListenerImplMixin"
+  ],
+  "client": [
+    "GuiGraphicsMixin",
+    "StringSplitter_LineBreakFinderMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

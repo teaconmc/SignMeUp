@@ -1,0 +1,26 @@
+{
+  "block.exhibition_portal.stamping_counter": "Stamping Counter",
+
+  "exhibition_portal.list.header": "--- Your Galleries ---",
+  "exhibition_portal.list.view": "[\uD83D\uDD27View]",
+  "exhibition_portal.detail.header": "--- Gallery %1$s ---",
+  "exhibition_portal.detail.tweak": "[\uD83D\uDD27Tweak]",
+  "exhibition_portal.detail.key.name": "Name",
+  "exhibition_portal.detail.key.description": "Description",
+  "exhibition_portal.detail.key.introduction": "Detailed Introduction",
+  "exhibition_portal.detail.key.waypoint": "Waypoint",
+  "exhibition_portal.detail.key.evt": "Estimated Visit Time",
+  "exhibition_portal.request_stamp_table": "[\uD83D\uDD27Get a Stamp Table]",
+
+  "exhibition_portal.detail.evt": "%1$s - %2$s minutes",
+  "exhibition_portal.detail.teleport": "TP",
+  "exhibition_portal.detail.vote": "Vote",
+  "exhibition_portal.detail.voted": "Voted",
+  "exhibition_portal.detail.mark": "Mark →",
+
+  "exhibition_portal.visited": "(visited)",
+  "exhibition_portal.detail_hint": "Double-click to teleport.",
+
+  "exhibition_portal.title": "TeaCon 2026",
+  "exhibition_portal.layout_failure": "Layout Failed!"
+}
