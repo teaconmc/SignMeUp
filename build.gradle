@@ -139,13 +139,35 @@ neoForge.ideSyncTask generateModMetadata
 // Example configuration to allow publishing using the maven-publish plugin
 publishing {
     publications {
-        register('mavenJava', MavenPublication) {
-            from components.java
+        release(MavenPublication) {
+            groupId = "org.teacon"
+            artifactId = "SignMeUp-NeoForge-26.1"
+
+            artifact jar
+            pom {
+                name = mod_name
+                description = mod_description
+                url = 'https://github.com/teaconmc/SignMeUp'
+                issueManagement {
+                    system = 'GitHub Issues'
+                    url = 'https://github.com/teaconmc/SignMeUp'
+                }
+                scm {
+                    url = 'https://github.com/teaconmc/SignMeUp'
+                    connection = 'scm:git:git://github.com/teaconmc/SignMeUp.git'
+                    developerConnection = 'scm:git:git@github.com:teaconmc/SignMeUp.git'
+                }
+            }
         }
     }
     repositories {
         maven {
-            url "file://${project.projectDir}/repo"
+            name = "teacon"
+            url = "s3://maven/"
+            credentials(AwsCredentials) {
+                accessKey = System.env.ARCHIVE_ACCESS_KEY
+                secretKey = System.env.ARCHIVE_SECRET_KEY
+            }
         }
     }
 }
