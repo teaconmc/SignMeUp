@@ -26,7 +26,6 @@ import org.teacon.exhibition_portal.components.ExhibitionMetadata;
 import org.teacon.exhibition_portal.network.UpdateExhibitionMetadataPacket;
 import org.teacon.exhibition_portal.utils.Components;
 
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;

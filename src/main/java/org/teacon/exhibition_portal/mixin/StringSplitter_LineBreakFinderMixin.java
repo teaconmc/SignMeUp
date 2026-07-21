@@ -1,13 +1,9 @@
 package org.teacon.exhibition_portal.mixin;
 
-import it.unimi.dsi.fastutil.ints.IntArrays;
 import net.minecraft.network.chat.Style;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(targets = "net.minecraft.client.StringSplitter$LineBreakFinder")
 public class StringSplitter_LineBreakFinderMixin {

@@ -23,8 +23,8 @@ import org.teacon.exhibition_portal.client.framework.components.Rectangle;
 import org.teacon.exhibition_portal.client.framework.components.TextureMetadata;
 import org.teacon.exhibition_portal.client.screens.LayerPriority;
 import org.teacon.exhibition_portal.components.Exhibition;
-import org.teacon.exhibition_portal.network.UpdateExhibitionMarkPacket;
 import org.teacon.exhibition_portal.network.TeleportToExhibitionPacket;
+import org.teacon.exhibition_portal.network.UpdateExhibitionMarkPacket;
 import org.teacon.exhibition_portal.utils.Components;
 
 import java.util.List;

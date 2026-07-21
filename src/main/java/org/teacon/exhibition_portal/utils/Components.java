@@ -1,10 +1,8 @@
 package org.teacon.exhibition_portal.utils;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import org.teacon.exhibition_portal.ExhibitionPortal;
 
 public final class Components {
     private Components() {

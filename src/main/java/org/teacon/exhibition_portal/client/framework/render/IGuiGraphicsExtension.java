@@ -9,7 +9,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import org.joml.Matrix3x2f;
-import org.jspecify.annotations.NonNull;
 import org.teacon.exhibition_portal.client.framework.components.Rectangle;
 import org.teacon.exhibition_portal.client.framework.components.TextureMetadata;
 import org.teacon.exhibition_portal.client.framework.components.UVSource;
