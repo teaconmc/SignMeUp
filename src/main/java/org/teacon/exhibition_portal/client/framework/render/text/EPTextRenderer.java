@@ -64,6 +64,10 @@ public final class EPTextRenderer extends PictureInPictureRenderer<EPTextRenderS
 
         int width = (state.x1() - state.x0()) * guiScale;
         int height = (state.y1() - state.y0()) * guiScale;
+        if (width == 0 || height == 0) {
+            return;
+        }
+
         boolean needsAResize = textureView == null || textureView.getWidth(0) != width || textureView.getHeight(0) != height;
         if (needsAResize || !this.textureIsReadyToBlit(state)) {
             try {
