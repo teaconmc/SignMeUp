@@ -118,7 +118,7 @@ public final class MapLayouts {
 
                 x = map.x() + map.w() * x;
                 y = map.y() + map.h() * y;
-                float rotate = rot.x + Mth.PI;
+                float rotate = (float) (Math.toRadians(rot.y) + Mth.PI);
                 float SIZE = 15;
 
                 return new MeUI(new Rectangle(x - SIZE, y - SIZE, SIZE * 2, SIZE * 2), rotate);
