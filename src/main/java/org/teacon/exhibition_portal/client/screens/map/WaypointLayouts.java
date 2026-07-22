@@ -32,10 +32,10 @@ import static org.teacon.exhibition_portal.client.framework.GeneralLayouts.WINDO
     private WaypointLayouts() {
     }
 
-    public static final LayoutResource<TextureMetadata> WAYPOINT_TEXTURE = TextureMetadata.of(ExhibitionPortal.id("textures/waypoints.png"));
+    public static final LayoutResource<TextureMetadata> WAYPOINT_TEXTURE = TextureMetadata.of(ExhibitionPortal.id("textures/gui/waypoints.png"));
 
     public static final LayoutResource<String[]> WAYPOINT_TYPES = LayoutResource.of(
-            ExhibitionPortal.id("textures/waypoints.json"),
+            ExhibitionPortal.id("textures/gui/waypoints.json"),
             identifier -> {
                 try (Reader reader = Minecraft.getInstance().getResourceManager().openAsReader(identifier)) {
                     return ExhibitionPortal.GSON.fromJson(reader, String[].class);
@@ -67,7 +67,7 @@ import static org.teacon.exhibition_portal.client.framework.GeneralLayouts.WINDO
                             exhibition,
                             new Rectangle(
                                     map.x() + (waypoint.x() - coordinates.x()) * map.w() / coordinates.w() - r / 2,
-                                    map.y() + (waypoint.y() - coordinates.y()) * map.h() / coordinates.h() - r / 2,
+                                    map.y() + (waypoint.z() - coordinates.y()) * map.h() / coordinates.h() - r / 2,
                                     r, r
                             ),
                             texture,

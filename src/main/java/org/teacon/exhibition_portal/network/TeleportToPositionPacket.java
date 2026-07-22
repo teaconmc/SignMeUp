@@ -48,7 +48,7 @@ public record TeleportToPositionPacket(int x, int z) implements CustomPacketPayl
                 int x = packet.x, z = packet.z;
                 ChunkAccess chunk = server.overworld().getChunk(new BlockPos(x, 0, z));
                 int height = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
-                player.teleportTo(x + 0.5f, height + 0.5f, z + 0.5f);
+                player.teleportTo(x + 0.5f, height + 1.5f, z + 0.5f);
             });
         });
     }
