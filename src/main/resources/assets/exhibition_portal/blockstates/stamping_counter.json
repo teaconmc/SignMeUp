@@ -1,7 +1,19 @@
 {
 	"variants": {
-		"": {
+		"facing=east": {
+			"model": "exhibition_portal:stamping_counter",
+			"y": 90
+		},
+		"facing=north": {
 			"model": "exhibition_portal:stamping_counter"
+		},
+		"facing=south": {
+			"model": "exhibition_portal:stamping_counter",
+			"y": 180
+		},
+		"facing=west": {
+			"model": "exhibition_portal:stamping_counter",
+			"y": 270
 		}
 	}
 }

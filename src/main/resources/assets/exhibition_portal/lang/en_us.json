@@ -22,5 +22,7 @@
   "exhibition_portal.detail_hint": "Double-click to teleport.",
 
   "exhibition_portal.title": "TeaCon 2026",
-  "exhibition_portal.layout_failure": "Layout Failed!"
+  "exhibition_portal.layout_failure": "Layout Failed!",
+
+  "exhibition_portal.stamping_counter.tooltip": "%1$s's stamp: %2$s"
 }

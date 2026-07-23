@@ -20,6 +20,10 @@ public final class DragContext {
         /// @return Whether to remove the current context
         boolean onMouseMove(Pos mouse);
 
+        default boolean onMouseScroll(float deltaX) {
+            return false;
+        }
+
         default void close() {
         }
     }
@@ -79,6 +83,14 @@ public final class DragContext {
                         close();
                         return new Layers.IEventResult.Miss();
                     }
+                    return new Layers.IEventResult.Consumed();
+                }
+                return new Layers.IEventResult.Miss();
+            }
+
+            @Override
+            public Layers.IEventResult onMouseScrolled(Pos mouse, float deltaY) {
+                if (context != null) {
                     return new Layers.IEventResult.Consumed();
                 }
                 return new Layers.IEventResult.Miss();

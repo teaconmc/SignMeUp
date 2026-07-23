@@ -41,7 +41,7 @@ public record UpdateExhibitionStampPacket(UUID exhibition, ExhibitionStamp stamp
                 EPServer.updateFootprint(player, packet.exhibition, f -> {
                     for (ExhibitionStamp stamp : f.stamps()) {
                         if (stamp.id().equalsIgnoreCase(packet.stamp.id())) {
-                            return f.withStamp(stamp);
+                            return f.withStamp(packet.stamp);
                         }
                     }
                     return f;

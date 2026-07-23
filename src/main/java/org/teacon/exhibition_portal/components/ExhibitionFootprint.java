@@ -50,7 +50,7 @@ public record ExhibitionFootprint(UUID uuid, String mark, List<ExhibitionStamp> 
     public static final String MARK_DEFAULT = "#default", MARK_VISITED = "#visited";
 
     public boolean isDefault() {
-        return MARK_DEFAULT.equals(mark);
+        return MARK_DEFAULT.equals(mark) && stamps.isEmpty();
     }
 
     public ExhibitionFootprint withMark(String mark) {
@@ -64,18 +64,18 @@ public record ExhibitionFootprint(UUID uuid, String mark, List<ExhibitionStamp> 
             }
 
             if (stamps.get(i).id().equals(stamp.id())) {
-                List<ExhibitionStamp> stamps = new ArrayList<>(this.stamps.size());
-                stamps.addAll(stamps.subList(0, i));
-                stamps.add(stamp);
-                stamps.addAll(stamps.subList(i + 1, stamps.size()));
-                return new ExhibitionFootprint(uuid, mark, stamps);
+                List<ExhibitionStamp> next = new ArrayList<>(stamps.size());
+                next.addAll(stamps.subList(0, i));
+                next.add(stamp);
+                next.addAll(stamps.subList(i + 1, stamps.size()));
+                return new ExhibitionFootprint(uuid, mark, next);
             }
         }
 
-        List<ExhibitionStamp> stamps = new ArrayList<>(this.stamps.size() + 1);
-        stamps.addAll(this.stamps);
-        stamps.add(stamp);
-        return new ExhibitionFootprint(uuid, mark, stamps);
+        List<ExhibitionStamp> next = new ArrayList<>(stamps.size() + 1);
+        next.addAll(stamps);
+        next.add(stamp);
+        return new ExhibitionFootprint(uuid, mark, next);
     }
 
     public ExhibitionFootprint withoutStamp(String stampID) {

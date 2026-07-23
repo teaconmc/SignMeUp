@@ -8,6 +8,8 @@ import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.UuidArgument;
+import net.minecraft.commands.arguments.item.ItemArgument;
+import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -133,15 +135,12 @@ public final class EPCommands {
                         })
                         .then(Commands.literal("stamp").then(
                                 Commands.argument("stamp_id", new EnumStringArgument(EPServer.ALLOWED_STAMP_IDS)).then(
-                                        Commands.argument("mode", new EnumStringArgument("rectangle", "circle"))
+                                        Commands.argument("item", new ItemArgument(event.getBuildContext()))
                                                 .executes(context -> {
                                                     UUID uuid = UuidArgument.getUuid(context, "uuid");
                                                     String stampID = context.getArgument("stamp_id", String.class);
-                                                    boolean isRectangle = switch (context.getArgument("mode", String.class)) {
-                                                        case "rectangle" -> true;
-                                                        case "circle" -> false;
-                                                        default -> throw new AssertionError();
-                                                    };
+                                                    ItemInput item = ItemArgument.getItem(context, "item");
+
                                                     ServerPlayer player = PlayerAccess.get(context);
 
                                                     ExhibitionDeclaration exhibition = EPServer.getDeclarationOrNull(uuid);
@@ -151,9 +150,11 @@ public final class EPCommands {
                                                     }
 
                                                     ItemStack stack = new ItemStack(ExhibitionPortal.STAMPING_COUNTER_ITEM.get());
+
                                                     TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING,context.getSource().registryAccess());
-                                                    StampingCounterBlockEntity.saveStamp(output, uuid, stampID, isRectangle);
+                                                    StampingCounterBlockEntity.saveStamp(output, uuid, stampID, item.item().unwrapKey().orElseThrow().identifier());
                                                     BlockItem.setBlockEntityData(stack, ExhibitionPortal.STAMPING_COUNTER_BE.get(), output);
+
                                                     player.getInventory().placeItemBackInInventory(stack);
                                                     return Command.SINGLE_SUCCESS;
                                                 })

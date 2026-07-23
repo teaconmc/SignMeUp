@@ -22,5 +22,7 @@
   "exhibition_portal.detail_hint": "双击以开始参观，点击按钮来进行更多操作",
 
   "exhibition_portal.title": "TeaCon 2026",
-  "exhibition_portal.layout_failure": "布局失败"
+  "exhibition_portal.layout_failure": "布局失败",
+
+  "exhibition_portal.stamping_counter.tooltip": "%1$s的图章: %2$s"
 }
