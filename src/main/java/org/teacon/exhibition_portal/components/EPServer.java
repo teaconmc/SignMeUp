@@ -12,6 +12,8 @@ import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.teacon.exhibition_portal.ExhibitionPortal;
 import org.teacon.exhibition_portal.network.UpdateExhibitionPacket;
 
@@ -34,6 +36,8 @@ import java.util.function.UnaryOperator;
 
 @EventBusSubscriber(modid = ExhibitionPortal.MODID)
 public final class EPServer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EPServer.class);
+
     private EPServer() {
     }
 
@@ -52,7 +56,8 @@ public final class EPServer {
                                     ExhibitionDeclaration[] value = ExhibitionPortal.GSON.fromJson(reader, ExhibitionDeclaration[].class);
                                     return Arrays.stream(value).collect(ImmutableMap.toImmutableMap(ExhibitionDeclaration::uuid, Function.identity()));
                                 } catch (IOException e) {
-                                    throw new UncheckedIOException(e);
+                                    LOGGER.warn("Cannot load galleries.json", e);
+                                    return Map.<UUID, ExhibitionDeclaration>of();
                                 }
                             }, taskExecutor)
                             .thenComposeAsync(preparationBarrier::wait)
@@ -68,7 +73,8 @@ public final class EPServer {
                                 try (BufferedReader reader = currentReload.resourceManager().openAsReader(ExhibitionPortal.id("stamps.json"))) {
                                     return ExhibitionPortal.GSON.fromJson(reader, String[].class);
                                 } catch (IOException e) {
-                                    throw new UncheckedIOException(e);
+                                    LOGGER.warn("Cannot load stamps.json", e);
+                                    return new String[0];
                                 }
                             }, taskExecutor)
                             .thenComposeAsync(preparationBarrier::wait)
