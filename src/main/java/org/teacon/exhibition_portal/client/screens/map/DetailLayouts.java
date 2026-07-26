@@ -9,6 +9,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 import org.apache.commons.lang3.Range;
@@ -129,7 +130,7 @@ import static org.teacon.exhibition_portal.client.screens.map.WaypointLayouts.WA
                         Component.translatable("exhibition_portal.detail_hint").withStyle(withStyle)
                 );
 
-                float w = context.get(DETAIL_INNER_W) / context.get(DETAIL_DESC_LINE_HEIGHT) * 13.5f; // FIXME: Magic Number
+                float w = context.get(DETAIL_INNER_W) / context.get(DETAIL_DESC_LINE_HEIGHT) * 11;
                 return Minecraft.getInstance().font.split(component, Math.round(w));
             }
     );

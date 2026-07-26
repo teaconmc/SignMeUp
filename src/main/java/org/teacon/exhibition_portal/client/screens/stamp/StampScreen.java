@@ -55,6 +55,8 @@ public class StampScreen extends AbstractEPScreen {
                         } finally {
                             graphics.pose().popMatrix();
                         }
+                    } else {
+                        graphics.blit(render.item(), NEAREST_CLAMP, render.rectangle());
                     }
 
                     if (render.handle() != null) {

@@ -7,14 +7,13 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.commands.arguments.UuidArgument;
-import net.minecraft.commands.arguments.item.ItemArgument;
-import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.contents.PlainTextContents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.Permissions;
 import net.minecraft.util.ProblemReporter;
@@ -42,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collector;
 
 @EventBusSubscriber(modid = ExhibitionPortal.MODID)
 public final class EPCommands {
@@ -100,26 +98,24 @@ public final class EPCommands {
                 Commands.literal("mine").executes(context -> {
                     ServerPlayer player = PlayerAccess.get(context);
 
-                    MutableComponent message = EPServer.getOwned(player)
-                            .stream()
-                            .sorted()
-                            .map(uuid -> ofExhibitionSummary(EPServer.getDeclaration(uuid), EPServer.getMetadata(uuid)))
-                            .collect(Collector.of(
-                                    Component::empty,
-                                    (b, n) -> {
-                                        if (b.getContents() != PlainTextContents.EMPTY) {
-                                            b.append(n);
-                                        }
-                                        b.append(n);
-                                    },
-                                    MutableComponent::append
-                            ));
+                    MutableComponent message = Component.translatable("exhibition_portal.list.header");
+                    List<UUID> galleries = EPServer.getOwned(player);
+                    galleries.sort(null);
+                    for (UUID uuid : galleries) {
+                        message = message.append("\n").append(ofExhibitionSummary(EPServer.getDeclaration(uuid), EPServer.getMetadata(uuid)));
+                    }
 
-                    context.getSource().sendSystemMessage(
-                            Component.translatable("exhibition_portal.list.header").append("\n").append(message)
-                    );
+                    context.getSource().sendSystemMessage(message);
                     return Command.SINGLE_SUCCESS;
                 })
+        ).then(
+                Commands.literal("debug").requires(PlayerAccess::is).then(
+                        Commands.literal("clear_footprint").executes(context -> {
+                            ServerPlayer player = PlayerAccess.get(context);
+                            EPServer.clearFootprint(player);
+                            return Command.SINGLE_SUCCESS;
+                        })
+                )
         ).then(
                 Commands.argument("uuid", UuidArgument.uuid())
                         .executes(context -> {
@@ -135,11 +131,11 @@ public final class EPCommands {
                         })
                         .then(Commands.literal("stamp").then(
                                 Commands.argument("stamp_id", new EnumStringArgument(EPServer.ALLOWED_STAMP_IDS)).then(
-                                        Commands.argument("item", new ItemArgument(event.getBuildContext()))
+                                        Commands.argument("item", IdentifierArgument.id())
                                                 .executes(context -> {
                                                     UUID uuid = UuidArgument.getUuid(context, "uuid");
                                                     String stampID = context.getArgument("stamp_id", String.class);
-                                                    ItemInput item = ItemArgument.getItem(context, "item");
+                                                    Identifier item = IdentifierArgument.getId(context, "item");
 
                                                     ServerPlayer player = PlayerAccess.get(context);
 
@@ -152,7 +148,7 @@ public final class EPCommands {
                                                     ItemStack stack = new ItemStack(ExhibitionPortal.STAMPING_COUNTER_ITEM.get());
 
                                                     TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING,context.getSource().registryAccess());
-                                                    StampingCounterBlockEntity.saveStamp(output, uuid, stampID, item.item().unwrapKey().orElseThrow().identifier());
+                                                    StampingCounterBlockEntity.saveStamp(output, uuid, stampID, item);
                                                     BlockItem.setBlockEntityData(stack, ExhibitionPortal.STAMPING_COUNTER_BE.get(), output);
 
                                                     player.getInventory().placeItemBackInInventory(stack);

@@ -105,7 +105,7 @@ public class StampingCounterBlock extends Block implements EntityBlock {
                 if (exhibition != null) {
                     for (ExhibitionStamp s : exhibition.footprint().stamps()) {
                         if (s.id().equals(stamp.id())) {
-                            stamp = s;
+                            stamp = s.withItem(entity.getItem());
                             break;
                         }
                     }
@@ -115,18 +115,14 @@ public class StampingCounterBlock extends Block implements EntityBlock {
                     Minecraft.getInstance().setScreen((Screen) (Object) new StampScreen());
                 }
             } else {
-                List<ExhibitionStamp> stamps = EPServer.getFootprint((ServerPlayer) player, entity.getExhibition()).stamps();
-                locate:
-                {
-                    for (ExhibitionStamp s : stamps) {
-                        if (s.id().equals(stamp.id())) {
-                            break locate;
-                        }
+                for (ExhibitionStamp s : EPServer.getFootprint((ServerPlayer) player, entity.getExhibition()).stamps()) {
+                    if (s.id().equals(stamp.id())) {
+                        stamp = s.withItem(entity.getItem());
                     }
-
-                    ExhibitionStamp s = stamp;
-                    EPServer.updateFootprint((ServerPlayer) player, entity.getExhibition(), p -> p.withStamp(s));
                 }
+
+                ExhibitionStamp finalStamp = stamp;
+                EPServer.updateFootprint((ServerPlayer) player, entity.getExhibition(), p -> p.withStamp(finalStamp));
             }
         }
 

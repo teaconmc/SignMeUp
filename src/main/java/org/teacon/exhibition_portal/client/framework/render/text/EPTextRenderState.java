@@ -4,6 +4,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.Mth;
 import org.jspecify.annotations.Nullable;
 import org.teacon.exhibition_portal.client.framework.components.Rectangle;
 
@@ -23,28 +24,29 @@ public record EPTextRenderState(
         this(
                 area, font, text,
                 horizontalAlignment, verticalAlignment, fitMode,
-                scissorArea, PictureInPictureRenderState.getBounds((int) area.x0(), (int) area.y0(), (int) area.x1(), (int) area.y1(), scissorArea)
+                scissorArea, PictureInPictureRenderState.getBounds(
+                        Mth.floor(area.x0()), Mth.floor(area.y0()), Mth.ceil(area.x1()), Mth.ceil(area.y1()), scissorArea)
         );
     }
 
     @Override
     public int x0() {
-        return (int) area.x0();
+        return Mth.floor(area.x0());
     }
 
     @Override
     public int x1() {
-        return (int) area.x1();
+        return Mth.ceil(area.x1());
     }
 
     @Override
     public int y0() {
-        return (int) area.y0();
+        return Mth.floor(area.y0());
     }
 
     @Override
     public int y1() {
-        return (int) area.y1();
+        return Mth.ceil(area.y1());
     }
 
     @Override

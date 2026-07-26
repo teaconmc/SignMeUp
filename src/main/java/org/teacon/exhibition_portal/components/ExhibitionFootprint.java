@@ -146,5 +146,9 @@ public record ExhibitionFootprint(UUID uuid, String mark, List<ExhibitionStamp> 
             }
             return footprint;
         }
+
+        public void clear() {
+            map.clear();
+        }
     }
 }

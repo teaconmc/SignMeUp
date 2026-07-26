@@ -29,6 +29,7 @@ import java.util.Map;
 
 import static org.teacon.exhibition_portal.client.EPClient.GALLERY_LOOKUP;
 import static org.teacon.exhibition_portal.client.framework.render.text.TextFitMode.FIT_HEIGHT;
+import static org.teacon.exhibition_portal.client.framework.render.text.TextFitMode.FIT_WIDTH;
 import static org.teacon.exhibition_portal.client.framework.render.text.TextHorizontalAlignment.LEFT;
 import static org.teacon.exhibition_portal.client.framework.render.text.TextHorizontalAlignment.MIDDLE;
 import static org.teacon.exhibition_portal.client.framework.render.text.TextHorizontalAlignment.SCROLL;

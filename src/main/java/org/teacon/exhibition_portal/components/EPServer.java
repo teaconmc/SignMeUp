@@ -157,6 +157,10 @@ public final class EPServer {
         return uuids;
     }
 
+    public static void clearFootprint(ServerPlayer player) {
+        ExhibitionFootprint.getStorage(player).clear();
+    }
+
     public static ExhibitionFootprint getFootprint(ServerPlayer player, UUID uuid) {
         return ExhibitionFootprint.getStorage(player).get(uuid);
     }
