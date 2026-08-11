@@ -130,7 +130,7 @@ public final class EPCommands {
                             return Command.SINGLE_SUCCESS;
                         })
                         .then(Commands.literal("stamp").then(
-                                Commands.argument("stamp_id", new EnumStringArgument(EPServer.ALLOWED_STAMP_IDS)).then(
+                                Commands.argument("stamp_id", new EnumStringArgument(EPServer.  ALLOWED_STAMP_IDS)).then(
                                         Commands.argument("item", IdentifierArgument.id())
                                                 .executes(context -> {
                                                     UUID uuid = UuidArgument.getUuid(context, "uuid");
@@ -199,7 +199,7 @@ public final class EPCommands {
                                                 Commands.argument("introduction", StringArgumentType.greedyString())
                                                         .executes(context -> {
                                                             UUID uuid = UuidArgument.getUuid(context, "uuid");
-                                                            String introduction = context.getArgument("introduction", String.class);
+                                                            String introduction = context.getArgument("introduction", String.class).replace("\\n", "\n");
 
                                                             ExhibitionDeclaration exhibition = EPServer.getDeclarationOrNull(uuid);
                                                             if (exhibition == null || nonAccess(exhibition, PlayerAccess.get(context))) {

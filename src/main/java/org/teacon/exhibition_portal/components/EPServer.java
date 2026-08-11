@@ -1,6 +1,7 @@
 package org.teacon.exhibition_portal.components;
 
 import com.google.common.collect.ImmutableMap;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -16,10 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.exhibition_portal.ExhibitionPortal;
 import org.teacon.exhibition_portal.network.UpdateExhibitionPacket;
+import org.teacon.exhibition_portal.network.UpdateOperationPacket;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,6 +42,7 @@ public final class EPServer {
     private EPServer() {
     }
 
+    public static EPOperation OPERATIONS;
     private static Map<UUID, ExhibitionDeclaration> GALLERIES;
     public static final List<String> ALLOWED_STAMP_IDS = new ArrayList<>();
     private static Map<UUID, ExhibitionMetadata> GALLERY_METADATA;
@@ -48,6 +50,27 @@ public final class EPServer {
 
     @SubscribeEvent
     private static void on(AddServerReloadListenersEvent event) {
+        event.addListener(
+                ExhibitionPortal.id("load_operations_configuration"),
+                ((currentReload, taskExecutor, preparationBarrier, reloadExecutor) -> {
+                    return CompletableFuture.supplyAsync(() -> {
+                                try (BufferedReader reader = currentReload.resourceManager().openAsReader(ExhibitionPortal.id("operations.json"))) {
+                                    return ExhibitionPortal.GSON.fromJson(reader, EPOperation.class);
+                                } catch (IOException e) {
+                                    LOGGER.warn("Cannot load operations.json", e);
+                                    return EPOperation.INSTANCE;
+                                }
+                            }, taskExecutor)
+                            .thenComposeAsync(preparationBarrier::wait)
+                            .thenAcceptAsync(operations -> {
+                                OPERATIONS = operations;
+                                MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+                                if (server != null) {
+                                    server.getPlayerList().broadcastAll(new UpdateOperationPacket(operations));
+                                }
+                            }, reloadExecutor);
+                })
+        );
         event.addListener(
                 ExhibitionPortal.id("load_exhibition_configuration"),
                 (currentReload, taskExecutor, preparationBarrier, reloadExecutor) -> {
@@ -63,6 +86,13 @@ public final class EPServer {
                             .thenComposeAsync(preparationBarrier::wait)
                             .thenAcceptAsync(exhibition -> {
                                 GALLERIES = exhibition;
+
+                                MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+                                if (server != null) {
+                                    for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                                        sendExhibitionData(player);
+                                    }
+                                }
                             }, reloadExecutor);
                 }
         );
@@ -101,7 +131,9 @@ public final class EPServer {
 
     @SubscribeEvent
     private static void on(PlayerEvent.PlayerLoggedInEvent event) {
-        sendExhibitionData((ServerPlayer) event.getEntity());
+        ServerPlayer player = (ServerPlayer) event.getEntity();
+        sendExhibitionData(player);
+        player.connection.send(new UpdateOperationPacket(OPERATIONS));
     }
 
     public static void replaceMetadata(List<ExhibitionMetadata> metadatas) {

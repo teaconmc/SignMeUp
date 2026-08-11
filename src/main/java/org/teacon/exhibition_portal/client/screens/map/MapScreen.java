@@ -1,5 +1,6 @@
 package org.teacon.exhibition_portal.client.screens.map;
 
+import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.textures.GpuSampler;
@@ -29,7 +30,6 @@ import java.util.Map;
 
 import static org.teacon.exhibition_portal.client.EPClient.GALLERY_LOOKUP;
 import static org.teacon.exhibition_portal.client.framework.render.text.TextFitMode.FIT_HEIGHT;
-import static org.teacon.exhibition_portal.client.framework.render.text.TextFitMode.FIT_WIDTH;
 import static org.teacon.exhibition_portal.client.framework.render.text.TextHorizontalAlignment.LEFT;
 import static org.teacon.exhibition_portal.client.framework.render.text.TextHorizontalAlignment.MIDDLE;
 import static org.teacon.exhibition_portal.client.framework.render.text.TextHorizontalAlignment.SCROLL;
@@ -79,6 +79,7 @@ public class MapScreen extends AbstractEPScreen {
     @Override
     protected void render(@NonNull GuiGraphicsExtractor graphics) throws LayoutFailureException {
         GpuSampler LINEAR_CLAMP = RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR);
+        GpuSampler NEAREST_CLAMP = RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST);
 
         {
             Rectangle leftBox = RenderAccess.get(SELECTION_BOX);
@@ -142,6 +143,12 @@ public class MapScreen extends AbstractEPScreen {
             graphics.disableScissor();
         }
 
+        graphics.blit(RenderAccess.get(OperationsLayout.OPERATION_TEXTURE), NEAREST_CLAMP, RenderAccess.get(OperationsLayout.OPERATION_BOX));
+        if (RenderAccess.get(OperationsLayout.OPERATION_HOVER) != null) {
+            graphics.blit(RenderAccess.get(OperationsLayout.OPERATION_HOVER_TEXTURE), NEAREST_CLAMP,  RenderAccess.get(OperationsLayout.OPERATION_HOVER));
+            graphics.requestCursor(CursorTypes.POINTING_HAND);
+        }
+
         Rectangle selectionOutline = RenderAccess.get(DETAIL_SELECTION_OUTLINE), descOutline = RenderAccess.get(DETAIL_BOX);
 
         graphics.fill(descOutline, 0xC0000000);
@@ -164,6 +171,9 @@ public class MapScreen extends AbstractEPScreen {
 
             Rectangle detailButtonTeleportBox = RenderAccess.get(BUTTON_TELEPORT);
             graphics.blit(RenderAccess.get(RenderAccess.get(BUTTON_TELEPORT_STYLE)), LINEAR_CLAMP, detailButtonTeleportBox);
+            if (RenderAccess.get(BUTTON_TELEPORT_STYLE) != DetailLayouts.BUTTON_NORMAL) {
+                graphics.requestCursor(CursorTypes.POINTING_HAND);
+            }
             graphics.renderString(shrink(detailButtonTeleportBox), Component.translatable("exhibition_portal.detail.teleport").withStyle(REGULAR), MIDDLE, CENTER, FIT_HEIGHT);
 
             Rectangle detailButtonMarkBox = RenderAccess.get(BUTTON_MARK_AS);
@@ -172,6 +182,7 @@ public class MapScreen extends AbstractEPScreen {
             if (detailButtonMarkRange == null) {
                 graphics.renderString(shrink(detailButtonMarkBox), Component.translatable("exhibition_portal.detail.mark").withStyle(REGULAR), MIDDLE, CENTER, FIT_HEIGHT);
             } else {
+                graphics.requestCursor(CursorTypes.POINTING_HAND);
                 graphics.blit(
                         RenderAccess.get(BUTTON_HOVER),
                         LINEAR_CLAMP,

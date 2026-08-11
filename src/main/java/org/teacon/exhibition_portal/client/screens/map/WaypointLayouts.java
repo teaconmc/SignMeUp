@@ -19,6 +19,7 @@ import org.teacon.exhibition_portal.components.ExhibitionWaypoint;
 
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -62,7 +63,7 @@ import static org.teacon.exhibition_portal.client.framework.GeneralLayouts.WINDO
                     Exhibition exhibition = lookup.get(uuid);
 
                     ExhibitionWaypoint waypoint = exhibition.metadata().waypoint();
-                    float v = Math.clamp(ArrayUtils.indexesOf(waypoints, exhibition.footprint().mark()).nextSetBit(0), 0, waypoints.length - 1);
+                    float v = Math.clamp(Arrays.asList(waypoints).indexOf(exhibition.footprint().mark()), 0, waypoints.length - 1);
                     renders.add(new WaypointRender(
                             exhibition,
                             new Rectangle(

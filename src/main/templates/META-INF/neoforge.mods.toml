@@ -33,7 +33,7 @@ displayName="${mod_name}" #mandatory
 #logoFile="examplemod.png" #optional
 
 # A text field displayed in the mod UI
-#credits="" #optional
+credits="Thanks to JianmoOvO and MalaP for designing GUI textures"
 
 # The authors of the mod, displayed in the mod UI (optional)
 authors="TeaCon Team"

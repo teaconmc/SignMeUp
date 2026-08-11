@@ -17,8 +17,10 @@ import org.lwjgl.glfw.GLFW;
 import org.teacon.exhibition_portal.ExhibitionPortal;
 import org.teacon.exhibition_portal.client.framework.binding.LayoutParameter;
 import org.teacon.exhibition_portal.client.screens.map.MapScreen;
+import org.teacon.exhibition_portal.components.EPOperation;
 import org.teacon.exhibition_portal.components.Exhibition;
 import org.teacon.exhibition_portal.network.UpdateExhibitionPacket;
+import org.teacon.exhibition_portal.network.UpdateOperationPacket;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +31,7 @@ import java.util.UUID;
 public class EPClient {
     public static final LayoutParameter<Map<UUID, Exhibition>> GALLERY_LOOKUP = LayoutParameter.of(Map.of());
     public static final LayoutParameter<List<UUID>> GALLERIES = LayoutParameter.of(List.of());
+    public static final LayoutParameter<EPOperation> OPERATION = LayoutParameter.of(EPOperation.INSTANCE);
 
     private static final Lazy<KeyMapping> ENTRYPOINT_KEY = Lazy.of(() -> new KeyMapping(
             "exhibition_portal.entrypoint",
@@ -61,6 +64,10 @@ public class EPClient {
                 GALLERIES.set(galleries);
                 GALLERY_LOOKUP.set(new HashMap<>(lookup));
             });
+        });
+
+        event.register(UpdateOperationPacket.TYPE, HandlerThread.MAIN, (payload, _) -> {
+            OPERATION.set(payload.operation());
         });
     }
 }
