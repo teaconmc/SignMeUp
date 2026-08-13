@@ -35,10 +35,6 @@ public class StampScreen extends AbstractEPScreen {
         try {
             graphics.blit(RenderAccess.get(MAP), LINEAR_CLAMP, RenderAccess.get(MAP_AREA));
 
-            for (WaypointLayouts.WaypointRender waypoint : RenderAccess.get(WAYPOINTS)) {
-                graphics.blit(waypoint.texture(), LINEAR_CLAMP, waypoint.rectangle(), waypoint.uv());
-            }
-
             for (StampScreenLayouts.StampRender render : RenderAccess.get(StampScreenLayouts.RENDERED_STAMPS)) {
                 graphics.pose().pushMatrix();
                 try {
@@ -65,6 +61,10 @@ public class StampScreen extends AbstractEPScreen {
                 } finally {
                     graphics.pose().popMatrix();
                 }
+            }
+
+            for (WaypointLayouts.WaypointRender waypoint : RenderAccess.get(WAYPOINTS)) {
+                graphics.blit(waypoint.texture(), LINEAR_CLAMP, waypoint.rectangle(), waypoint.uv());
             }
         } finally {
             graphics.disableScissor();

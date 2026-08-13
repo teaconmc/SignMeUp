@@ -6,9 +6,15 @@ import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.util.UndashedUuid;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.Range;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
@@ -22,10 +28,12 @@ import org.teacon.exhibition_portal.client.framework.components.UVSource;
 import org.teacon.exhibition_portal.client.framework.render.AbstractEPScreen;
 import org.teacon.exhibition_portal.client.framework.render.ColoredQuadrangleRenderState;
 import org.teacon.exhibition_portal.client.screens.MapLayouts;
+import org.teacon.exhibition_portal.client.screens.stamp.StampScreenLayouts;
 import org.teacon.exhibition_portal.components.Exhibition;
 import org.teacon.exhibition_portal.components.ExhibitionMetadata;
 import org.teacon.exhibition_portal.utils.Components;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.teacon.exhibition_portal.client.EPClient.GALLERY_LOOKUP;
@@ -125,6 +133,34 @@ public class MapScreen extends AbstractEPScreen {
         try {
             graphics.blit(RenderAccess.get(MAP), LINEAR_CLAMP, RenderAccess.get(MAP_AREA));
 
+            for (StampScreenLayouts.StampRender render : RenderAccess.get(StampScreenLayouts.RENDERED_STAMPS)) {
+                graphics.pose().pushMatrix();
+                try {
+                    graphics.pose().rotateAbout(render.rotate(), render.rectangle().center().x(), render.rectangle().center().y());
+
+                    Holder.Reference<Item> item = BuiltInRegistries.ITEM.get(render.item()).orElse(null);
+                    if (item != null) {
+                        graphics.pose().pushMatrix();
+                        try {
+                            graphics.pose()
+                                    .translate(render.rectangle().x(), render.rectangle().y())
+                                    .scale(render.rectangle().w() / 16);
+                            graphics.fakeItem(new ItemStack(item), 0, 0);
+                        } finally {
+                            graphics.pose().popMatrix();
+                        }
+                    } else {
+                        graphics.blit(render.item(), NEAREST_CLAMP, render.rectangle());
+                    }
+
+                    if (render.handle() != null) {
+                        graphics.blit(render.handle().textureView(), NEAREST_CLAMP, render.rectangle());
+                    }
+                } finally {
+                    graphics.pose().popMatrix();
+                }
+            }
+
             for (WaypointLayouts.WaypointRender waypoint : RenderAccess.get(WAYPOINTS)) {
                 graphics.blit(waypoint.texture(), LINEAR_CLAMP, waypoint.rectangle(), waypoint.uv());
             }
@@ -143,10 +179,24 @@ public class MapScreen extends AbstractEPScreen {
             graphics.disableScissor();
         }
 
-        graphics.blit(RenderAccess.get(OperationsLayout.OPERATION_TEXTURE), NEAREST_CLAMP, RenderAccess.get(OperationsLayout.OPERATION_BOX));
-        if (RenderAccess.get(OperationsLayout.OPERATION_HOVER) != null) {
-            graphics.blit(RenderAccess.get(OperationsLayout.OPERATION_HOVER_TEXTURE), NEAREST_CLAMP,  RenderAccess.get(OperationsLayout.OPERATION_HOVER));
-            graphics.requestCursor(CursorTypes.POINTING_HAND);
+        Rectangle operation = RenderAccess.get(OperationsLayout.OPERATION_BOX);
+        if (operation != null) {
+            graphics.blit(RenderAccess.get(OperationsLayout.OPERATION_TEXTURE), NEAREST_CLAMP, operation);
+            Rectangle hover = RenderAccess.get(OperationsLayout.OPERATION_HOVER);
+            if (hover != null) {
+                graphics.blit(RenderAccess.get(OperationsLayout.OPERATION_HOVER_TEXTURE), NEAREST_CLAMP, hover);
+                graphics.requestCursor(CursorTypes.POINTING_HAND);
+            }
+            List<ClientTooltipComponent> tooltip = RenderAccess.get(OperationsLayout.OPERATION_TOOLTIP);
+            if (tooltip != null) {
+                graphics.tooltip(
+                        minecraft.font,
+                        tooltip,
+                        Math.round(operation.x0()), Math.round(operation.y1()),
+                        DefaultTooltipPositioner.INSTANCE,
+                        null
+                );
+            }
         }
 
         Rectangle selectionOutline = RenderAccess.get(DETAIL_SELECTION_OUTLINE), descOutline = RenderAccess.get(DETAIL_BOX);

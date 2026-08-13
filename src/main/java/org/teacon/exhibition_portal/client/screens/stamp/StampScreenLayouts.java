@@ -21,6 +21,7 @@ import org.teacon.exhibition_portal.client.framework.binding.RenderAccess;
 import org.teacon.exhibition_portal.client.framework.components.Pos;
 import org.teacon.exhibition_portal.client.framework.components.Rectangle;
 import org.teacon.exhibition_portal.client.framework.components.TextureMetadata;
+import org.teacon.exhibition_portal.client.framework.render.AbstractEPScreen;
 import org.teacon.exhibition_portal.client.screens.LayerPriority;
 import org.teacon.exhibition_portal.client.screens.MapLayouts;
 import org.teacon.exhibition_portal.components.Exhibition;
@@ -196,7 +197,7 @@ public class StampScreenLayouts {
 
             @Override
             public Class<? extends Screen> screen() {
-                return StampScreen.class;
+                return AbstractEPScreen.class;
             }
 
             @Override

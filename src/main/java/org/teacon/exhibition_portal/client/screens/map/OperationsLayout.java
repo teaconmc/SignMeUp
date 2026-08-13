@@ -1,8 +1,12 @@
 package org.teacon.exhibition_portal.client.screens.map;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTextTooltip;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
 import org.teacon.exhibition_portal.ExhibitionPortal;
 import org.teacon.exhibition_portal.client.EPClient;
@@ -19,6 +23,7 @@ import org.teacon.exhibition_portal.client.screens.LayerPriority;
 import org.teacon.exhibition_portal.client.screens.MapLayouts;
 import org.teacon.exhibition_portal.components.EPOperation;
 import org.teacon.exhibition_portal.network.ExecuteOperationPacket;
+import org.teacon.exhibition_portal.utils.Components;
 
 import java.util.List;
 
@@ -30,8 +35,12 @@ public final class OperationsLayout {
 
     public static final LayoutResource<TextureMetadata> OPERATION_HOVER_TEXTURE = TextureMetadata.of(ExhibitionPortal.id("textures/gui/operation_hover.png"));
 
+    public static final LayoutParameter<@Nullable Rectangle> OPERATION_HOVER = LayoutParameter.of(null);
+
+    public static final LayoutParameter<@Nullable List<ClientTooltipComponent>> OPERATION_TOOLTIP = LayoutParameter.of(null);
+
     public static final LayoutBinding<@Nullable Rectangle> OPERATION_BOX = LayoutBinding.of(
-            () -> List.of(EPClient.OPERATION, MapLayouts.MAP_BOX, GeneralLayouts.WINDOW_WIDTH),
+            () -> List.of(EPClient.OPERATION, MapLayouts.MAP_BOX, GeneralLayouts.WINDOW_WIDTH, OPERATION_HOVER),
             context -> {
                 Rectangle box = context.get(MapLayouts.MAP_BOX);
                 if (box == null) {
@@ -39,20 +48,25 @@ public final class OperationsLayout {
                 }
 
                 EPOperation operation = context.get(EPClient.OPERATION);
-                float width = context.get(GeneralLayouts.WINDOW_WIDTH) * 0.3f;
+                int windowWidth = context.get(GeneralLayouts.WINDOW_WIDTH);
+                float width = windowWidth * (context.get(OPERATION_HOVER) != null ? 0.8f : 0.3f);
                 float height = width / operation.size();
+                float marginBottom = windowWidth * 0.6f / operation.size();
 
-                return new Rectangle(box.x() + box.w() / 2 - width / 2, box.y1() - height * 2, width, height);
+                return new Rectangle(box.x() + box.w() / 2 - width / 2, box.y1() - marginBottom - height / 2f, width, height);
             }
     );
-
-    public static final LayoutParameter<@Nullable Rectangle> OPERATION_HOVER = LayoutParameter.of(null);
 
     static {
         Layers.push(new Layers.ILayer.Static() {
             @Override
             public byte priority() {
                 return LayerPriority.LAYER_OPERATION;
+            }
+
+            @Override
+            public Class<? extends Screen> screen() {
+                return MapScreen.class;
             }
 
             @Override
@@ -63,6 +77,7 @@ public final class OperationsLayout {
                 TextureMetadata hover = RenderAccess.get(OPERATION_HOVER_TEXTURE, null);
                 if (box == null || !box.contains(mouse) || operation == null || hover == null) {
                     OPERATION_HOVER.set(null);
+                    OPERATION_TOOLTIP.set(null);
                     return new Layers.IEventResult.Miss();
                 }
 
@@ -75,6 +90,10 @@ public final class OperationsLayout {
                         box.y(),
                         gridW,
                         box.h()
+                ));
+                OPERATION_TOOLTIP.set(List.of(
+                        new ClientTextTooltip(Component.literal(operation.operations().get(i).title()).getVisualOrderText()),
+                        new ClientTextTooltip(Component.literal(operation.operations().get(i).tooltip()).getVisualOrderText())
                 ));
                 return new Layers.IEventResult.Consumed();
             }
