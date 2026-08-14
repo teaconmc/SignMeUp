@@ -2,7 +2,6 @@ package org.teacon.exhibition_portal.client.screens.map;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import org.apache.commons.lang3.ArrayUtils;
 import org.teacon.exhibition_portal.ExhibitionPortal;
 import org.teacon.exhibition_portal.client.framework.Layers;
 import org.teacon.exhibition_portal.client.framework.binding.LayoutBinding;

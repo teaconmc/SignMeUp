@@ -4,6 +4,8 @@ import com.google.gson.annotations.SerializedName;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -157,12 +159,15 @@ public final class MapLayouts {
                     Rectangle area = RenderAccess.get(MAP_AREA);
                     if (System.currentTimeMillis() - last < 500) {
                         last = -1;
-                        ClientPacketListener conn = Minecraft.getInstance().getConnection();
+                        Minecraft minecraft = Minecraft.getInstance();
+                        ClientPacketListener conn = minecraft.getConnection();
+                        LocalPlayer player = minecraft.player;
                         MapConfig box = RenderAccess.get(MAP_CONFIG, null);
-                        if (conn != null && box != null) {
+                        if (conn != null && box != null && player != null && player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)) {
                             Rectangle boxArea = box.coordinateFull;
                             float x = boxArea.x() + (mouseX - area.x()) / area.w() * boxArea.w();
                             float z = boxArea.y() + (mouseY - area.y()) / area.h() * boxArea.h();
+
                             conn.send(new TeleportToPositionPacket(Math.round(x), Math.round(z)));
                         }
                         return new Layers.IEventResult.Consumed();

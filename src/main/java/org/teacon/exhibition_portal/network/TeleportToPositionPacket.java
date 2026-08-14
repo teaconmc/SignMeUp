@@ -40,7 +40,6 @@ public record TeleportToPositionPacket(int x, int z) implements CustomPacketPayl
             ServerPlayer player = (ServerPlayer) context.player();
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             if (!player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER) || server == null) {
-                context.disconnect(Component.literal("Illegal access."));
                 return;
             }
 
