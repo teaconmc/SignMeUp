@@ -24,6 +24,9 @@ public class StampingCounterBlockEntity extends BlockEntity {
     private String stampID;
     private Identifier item;
 
+    /* package-private */ boolean visible = false;
+    /* package-private */ long visibleSinceNs = 0;
+
     public StampingCounterBlockEntity(BlockPos worldPosition, BlockState blockState) {
         super(ExhibitionPortal.STAMPING_COUNTER_BE.get(), worldPosition, blockState);
     }
