@@ -65,7 +65,7 @@ public class StampingCounterBlockEntityRenderer implements BlockEntityRenderer<S
     ) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
 
-        boolean visible = cameraPosition.distanceToSqr(blockEntity.getBlockPos().getCenter()) <= 10 * 10;
+        boolean visible = cameraPosition.distanceToSqr(blockEntity.getBlockPos().getCenter()) <= 30 * 30;
         if (visible != blockEntity.visible) {
             blockEntity.visible = visible;
             if (visible) {
@@ -115,7 +115,7 @@ public class StampingCounterBlockEntityRenderer implements BlockEntityRenderer<S
         );
         pose.translate(0, Mth.sin(step * Mth.TWO_PI) * 0.5f, 0);
 
-        state.block.submit(pose, collector, LightCoordsUtil.pack(15, 15), OverlayTexture.NO_OVERLAY, 0);
+        state.block.submit(pose, collector, LightCoordsUtil.pack(15, 15), OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
         pose.popPose();
     }
 

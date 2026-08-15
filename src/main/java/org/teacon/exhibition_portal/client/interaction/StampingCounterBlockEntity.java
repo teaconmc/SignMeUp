@@ -9,6 +9,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -49,6 +50,11 @@ public class StampingCounterBlockEntity extends BlockEntity {
         output.storeNullable("exhibition", UUIDUtil.CODEC, exhibition);
         output.storeNullable("stamp_id", Codec.STRING, stampID);
         output.storeNullable("item", Identifier.CODEC, item);
+    }
+
+    @Override
+    public boolean hasCustomOutlineRendering(Player player) {
+        return true;
     }
 
     @Override
