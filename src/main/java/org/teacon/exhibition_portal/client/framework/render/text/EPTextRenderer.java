@@ -85,6 +85,7 @@ public final class EPTextRenderer extends PictureInPictureRenderer<EPTextRenderS
             try {
                 PoseStack poseStack = new PoseStack();
                 poseStack.scale(guiScale, guiScale, -guiScale);
+                poseStack.translate(EPTextRenderState.EXTRA_MARGIN, EPTextRenderState.EXTRA_MARGIN, 0);
                 EPPreparedTextBuilder builder = new EPPreparedTextBuilder(
                         state.font(), new Rectangle(0, 0, state.area().w(), state.area().h()),
                         state.horizontalAlignment(), state.verticalAlignment(), state.fitMode()

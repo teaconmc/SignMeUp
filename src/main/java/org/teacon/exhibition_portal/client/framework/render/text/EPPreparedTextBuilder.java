@@ -48,7 +48,6 @@ public class EPPreparedTextBuilder implements Font.PreparedText, FormattedCharSi
     private final TextVerticalAlignment verticalAlignment;
     private final TextFitMode fitMode;
 
-    private float x;
     private float left, top, right, bottom;
 
     private record GlyphRecord(TextRenderable.Styled glyph, float x, float advance) {
@@ -80,10 +79,12 @@ public class EPPreparedTextBuilder implements Font.PreparedText, FormattedCharSi
         } catch (Throwable t) {
             throw t instanceof RuntimeException re ? re : new RuntimeException(t);
         }
-        return this.accept(position, style, bakedGlyph);
+        return this.accept(style, bakedGlyph);
     }
 
-    private boolean accept(int position, Style style, BakedGlyph glyph) {
+    private float x;
+
+    private boolean accept(Style style, BakedGlyph glyph) {
         GlyphInfo glyphInfo = glyph.info();
         int textColor = this.getTextColor(style);
         int shadowColor = this.getShadowColor(style, textColor);
@@ -122,15 +123,15 @@ public class EPPreparedTextBuilder implements Font.PreparedText, FormattedCharSi
         for (GlyphRecord gr : this.glyphs) {
             TextRenderable.Styled glyph = gr.glyph();
 
-            float glyphHeight = (glyph.activeBottom() - GLYPH_Y) * bound.w() / x;
+            float glyphHeight = (glyph.activeBottom() - GLYPH_Y) * bound.w() / (right - left);
             Rectangle target = new Rectangle(
-                    bound.x() + gr.x * bound.w() / x,
+                    bound.x() + gr.x * bound.w() / (right - left),
                     switch (verticalAlignment) {
                         case TOP -> bound.y();
                         case CENTER -> bound.y() + bound.h() / 2f - glyphHeight / 2f;
                         case BOTTOM -> bound.y1() - glyphHeight;
                     },
-                    gr.advance * bound.w() / x,
+                    gr.advance * bound.w() / (right - left),
                     glyphHeight
             );
             Rectangle source = new Rectangle(gr.x, GLYPH_Y, gr.advance, glyph.activeBottom() - GLYPH_Y);
@@ -207,8 +208,7 @@ public class EPPreparedTextBuilder implements Font.PreparedText, FormattedCharSi
 
     private @NonNull Rectangle computeBound() {
         Rectangle bound = switch (fitMode) {
-            case FIT_WIDTH -> new Rectangle(0, 0, area.w(), area.w() * (bottom - GLYPH_Y) / x);
-            case FIT_HEIGHT -> new Rectangle(0, 0, area.h() * x / (bottom - GLYPH_Y), area.h());
+            case FIT_HEIGHT -> new Rectangle(0, 0, area.h() * (right - left) / (bottom - GLYPH_Y), area.h());
         };
         bound = new Rectangle(switch (horizontalAlignment) {
             case LEFT, SCROLL -> area.x();
