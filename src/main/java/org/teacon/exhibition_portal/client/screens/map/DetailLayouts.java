@@ -9,7 +9,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
-import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 import org.apache.commons.lang3.Range;
@@ -272,6 +271,7 @@ import static org.teacon.exhibition_portal.client.screens.map.WaypointLayouts.WA
                     UUID uuid = RenderAccess.get(GALLERY_HOVER);
                     if (player != null && uuid != null) {
                         player.connection.send(new TeleportToExhibitionPacket(uuid));
+                        Minecraft.getInstance().setScreen(null);
                         return new Layers.IEventResult.Consumed();
                     }
                 }

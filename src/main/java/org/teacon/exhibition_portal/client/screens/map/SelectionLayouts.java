@@ -319,6 +319,7 @@ import static org.teacon.exhibition_portal.client.screens.map.MapScreenLayouts.S
                             LocalPlayer player = Minecraft.getInstance().player;
                             if (player != null) {
                                 player.connection.send(new TeleportToExhibitionPacket(exhibition.uuid()));
+                                Minecraft.getInstance().setScreen(null);
                                 return new Layers.IEventResult.Consumed();
                             }
                             clickedExhibition = null;

@@ -1,7 +1,6 @@
 package org.teacon.exhibition_portal.client.screens.stamp;
 
 import com.google.gson.annotations.SerializedName;
-import com.mojang.util.UndashedUuid;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -31,7 +30,6 @@ import org.teacon.exhibition_portal.network.UpdateExhibitionStampPacket;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static org.teacon.exhibition_portal.client.EPClient.GALLERY_LOOKUP;
 import static org.teacon.exhibition_portal.client.framework.GeneralLayouts.WINDOW_HEIGHT;
@@ -171,7 +169,10 @@ public class StampScreenLayouts {
                 EditingStamp editingStamp = context.get(EDITING_EXHIBITION);
                 for (Exhibition exhibition : context.get(GALLERY_LOOKUP).values()) {
                     for (ExhibitionStamp stamp : exhibition.footprint().stamps()) {
-                        if (editingStamp != null && editingStamp.stamp().id().equals(stamp.id())) {
+                        if (editingStamp != null
+                                && editingStamp.exhibition().uuid().equals(exhibition.uuid())
+                                && editingStamp.stamp().id().equals(stamp.id())
+                        ) {
                             continue;
                         }
 

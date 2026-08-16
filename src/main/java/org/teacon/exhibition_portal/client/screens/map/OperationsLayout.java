@@ -23,7 +23,6 @@ import org.teacon.exhibition_portal.client.screens.LayerPriority;
 import org.teacon.exhibition_portal.client.screens.MapLayouts;
 import org.teacon.exhibition_portal.components.EPOperation;
 import org.teacon.exhibition_portal.network.ExecuteOperationPacket;
-import org.teacon.exhibition_portal.utils.Components;
 
 import java.util.List;
 
@@ -119,9 +118,7 @@ public final class OperationsLayout {
                     ClientPacketListener conn = Minecraft.getInstance().getConnection();
                     if (conn != null && i >= 0 && i < operation.size()) {
                         conn.send(new ExecuteOperationPacket(operation.operations().get(i).id()));
-                        if (Minecraft.getInstance().screen instanceof MapScreen) {
-                            Minecraft.getInstance().setScreen(null);
-                        }
+                        Minecraft.getInstance().setScreen(null);
                     }
                 }
 
