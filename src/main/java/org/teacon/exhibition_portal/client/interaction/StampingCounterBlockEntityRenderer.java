@@ -1,6 +1,9 @@
 package org.teacon.exhibition_portal.client.interaction;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.BlockModelRenderState;
 import net.minecraft.client.renderer.block.BlockModelResolver;
@@ -28,9 +31,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
-import org.joml.Quaterniond;
 import org.joml.Quaternionf;
-import org.joml.Quaternionfc;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.teacon.exhibition_portal.ExhibitionPortal;
@@ -65,7 +66,11 @@ public class StampingCounterBlockEntityRenderer implements BlockEntityRenderer<S
     ) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
 
-        boolean visible = cameraPosition.distanceToSqr(blockEntity.getBlockPos().getCenter()) <= 30 * 30;
+        LocalPlayer player = Minecraft.getInstance().player;
+        ClientLevel level = Minecraft.getInstance().level;
+        boolean visible = player != null && level != null
+                && AABB.ofSize(blockEntity.getBlockPos().getCenter(), 15, 3, 15).contains(player.position())
+                && level.getBlockState(blockEntity.getBlockPos().above(3)).isAir();
         if (visible != blockEntity.visible) {
             blockEntity.visible = visible;
             if (visible) {
@@ -121,7 +126,7 @@ public class StampingCounterBlockEntityRenderer implements BlockEntityRenderer<S
 
     @Override
     public AABB getRenderBoundingBox(StampingCounterBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).expandTowards(0, 3, 0);
+        return new AABB(blockEntity.getBlockPos()).expandTowards(0, 4, 0);
     }
 
     @SubscribeEvent
