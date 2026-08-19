@@ -191,6 +191,7 @@ public final class EPServer {
 
     public static void clearFootprint(ServerPlayer player) {
         ExhibitionFootprint.getStorage(player).clear();
+        sendExhibitionData(player);
     }
 
     public static ExhibitionFootprint getFootprint(ServerPlayer player, UUID uuid) {

@@ -158,7 +158,7 @@ public class StampScreenLayouts {
         }
     }
 
-    private static final LayoutParameter<@Nullable EditingStamp> EDITING_EXHIBITION = LayoutParameter.of(null);
+    public static final LayoutParameter<@Nullable EditingStamp> EDITING_EXHIBITION = LayoutParameter.of(null);
 
     public static final LayoutBinding<List<StampRender>> RENDERED_STAMPS = LayoutBinding.of(
             () -> List.of(GALLERY_LOOKUP, EDITING_EXHIBITION, MapLayouts.MAP_AREA, STAMP_HANDLE_RECT, STAMP_HANDLE_RECT_CONFIG),

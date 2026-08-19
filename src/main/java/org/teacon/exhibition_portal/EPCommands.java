@@ -94,6 +94,16 @@ public final class EPCommands {
 
     @SubscribeEvent
     private static void on(RegisterCommandsEvent event) {
+        event.getDispatcher().register(Commands.literal("teacon").then(Commands.literal("exhibition").then(
+                Commands.literal("debug").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).then(
+                        Commands.literal("clear_footprint").executes(context -> {
+                            ServerPlayer player = context.getSource().getPlayerOrException();
+                            EPServer.clearFootprint(player);
+                            return Command.SINGLE_SUCCESS;
+                        })
+                )
+        )));
+
         event.getDispatcher().register(Commands.literal("teacon").then(Commands.literal("exhibition").requires(PlayerAccess::is).then(
                 Commands.literal("mine").executes(context -> {
                     ServerPlayer player = PlayerAccess.get(context);
@@ -109,14 +119,6 @@ public final class EPCommands {
                     return Command.SINGLE_SUCCESS;
                 })
         ).then(
-                Commands.literal("debug").requires(PlayerAccess::is).then(
-                        Commands.literal("clear_footprint").executes(context -> {
-                            ServerPlayer player = PlayerAccess.get(context);
-                            EPServer.clearFootprint(player);
-                            return Command.SINGLE_SUCCESS;
-                        })
-                )
-        ).then(
                 Commands.argument("uuid", UuidArgument.uuid())
                         .executes(context -> {
                             UUID uuid = UuidArgument.getUuid(context, "uuid");
@@ -130,7 +132,7 @@ public final class EPCommands {
                             return Command.SINGLE_SUCCESS;
                         })
                         .then(Commands.literal("stamp").then(
-                                Commands.argument("stamp_id", new EnumStringArgument(EPServer.  ALLOWED_STAMP_IDS)).then(
+                                Commands.argument("stamp_id", new EnumStringArgument(EPServer.ALLOWED_STAMP_IDS)).then(
                                         Commands.argument("item", IdentifierArgument.id())
                                                 .executes(context -> {
                                                     UUID uuid = UuidArgument.getUuid(context, "uuid");
@@ -147,7 +149,7 @@ public final class EPCommands {
 
                                                     ItemStack stack = new ItemStack(ExhibitionPortal.STAMPING_COUNTER_ITEM.get());
 
-                                                    TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING,context.getSource().registryAccess());
+                                                    TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, context.getSource().registryAccess());
                                                     StampingCounterBlockEntity.saveStamp(output, uuid, stampID, item);
                                                     BlockItem.setBlockEntityData(stack, ExhibitionPortal.STAMPING_COUNTER_BE.get(), output);
 
