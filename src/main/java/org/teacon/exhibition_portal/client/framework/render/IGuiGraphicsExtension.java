@@ -3,12 +3,15 @@ package org.teacon.exhibition_portal.client.framework.render;
 import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
+import net.neoforged.fml.ModList;
 import org.joml.Matrix3x2f;
+import org.joml.Matrix3x2fStack;
 import org.teacon.exhibition_portal.client.framework.components.Rectangle;
 import org.teacon.exhibition_portal.client.framework.components.TextureMetadata;
 import org.teacon.exhibition_portal.client.framework.components.UVSource;
@@ -95,6 +98,31 @@ public interface IGuiGraphicsExtension {
             Rectangle area, FormattedCharSequence text,
             TextHorizontalAlignment horizontalAlignment, TextVerticalAlignment verticalAlignment, TextFitMode fitMode
     ) {
-        self().submitPictureInPictureRenderState(new EPTextRenderState(area, Minecraft.getInstance().font, text, horizontalAlignment, verticalAlignment, fitMode, self().peekScissorStack()));
+        class Compatibility {
+            static final boolean MUI = true || ModList.get().isLoaded("modernui");
+        }
+
+        if (Compatibility.MUI) {
+            Matrix3x2fStack pose = self().pose();
+            Font font = Minecraft.getInstance().font;
+
+            pose.pushMatrix();
+            try {
+                float factor = area.h() / 8.3f;
+                float dx = switch (horizontalAlignment) {
+                    case LEFT, SCROLL -> 0;
+                    case MIDDLE -> area.w() * factor / 2 - font.width(text) / 2f;
+                    case RIGHT -> area.w() * factor - font.width(text) / 2f;
+                };
+
+                pose.translate(dx + area.x(), area.y());
+                pose.scale(factor);
+                self().text(font, text, 0, 0, 0xFFFFFFFF, false);
+            } finally {
+                pose.popMatrix();
+            }
+        } else {
+            self().submitPictureInPictureRenderState(new EPTextRenderState(area, Minecraft.getInstance().font, text, horizontalAlignment, verticalAlignment, fitMode, self().peekScissorStack()));
+        }
     }
 }

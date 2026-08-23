@@ -17,7 +17,6 @@ import org.lwjgl.glfw.GLFW;
 import org.teacon.exhibition_portal.ExhibitionPortal;
 import org.teacon.exhibition_portal.client.framework.binding.LayoutParameter;
 import org.teacon.exhibition_portal.client.screens.map.MapScreen;
-import org.teacon.exhibition_portal.client.screens.stamp.StampScreenLayouts;
 import org.teacon.exhibition_portal.components.EPOperation;
 import org.teacon.exhibition_portal.components.Exhibition;
 import org.teacon.exhibition_portal.network.UpdateExhibitionPacket;

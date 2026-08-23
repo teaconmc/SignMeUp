@@ -164,6 +164,9 @@ import static org.teacon.exhibition_portal.client.screens.map.MapScreenLayouts.S
                 float v = i * RenderAccess.get(GALLERY_HEIGHT);
                 LEFT_SCROLL.set(Math.clamp(v, 0, RenderAccess.get(LEFT_SCROLL_MAX)));
                 GALLERY_HOVER.set(uuid);
+
+                previous = uuid;
+                previousTimestamp = System.currentTimeMillis();
                 return;
             }
         } catch (LayoutFailureException _) {
@@ -295,6 +298,9 @@ import static org.teacon.exhibition_portal.client.screens.map.MapScreenLayouts.S
 
     public static final LayoutParameter<UUID> GALLERY_HOVER = LayoutParameter.of(null);
 
+    private static UUID previous;
+    private static long previousTimestamp = -1;
+
     static {
         Layers.push(new Layers.ILayer.Static() {
             @Override
@@ -333,9 +339,6 @@ import static org.teacon.exhibition_portal.client.screens.map.MapScreenLayouts.S
                 return new Layers.IEventResult.Miss();
             }
 
-            private SelectionLayouts.ExhibitionRender previous;
-            private long previousTimestamp = -1;
-
             @Override
             public Layers.IEventResult onMouseMove(Pos mouse) {
                 Rectangle outline = RenderAccess.get(DETAIL_BOX, null);
@@ -356,24 +359,25 @@ import static org.teacon.exhibition_portal.client.screens.map.MapScreenLayouts.S
             }
 
             private void moveTo(SelectionLayouts.ExhibitionRender exhibition) {
+                UUID target = exhibition == null ? null : exhibition.exhibition.uuid();
                 if (previous == null) {
                     if (exhibition != null) {
-                        previous = exhibition;
+                        previous = exhibition.exhibition.uuid();
                         previousTimestamp = System.currentTimeMillis();
                     }
                 } else {
                     if (exhibition == null) {
                         if (System.currentTimeMillis() - previousTimestamp <= 200) {
-                            exhibition = previous;
+                            target = previous;
                         }
                     } else {
                         if (System.currentTimeMillis() - previousTimestamp > 200) {
-                            previous = exhibition;
+                            previous = exhibition.exhibition.uuid();;
                             previousTimestamp = System.currentTimeMillis();
                         }
                     }
                 }
-                GALLERY_HOVER.set(exhibition != null ? exhibition.exhibition().uuid() : null);
+                GALLERY_HOVER.set(target);
             }
         });
     }

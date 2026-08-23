@@ -4,20 +4,21 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.block.BlockModelRenderState;
-import net.minecraft.client.renderer.block.BlockModelResolver;
-import net.minecraft.client.renderer.block.model.BlockDisplayContext;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
@@ -44,12 +45,9 @@ import java.util.concurrent.TimeUnit;
 
 @EventBusSubscriber(Dist.CLIENT)
 public class StampingCounterBlockEntityRenderer implements BlockEntityRenderer<StampingCounterBlockEntity, StampingCounterBlockEntityRenderer.RenderState> {
-    private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT = BlockDisplayContext.create();
-
-    private final BlockModelResolver resolver;
+    private static final Identifier MARKER = ExhibitionPortal.id("textures/stamping_table_mark.png");
 
     public StampingCounterBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
-        resolver = context.blockModelResolver();
     }
 
     @Override
@@ -78,11 +76,9 @@ public class StampingCounterBlockEntityRenderer implements BlockEntityRenderer<S
             }
         }
 
+        state.visible = visible;
         if (visible) {
-            resolver.update(state.block, blockEntity.getBlockState(), BLOCK_DISPLAY_CONTEXT);
             state.visibleSinceNs = blockEntity.visibleSinceNs;
-        } else {
-            state.block.clear();
         }
     }
 
@@ -93,7 +89,7 @@ public class StampingCounterBlockEntityRenderer implements BlockEntityRenderer<S
             @NonNull SubmitNodeCollector collector,
             @NonNull CameraRenderState camera
     ) {
-        if (state.block.isEmpty()) {
+        if (!state.visible) {
             return;
         }
 
@@ -103,29 +99,61 @@ public class StampingCounterBlockEntityRenderer implements BlockEntityRenderer<S
 
         float scale;
         if (durationNs <= TimeUnit.MILLISECONDS.toNanos(500)) {
-            scale = durationNs / (float) TimeUnit.MILLISECONDS.toNanos(500) * 0.8f;
+            scale = durationNs / (float) TimeUnit.MILLISECONDS.toNanos(500);
         } else {
-            scale = 0.8f;
+            scale = 1;
         }
         pose.translate(0.5, 0.5, 0.5);
         pose.scale(scale, scale, scale);
         pose.translate(-0.5, -0.5, -0.5);
 
-        float step = durationNs % TimeUnit.MILLISECONDS.toNanos(8000) / (float) TimeUnit.MILLISECONDS.toNanos(8000);
-        pose.rotateAround(
-                new Quaternionf()
-                        .rotateY(step * Mth.TWO_PI)
-                        .rotateX(Mth.PI / 8),
-                0.5f, 0.5f, 0.5f
-        );
-        pose.translate(0, Mth.sin(step * Mth.TWO_PI) * 0.5f, 0);
+        float step = durationNs % TimeUnit.MILLISECONDS.toNanos(1500) / (float) TimeUnit.MILLISECONDS.toNanos(1500);
+        pose.translate(0, Mth.sin(step * Mth.TWO_PI) * 0.1f, 0);
 
-        state.block.submit(pose, collector, LightCoordsUtil.pack(15, 15), OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+        pose.rotateAround(camera.orientation, 0.5f, 0.5f, 0.5f);
+        pose.rotateAround(new Quaternionf().rotateX(Mth.HALF_PI), 0.5f, 0.5f, 0.5f);
+        pose.translate(0, 0.5f, 0);
+
+        collector.submitCustomGeometry(
+                pose,
+                RenderType.create(
+                        "StampingCounter",
+                        RenderSetup.builder(RenderPipelines.TRANSLUCENT_BLOCK)
+                                .withTexture("Sampler0", MARKER)
+                                .useLightmap()
+                                .createRenderSetup()
+                ),
+                (p, buffer) -> {
+                    buffer.addVertex(p, 0, 0, 1)
+                            .setColor(0xFFFFFFFF)
+                            .setUv(0, 1)
+                            .setLight(LightCoordsUtil.pack(15, 15))
+                            .setOverlay(OverlayTexture.NO_OVERLAY)
+                            .setNormal(p, 0, 1, 0);
+                    buffer.addVertex(p, 1, 0, 1)
+                            .setColor(0xFFFFFFFF)
+                            .setUv(1, 1)
+                            .setLight(LightCoordsUtil.pack(15, 15))
+                            .setOverlay(OverlayTexture.NO_OVERLAY)
+                            .setNormal(p, 0, 1, 0);
+                    buffer.addVertex(p, 1, 0, 0)
+                            .setColor(0xFFFFFFFF)
+                            .setUv(1, 0)
+                            .setLight(LightCoordsUtil.pack(15, 15))
+                            .setOverlay(OverlayTexture.NO_OVERLAY)
+                            .setNormal(p, 0, 1, 0);
+                    buffer.addVertex(p, 0, 0, 0)
+                            .setColor(0xFFFFFFFF)
+                            .setUv(0, 0)
+                            .setLight(LightCoordsUtil.pack(15, 15))
+                            .setOverlay(OverlayTexture.NO_OVERLAY)
+                            .setNormal(p, 0, 1, 0);
+                });
         pose.popPose();
     }
 
     @Override
-    public AABB getRenderBoundingBox(StampingCounterBlockEntity blockEntity) {
+    public @NonNull AABB getRenderBoundingBox(StampingCounterBlockEntity blockEntity) {
         return new AABB(blockEntity.getBlockPos()).expandTowards(0, 4, 0);
     }
 
@@ -161,7 +189,7 @@ public class StampingCounterBlockEntityRenderer implements BlockEntityRenderer<S
     }
 
     public static class RenderState extends BlockEntityRenderState {
-        private final BlockModelRenderState block = new BlockModelRenderState();
+        private boolean visible;
         private long visibleSinceNs = 0;
     }
 }
