@@ -50,7 +50,12 @@ public class EPClient {
     @SubscribeEvent
     private static void on(ClientTickEvent.Pre event) {
         while (ENTRYPOINT_KEY.get().consumeClick()) {
-            Minecraft.getInstance().setScreen(new MapScreen());
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.screen instanceof MapScreen) {
+                minecraft.setScreen(null);
+            } else {
+                minecraft.setScreen(new MapScreen());
+            }
         }
     }
 

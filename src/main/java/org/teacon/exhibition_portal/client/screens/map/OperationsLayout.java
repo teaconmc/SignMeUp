@@ -97,8 +97,6 @@ public final class OperationsLayout {
                 return new Layers.IEventResult.Consumed();
             }
 
-            private int lastIndex = -1;
-            private long lastTimestamp = -1;
 
             @Override
             public Layers.IEventResult onMouseButtonPressed(MouseButtonEvent event) {
@@ -109,17 +107,10 @@ public final class OperationsLayout {
                 }
 
                 int i = (int) ((event.x() - box.x()) * operation.size() / box.w());
-                if (lastIndex != i) {
-                    lastIndex = i;
-                    lastTimestamp = System.currentTimeMillis();
-                } else if (System.currentTimeMillis() - lastTimestamp > 500) {
-                    lastTimestamp = System.currentTimeMillis();
-                } else {
-                    ClientPacketListener conn = Minecraft.getInstance().getConnection();
-                    if (conn != null && i >= 0 && i < operation.size()) {
-                        conn.send(new ExecuteOperationPacket(operation.operations().get(i).id()));
-                        Minecraft.getInstance().setScreen(null);
-                    }
+                ClientPacketListener conn = Minecraft.getInstance().getConnection();
+                if (conn != null && i >= 0 && i < operation.size()) {
+                    conn.send(new ExecuteOperationPacket(operation.operations().get(i).id()));
+                    Minecraft.getInstance().setScreen(null);
                 }
 
                 return new Layers.IEventResult.Consumed();

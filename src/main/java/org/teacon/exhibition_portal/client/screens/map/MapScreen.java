@@ -35,6 +35,7 @@ import org.teacon.exhibition_portal.utils.Components;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.teacon.exhibition_portal.client.EPClient.GALLERY_LOOKUP;
 import static org.teacon.exhibition_portal.client.framework.render.text.TextFitMode.FIT_HEIGHT;
@@ -211,105 +212,108 @@ public class MapScreen extends AbstractEPScreen {
                 graphics.peekScissorStack()
         ));
 
-        Exhibition hover = RenderAccess.get(GALLERY_LOOKUP).get(RenderAccess.get(GALLERY_HOVER));
-        if (hover != null) {
-            graphics.renderString(RenderAccess.get(DETAIL_TITLE_BOX), Component.literal(hover.metadata().name()).withStyle(Components.HEAVY), LEFT, CENTER, FIT_HEIGHT);
+        UUID hoverUUID = RenderAccess.get(GALLERY_HOVER);
+        if (hoverUUID != null) {
+            Exhibition hover = RenderAccess.get(GALLERY_LOOKUP).get(hoverUUID);
+            if (hover != null) {
+                graphics.renderString(RenderAccess.get(DETAIL_TITLE_BOX), Component.literal(hover.metadata().name()).withStyle(Components.HEAVY), LEFT, CENTER, FIT_HEIGHT);
 
-            for (Map.Entry<Rectangle, FormattedCharSequence> entry : RenderAccess.get(DETAIL_DESC_BOX).entrySet()) {
-                graphics.renderString(entry.getKey(), entry.getValue(), LEFT, TOP, FIT_HEIGHT);
-            }
+                for (Map.Entry<Rectangle, FormattedCharSequence> entry : RenderAccess.get(DETAIL_DESC_BOX).entrySet()) {
+                    graphics.renderString(entry.getKey(), entry.getValue(), LEFT, TOP, FIT_HEIGHT);
+                }
 
-            Rectangle detailButtonTeleportBox = RenderAccess.get(BUTTON_TELEPORT);
-            graphics.blit(RenderAccess.get(RenderAccess.get(BUTTON_TELEPORT_STYLE)), LINEAR_CLAMP, detailButtonTeleportBox);
-            if (RenderAccess.get(BUTTON_TELEPORT_STYLE) != DetailLayouts.BUTTON_NORMAL) {
-                graphics.requestCursor(CursorTypes.POINTING_HAND);
-            }
-            graphics.renderString(shrink(detailButtonTeleportBox), Component.translatable("exhibition_portal.detail.teleport").withStyle(REGULAR), MIDDLE, CENTER, FIT_HEIGHT);
+                Rectangle detailButtonTeleportBox = RenderAccess.get(BUTTON_TELEPORT);
+                graphics.blit(RenderAccess.get(RenderAccess.get(BUTTON_TELEPORT_STYLE)), LINEAR_CLAMP, detailButtonTeleportBox);
+                if (RenderAccess.get(BUTTON_TELEPORT_STYLE) != DetailLayouts.BUTTON_NORMAL) {
+                    graphics.requestCursor(CursorTypes.POINTING_HAND);
+                }
+                graphics.renderString(shrink(detailButtonTeleportBox), Component.translatable("exhibition_portal.detail.teleport").withStyle(REGULAR), MIDDLE, CENTER, FIT_HEIGHT);
 
-            Rectangle detailButtonMarkBox = RenderAccess.get(BUTTON_MARK_AS);
-            graphics.blit(RenderAccess.get(RenderAccess.get(BUTTON_MARK_STYLE)), LINEAR_CLAMP, detailButtonMarkBox);
-            Range<Float> detailButtonMarkRange = RenderAccess.get(BUTTON_MARK_HOVER_RANGE_STYLE);
-            if (detailButtonMarkRange == null) {
-                graphics.renderString(shrink(detailButtonMarkBox), Component.translatable("exhibition_portal.detail.mark").withStyle(REGULAR), MIDDLE, CENTER, FIT_HEIGHT);
-            } else {
-                graphics.requestCursor(CursorTypes.POINTING_HAND);
-                graphics.blit(
-                        RenderAccess.get(BUTTON_HOVER),
-                        LINEAR_CLAMP,
-                        new Rectangle(
-                                detailButtonMarkBox.x() + detailButtonMarkBox.w() * detailButtonMarkRange.getMinimum(),
-                                detailButtonMarkBox.y(),
-                                detailButtonMarkBox.w() * (detailButtonMarkRange.getMaximum() - detailButtonMarkRange.getMinimum()),
-                                detailButtonMarkBox.h()
-                        ),
-                        new UVSource(detailButtonMarkRange.getMinimum(), detailButtonMarkRange.getMaximum(), 0, 1)
+                Rectangle detailButtonMarkBox = RenderAccess.get(BUTTON_MARK_AS);
+                graphics.blit(RenderAccess.get(RenderAccess.get(BUTTON_MARK_STYLE)), LINEAR_CLAMP, detailButtonMarkBox);
+                Range<Float> detailButtonMarkRange = RenderAccess.get(BUTTON_MARK_HOVER_RANGE_STYLE);
+                if (detailButtonMarkRange == null) {
+                    graphics.renderString(shrink(detailButtonMarkBox), Component.translatable("exhibition_portal.detail.mark").withStyle(REGULAR), MIDDLE, CENTER, FIT_HEIGHT);
+                } else {
+                    graphics.requestCursor(CursorTypes.POINTING_HAND);
+                    graphics.blit(
+                            RenderAccess.get(BUTTON_HOVER),
+                            LINEAR_CLAMP,
+                            new Rectangle(
+                                    detailButtonMarkBox.x() + detailButtonMarkBox.w() * detailButtonMarkRange.getMinimum(),
+                                    detailButtonMarkBox.y(),
+                                    detailButtonMarkBox.w() * (detailButtonMarkRange.getMaximum() - detailButtonMarkRange.getMinimum()),
+                                    detailButtonMarkBox.h()
+                            ),
+                            new UVSource(detailButtonMarkRange.getMinimum(), detailButtonMarkRange.getMaximum(), 0, 1)
+                    );
+
+                    String[] waypointTypes = RenderAccess.get(WAYPOINT_TYPES);
+                    for (int i = 0; i < waypointTypes.length; i++) {
+                        float a = detailButtonMarkBox.h(), s = 0.15f, d = a * s, d2 = a * (1 - s * 2);
+                        Rectangle r = new Rectangle(detailButtonMarkBox.x() + a * i, detailButtonMarkBox.y(), a, a);
+                        r = new Rectangle(r.x() + d, r.y() + d, d2, d2);
+                        UVSource uv = new UVSource(i / (float) waypointTypes.length, (i + 1) / (float) waypointTypes.length, 0, 1);
+                        graphics.blit(RenderAccess.get(WaypointLayouts.WAYPOINT_TEXTURE), LINEAR_CLAMP, r, uv);
+                    }
+                }
+
+                final float LINE_WIDTH = 2f;
+                graphics.fill(new Rectangle(selectionOutline.x0() - LINE_WIDTH, selectionOutline.y0() - LINE_WIDTH, selectionOutline.w() + LINE_WIDTH, LINE_WIDTH), 0xFF0EA5E9);
+                graphics.fill(new Rectangle(descOutline.x0(), descOutline.y0() - LINE_WIDTH, descOutline.w() + LINE_WIDTH, LINE_WIDTH), 0xFF0EA5E9);
+                graphics.fill(new Rectangle(descOutline.x1(), descOutline.y0(), LINE_WIDTH, descOutline.h()), 0xFF0EA5E9);
+                graphics.fill(new Rectangle(descOutline.x0(), descOutline.y1(), descOutline.w() + LINE_WIDTH, LINE_WIDTH), 0xFF0EA5E9);
+                graphics.fill(new Rectangle(selectionOutline.x0() - LINE_WIDTH, selectionOutline.y0(), LINE_WIDTH, selectionOutline.h()), 0xFF0EA5E9);
+                graphics.fill(new Rectangle(selectionOutline.x0() - LINE_WIDTH, selectionOutline.y1(), selectionOutline.w() + LINE_WIDTH, LINE_WIDTH), 0xFF0EA5E9);
+
+                Vector2f vec = new Vector2f(descOutline.x0(), descOutline.y0())
+                        .sub(selectionOutline.x1(), selectionOutline.y0());
+                vec.set(+vec.y, -vec.x)
+                        .div(vec.distance(0, 0))
+                        .mul(LINE_WIDTH);
+                graphics.fill(
+                        descOutline.x0(), descOutline.y0(), 0xFF0EA5E9,
+                        descOutline.x0() + vec.x, descOutline.y0() + vec.y, 0xFF0EA5E9,
+                        selectionOutline.x1() + vec.x, selectionOutline.y0() + vec.y, 0xFF0EA5E9,
+                        selectionOutline.x1(), selectionOutline.y0(), 0xFF0EA5E9
+                );
+                graphics.fill(
+                        descOutline.x0(), descOutline.y0(), 0xFF0EA5E9,
+                        descOutline.x0(), descOutline.y0() - LINE_WIDTH, 0xFF0EA5E9,
+                        descOutline.x0() + vec.x, descOutline.y0() + vec.y, 0xFF0EA5E9,
+                        descOutline.x0(), descOutline.y0(), 0xFF0EA5E9
+                );
+                graphics.fill(
+                        selectionOutline.x1(), selectionOutline.y0(), 0xFF0EA5E9,
+                        selectionOutline.x1() + vec.x, selectionOutline.y0() + vec.y, 0xFF0EA5E9,
+                        selectionOutline.x1(), selectionOutline.y0() - LINE_WIDTH, 0xFF0EA5E9,
+                        selectionOutline.x1(), selectionOutline.y0(), 0xFF0EA5E9
                 );
 
-                String[] waypointTypes = RenderAccess.get(WAYPOINT_TYPES);
-                for (int i = 0; i < waypointTypes.length; i++) {
-                    float a = detailButtonMarkBox.h(), s = 0.15f, d = a * s, d2 = a * (1 - s * 2);
-                    Rectangle r = new Rectangle(detailButtonMarkBox.x() + a * i, detailButtonMarkBox.y(), a, a);
-                    r = new Rectangle(r.x() + d, r.y() + d, d2, d2);
-                    UVSource uv = new UVSource(i / (float) waypointTypes.length, (i + 1) / (float) waypointTypes.length, 0, 1);
-                    graphics.blit(RenderAccess.get(WaypointLayouts.WAYPOINT_TEXTURE), LINEAR_CLAMP, r, uv);
-                }
+                vec.set(descOutline.x0(), descOutline.y1())
+                        .sub(selectionOutline.x1(), selectionOutline.y1());
+                vec.set(-vec.y, +vec.x)
+                        .div(vec.distance(0, 0))
+                        .mul(3f);
+                graphics.fill(
+                        descOutline.x0() + vec.x, descOutline.y1() + vec.y, 0xFF0EA5E9,
+                        descOutline.x0(), descOutline.y1(), 0xFF0EA5E9,
+                        selectionOutline.x1(), selectionOutline.y1(), 0xFF0EA5E9,
+                        selectionOutline.x1() + vec.x, selectionOutline.y1() + vec.y, 0xFF0EA5E9
+                );
+                graphics.fill(
+                        descOutline.x0(), descOutline.y1() + LINE_WIDTH, 0xFF0EA5E9,
+                        descOutline.x0(), descOutline.y1(), 0xFF0EA5E9,
+                        descOutline.x0(), descOutline.y1(), 0xFF0EA5E9,
+                        descOutline.x0() + vec.x, descOutline.y1() + vec.y, 0xFF0EA5E9
+                );
+                graphics.fill(
+                        selectionOutline.x1() + vec.x, selectionOutline.y1() + vec.y, 0xFF0EA5E9,
+                        selectionOutline.x1(), selectionOutline.y1(), 0xFF0EA5E9,
+                        selectionOutline.x1(), selectionOutline.y1(), 0xFF0EA5E9,
+                        selectionOutline.x1(), selectionOutline.y1() + LINE_WIDTH, 0xFF0EA5E9
+                );
             }
-
-            final float LINE_WIDTH = 2f;
-            graphics.fill(new Rectangle(selectionOutline.x0() - LINE_WIDTH, selectionOutline.y0() - LINE_WIDTH, selectionOutline.w() + LINE_WIDTH, LINE_WIDTH), 0xFF0EA5E9);
-            graphics.fill(new Rectangle(descOutline.x0(), descOutline.y0() - LINE_WIDTH, descOutline.w() + LINE_WIDTH, LINE_WIDTH), 0xFF0EA5E9);
-            graphics.fill(new Rectangle(descOutline.x1(), descOutline.y0(), LINE_WIDTH, descOutline.h()), 0xFF0EA5E9);
-            graphics.fill(new Rectangle(descOutline.x0(), descOutline.y1(), descOutline.w() + LINE_WIDTH, LINE_WIDTH), 0xFF0EA5E9);
-            graphics.fill(new Rectangle(selectionOutline.x0() - LINE_WIDTH, selectionOutline.y0(), LINE_WIDTH, selectionOutline.h()), 0xFF0EA5E9);
-            graphics.fill(new Rectangle(selectionOutline.x0() - LINE_WIDTH, selectionOutline.y1(), selectionOutline.w() + LINE_WIDTH, LINE_WIDTH), 0xFF0EA5E9);
-
-            Vector2f vec = new Vector2f(descOutline.x0(), descOutline.y0())
-                    .sub(selectionOutline.x1(), selectionOutline.y0());
-            vec.set(+vec.y, -vec.x)
-                    .div(vec.distance(0, 0))
-                    .mul(LINE_WIDTH);
-            graphics.fill(
-                    descOutline.x0(), descOutline.y0(), 0xFF0EA5E9,
-                    descOutline.x0() + vec.x, descOutline.y0() + vec.y, 0xFF0EA5E9,
-                    selectionOutline.x1() + vec.x, selectionOutline.y0() + vec.y, 0xFF0EA5E9,
-                    selectionOutline.x1(), selectionOutline.y0(), 0xFF0EA5E9
-            );
-            graphics.fill(
-                    descOutline.x0(), descOutline.y0(), 0xFF0EA5E9,
-                    descOutline.x0(), descOutline.y0() - LINE_WIDTH, 0xFF0EA5E9,
-                    descOutline.x0() + vec.x, descOutline.y0() + vec.y, 0xFF0EA5E9,
-                    descOutline.x0(), descOutline.y0(), 0xFF0EA5E9
-            );
-            graphics.fill(
-                    selectionOutline.x1(), selectionOutline.y0(), 0xFF0EA5E9,
-                    selectionOutline.x1() + vec.x, selectionOutline.y0() + vec.y, 0xFF0EA5E9,
-                    selectionOutline.x1(), selectionOutline.y0() - LINE_WIDTH, 0xFF0EA5E9,
-                    selectionOutline.x1(), selectionOutline.y0(), 0xFF0EA5E9
-            );
-
-            vec.set(descOutline.x0(), descOutline.y1())
-                    .sub(selectionOutline.x1(), selectionOutline.y1());
-            vec.set(-vec.y, +vec.x)
-                    .div(vec.distance(0, 0))
-                    .mul(3f);
-            graphics.fill(
-                    descOutline.x0() + vec.x, descOutline.y1() + vec.y, 0xFF0EA5E9,
-                    descOutline.x0(), descOutline.y1(), 0xFF0EA5E9,
-                    selectionOutline.x1(), selectionOutline.y1(), 0xFF0EA5E9,
-                    selectionOutline.x1() + vec.x, selectionOutline.y1() + vec.y, 0xFF0EA5E9
-            );
-            graphics.fill(
-                    descOutline.x0(), descOutline.y1() + LINE_WIDTH, 0xFF0EA5E9,
-                    descOutline.x0(), descOutline.y1(), 0xFF0EA5E9,
-                    descOutline.x0(), descOutline.y1(), 0xFF0EA5E9,
-                    descOutline.x0() + vec.x, descOutline.y1() + vec.y, 0xFF0EA5E9
-            );
-            graphics.fill(
-                    selectionOutline.x1() + vec.x, selectionOutline.y1() + vec.y, 0xFF0EA5E9,
-                    selectionOutline.x1(), selectionOutline.y1(), 0xFF0EA5E9,
-                    selectionOutline.x1(), selectionOutline.y1(), 0xFF0EA5E9,
-                    selectionOutline.x1(), selectionOutline.y1() + LINE_WIDTH, 0xFF0EA5E9
-            );
         }
     }
 
