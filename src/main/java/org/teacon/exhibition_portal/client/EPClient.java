@@ -29,7 +29,7 @@ import java.util.UUID;
 
 @EventBusSubscriber(Dist.CLIENT)
 public class EPClient {
-    public static final LayoutParameter<Map<UUID, Exhibition>> GALLERY_LOOKUP = LayoutParameter.of(Map.of());
+    public static final LayoutParameter<Map<UUID, Exhibition>> GALLERY_LOOKUP = LayoutParameter.of(new HashMap<>());
     public static final LayoutParameter<List<UUID>> GALLERIES = LayoutParameter.of(List.of());
     public static final LayoutParameter<EPOperation> OPERATION = LayoutParameter.of(EPOperation.INSTANCE);
 
